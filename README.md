@@ -1,4 +1,4 @@
-midlang 设计规范
+idlang 设计规范
 ==============
 
 `midlang` 被设计成算法和数据描述语言，不关心操作系统环境。midlang 不能直接运行，而只能翻译成其他语言，比如 c/c++/go/rust/java/javascript/swift/python/php/ruby...。
@@ -21,38 +21,14 @@ midlang 设计规范
 ## 关键字
 ---
 
-	byte
-	int
-	int16
-	int32
-	int64
-	string
-	array
-	vector
-	map
-	struct
-	enum
-	interface
-	func
-	void
-	public
-	private
-	ref
-	let
-	var
-	if
-	else
-	for
-	in
-	break
-	continue
-	return
-	switch
-	case
-	package
-	import
+| | | | | | | | |
+|-|-|-|-|-|-|-|-|
+| byte | int | int16 | int32 | int64 | string | array | vector |
+| map | struct | enum | interface | func | void | public | private |
+| ref | let | var | if | else | for | in | break |
+| continue | return | switch | case | package | import |
 
-自定义关键字: 通过 midlang 编译器 `zcc` 的 `alias` 参数或配置可以给 `struct`, `enum`, `interface` 定义别名，这些别名也将成为关键字
+自定义关键字: 通过 midlang 编译器 `midc` 的 `alias` 参数或配置可以给 `struct`, `enum`, `interface` 定义别名，这些别名也将成为关键字
 
 ## 类型系统
 ---
@@ -73,32 +49,14 @@ midlang 设计规范
 ---
 
 ### 符号
-	=
-	>
-	<
-	!=
-	&&
-	||
-	!
-	&
-	|
-	^
-	>>
-	<<
-	(
-	)
-	{
-	}
-	[
-	]
-	"
-	'
-	.
-	*
-	/
-	+
-	-
-	%
+
+| | | | | | | | |
+|-|-|-|-|-|-|-|-|
+| `=` | `>` | `<` | `!=` | `&&` | `\|\|` | `!` |
+| `&` | `\|` | `^` | `>>` | `<<` | `(` | `)` |
+| `{` | `}` | `[` | `]` | `"` | `'` | `.` |
+| `*` | `/` | `+` | `-` | `%` | | |
+| | | | | | | |
 
 ### 声明
 
