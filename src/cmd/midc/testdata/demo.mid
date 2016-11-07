@@ -1,0 +1,30 @@
+package demo
+
+// constants
+const (
+	A = 1
+	B = 2
+)
+
+enum Status {
+	Ok = 0,
+	Bad = 1,
+}
+
+struct User {
+	int64 id
+	string name
+	vector<string> otherNames
+	array<byte,6> code
+}
+
+protocol UserList {
+	map<int64,User> users
+}
+
+service UserService {
+	sayHello()
+	getUsers() UserList
+	findUser(int64 uid) User
+	delUser(int64) Status
+}
