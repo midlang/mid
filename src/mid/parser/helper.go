@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"fmt"
+	"sort"
 
 	"github.com/midlang/mid/src/mid/ast"
 	xscanner "github.com/midlang/mid/src/mid/external/go/scanner"
@@ -18,7 +19,25 @@ type Error struct {
 func (err Error) Error() string { return fmt.Sprintf("%v: %s", err.Pos, err.Msg) }
 
 type ErrorList struct {
-	errors []error
+	errors []*Error
+}
+
+func (errs *ErrorList) Len() int { return len(errs.errors) }
+func (errs *ErrorList) Less(i, j int) bool {
+	pi := errs.errors[i].Pos
+	pj := errs.errors[j].Pos
+	if pi.Filename != pj.Filename {
+		return pi.Filename < pj.Filename
+	} else if pi.Line != pj.Line {
+		return pi.Line < pj.Line
+	} else {
+		return pi.Column < pj.Column
+	}
+}
+func (errs *ErrorList) Swap(i, j int) { errs.errors[i], errs.errors[j] = errs.errors[j], errs.errors[i] }
+
+func (errs *ErrorList) Sort() {
+	sort.Sort(errs)
 }
 
 func (errs *ErrorList) Add(pos lexer.Position, msg string) {
@@ -32,7 +51,6 @@ func (errs *ErrorList) Err() error {
 	return errs
 }
 
-func (errs *ErrorList) Len() int { return len(errs.errors) }
 func (errs *ErrorList) Error() string {
 	buf := new(bytes.Buffer)
 	for _, e := range errs.errors {

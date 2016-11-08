@@ -16,20 +16,22 @@ import (
 type argT struct {
 	cli.Helper
 	Config
-	ConfigFile string            `cli:"c,config" usage:"config filename"`
-	LogLevel   logger.Level      `cli:"v,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
-	Inputs     []string          `cli:"I,input" usage:"input directories or files which has SUFFIX"`
-	Outdirs    map[string]string `cli:"O,outdir" usage:"out directory for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
-	Extentions []string          `cli:"X,extension" usage:"generated models, e.g. -Xproto -Xredis -Xmysql:go"`
-	Envvars    map[string]string `cli:"E,env" usage:"custom defined environment variables"`
+	ConfigFile  string            `cli:"c,config" usage:"config filename"`
+	LogLevel    logger.Level      `cli:"v,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
+	Inputs      []string          `cli:"I,input" usage:"input directories or files which has SUFFIX"`
+	Outdirs     map[string]string `cli:"O,outdir" usage:"out directory for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
+	Extentions  []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql:go (only for go generator)"`
+	Envvars     map[string]string `cli:"E,env" usage:"custom defined environment variables"`
+	ImportPaths []string          `cli:"P,importpath" usage:"import paths for lookuping imports"`
 }
 
 func newArgT() *argT {
 	argv := &argT{
-		Outdirs:    map[string]string{},
-		Envvars:    map[string]string{},
-		Config:     *newConfig(),
-		ConfigFile: midconfig,
+		Outdirs:     map[string]string{},
+		Envvars:     map[string]string{},
+		Config:      *newConfig(),
+		ConfigFile:  filepath.Join(os.Getenv("HOME"), ".midconfig"),
+		ImportPaths: strings.Split(os.Getenv("MID_IMPORT_PATH"), ":"),
 	}
 	return argv
 }
@@ -124,10 +126,10 @@ var root = &cli.Command{
 		fset := lexer.NewFileSet()
 		pkgs, err := parser.ParseFiles(fset, inputs)
 		if err != nil {
-			log.Error("parse error: %v", red(err))
+			log.Error("parse error:\n%v", red(err))
 			return nil
 		}
-		builder, err := build.Build(pkgs)
+		builder, err := build.Build(pkgs, argv.ImportPaths)
 		if err != nil {
 			log.Error("build error: %v", red(err))
 			return nil

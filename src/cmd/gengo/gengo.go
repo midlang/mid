@@ -22,6 +22,8 @@ func main() {
 	}
 	log.WithJSON(config).Trace("config")
 	log.WithJSON(builder).Trace("builder")
+
+	// TODO: generate codes
 }
 
 func goFieldDecl(f *build.Field) string {

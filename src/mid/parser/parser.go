@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -525,12 +526,30 @@ func ParseFiles(fset *lexer.FileSet, files []string) (map[string]*ast.Package, e
 			pkg, found := pkgs[name]
 			if !found {
 				pkg = &ast.Package{
-					Name:  name,
-					Files: make(map[string]*ast.File),
+					Name:    name,
+					Scope:   ast.NewScope(nil),
+					Imports: make(map[string]*ast.Object),
+					Files:   make(map[string]*ast.File),
 				}
 				pkgs[name] = pkg
 			}
 			pkg.Files[name] = f
+			if f.Scope != nil && f.Scope.Objects != nil {
+				errors := &ErrorList{errors: []*Error{}}
+				for _, obj := range f.Scope.Objects {
+					if alt := pkg.Scope.Insert(obj); alt != nil {
+						prevDecl := ""
+						if pos := alt.Begin(); pos.IsValid() {
+							prevDecl = fmt.Sprintf("\n\tprevious declaration at %v", fset.Position(pos))
+						}
+						errors.Add(fset.Position(obj.Begin()), fmt.Sprintf("%s redeclared in this block%s", obj.Name, prevDecl))
+					}
+				}
+				if firstErr == nil && errors.Len() > 0 {
+					errors.Sort()
+					firstErr = errors.Err()
+				}
+			}
 		} else if firstErr == nil {
 			firstErr = err
 		}

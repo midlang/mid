@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"path/filepath"
 	"strings"
 
 	"github.com/midlang/mid/src/mid/ast"
@@ -53,12 +54,39 @@ func NewBuilder() *Builder {
 	}
 }
 
-func Build(pkgs map[string]*ast.Package) (*Builder, error) {
+func Build(pkgs map[string]*ast.Package, importPaths []string) (*Builder, error) {
 	builder := NewBuilder()
+	for _, pkg := range pkgs {
+		for _, file := range pkg.Files {
+			for _, imp := range file.Imports {
+				id := packageId(imp)
+				importedPkg, err := lookupPackage(pkgs, imp)
+				if err != nil {
+					return nil, err
+				}
+				obj := ast.NewObj(ast.Pkg, importedPkg.Name)
+				obj.Decl = importedPkg
+				pkg.Imports[id] = obj
+			}
+		}
+	}
 	for _, pkg := range pkgs {
 		builder.Packages[pkg.Name] = BuildPackage(pkg)
 	}
 	return builder, nil
+}
+
+func packageId(imp *ast.ImportSpec) string {
+	if imp.Name != nil {
+		return imp.Name.Name
+	}
+	_, name := filepath.Split(imp.Package.Value)
+	return name
+}
+
+func lookupPackage(pkgs map[string]*ast.Package, imp *ast.ImportSpec) (*ast.Package, error) {
+	// TODO
+	return nil, nil
 }
 
 func (builder *Builder) Encode() string {

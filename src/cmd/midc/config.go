@@ -3,13 +3,8 @@ package main
 import (
 	"encoding/json"
 	"os"
-	"path/filepath"
 
 	"github.com/midlang/mid/src/mid/build"
-)
-
-var (
-	midconfig = filepath.Join(os.Getenv("HOME"), ".midconfig")
 )
 
 type Config struct {
@@ -26,9 +21,6 @@ func newConfig() *Config {
 }
 
 func (cfg *Config) Load(filename string) error {
-	if filename == "" {
-		filename = midconfig
-	}
 	file, err := os.Open(filename)
 	if err != nil {
 		return err
