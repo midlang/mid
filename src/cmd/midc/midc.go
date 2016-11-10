@@ -16,22 +16,24 @@ import (
 type argT struct {
 	cli.Helper
 	Config
-	ConfigFile  string            `cli:"c,config" usage:"config filename"`
-	LogLevel    logger.Level      `cli:"v,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
-	Inputs      []string          `cli:"I,input" usage:"input directories or files which has SUFFIX"`
-	Outdirs     map[string]string `cli:"O,outdir" usage:"out directory for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
-	Extentions  []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql:go (only for go generator)"`
-	Envvars     map[string]string `cli:"E,env" usage:"custom defined environment variables"`
-	ImportPaths []string          `cli:"P,importpath" usage:"import paths for lookuping imports"`
+	ConfigFile   string            `cli:"c,config" usage:"config filename"`
+	LogLevel     logger.Level      `cli:"v,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
+	Inputs       []string          `cli:"I,input" usage:"input directories or files which has SUFFIX"`
+	Outdirs      map[string]string `cli:"O,outdir" usage:"out directory for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
+	Extentions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql:go (only for go generator)"`
+	Envvars      map[string]string `cli:"E,env" usage:"custom defined environment variables"`
+	ImportPaths  []string          `cli:"P,importpath" usage:"import paths for lookuping imports"`
+	TemplatesDir map[string]string `cli:"T,template" usage:"templates directory"`
 }
 
 func newArgT() *argT {
 	argv := &argT{
-		Outdirs:     map[string]string{},
-		Envvars:     map[string]string{},
-		Config:      *newConfig(),
-		ConfigFile:  filepath.Join(os.Getenv("HOME"), ".midconfig"),
-		ImportPaths: strings.Split(os.Getenv("MID_IMPORT_PATH"), ":"),
+		Outdirs:      map[string]string{},
+		TemplatesDir: map[string]string{},
+		Envvars:      map[string]string{},
+		Config:       *newConfig(),
+		ConfigFile:   filepath.Join(os.Getenv("HOME"), ".midconfig"),
+		ImportPaths:  strings.Split(os.Getenv("MID_IMPORT_PATH"), ":"),
 	}
 	return argv
 }
@@ -69,6 +71,17 @@ var root = &cli.Command{
 		if err := argv.Config.Load(argv.ConfigFile); err != nil {
 			log.Error("load config %s: %v", cyan(argv.ConfigFile), red(err))
 		}
+
+		templatesDir := make(map[string]string)
+		for lang, dir := range argv.TemplatesDir {
+			absDir, err := filepath.Abs(dir)
+			if err != nil {
+				log.Error("invalid templates dir: %s", red(dir))
+				return nil
+			}
+			templatesDir[lang] = absDir
+		}
+		argv.TemplatesDir = templatesDir
 
 		// validate source directories and files
 		if len(argv.Inputs) == 0 {
@@ -110,6 +123,20 @@ var root = &cli.Command{
 				log.Error("init plugin %s: %s", formatPlugin(plugin.Lang, plugin.Name))
 				hasError = true
 				continue
+			}
+			plugin.RuntimeConfig.Verbose = argv.LogLevel.String()
+			if templatesDir, ok := argv.TemplatesDir[plugin.Lang]; ok {
+				// replace default templatesDir
+				plugin.TemplatesDir = templatesDir
+			}
+			if plugin.TemplatesDir == "" {
+				if argv.Config.TemplatesRootDir != "" {
+					plugin.TemplatesDir = filepath.Join(argv.Config.TemplatesRootDir, plugin.Lang)
+				} else {
+					log.Error("templates directory of plugin %s missing", formatPlugin(plugin.Lang, plugin.Name))
+					hasError = true
+					continue
+				}
 			}
 			plugins = append(plugins, plugin)
 			for _, x := range argv.Extentions {

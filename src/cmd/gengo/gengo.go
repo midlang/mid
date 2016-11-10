@@ -1,70 +1,65 @@
 package main
 
 import (
-	//"bytes"
 	"fmt"
-	"os"
-	"strings"
+	"path/filepath"
 
-	//"github.com/midlang/mid/src/mid/ast"
 	"github.com/midlang/mid/src/mid/build"
+	"github.com/midlang/mid/src/tools/generator"
 	"github.com/mkideal/log"
+	"github.com/mkideal/pkg/errors"
 )
 
 func main() {
 	defer log.Uninit(log.InitConsole(log.LvWARN))
-	log.SetLevel(log.LvTRACE)
 
-	config, builder, err := build.ParseFlags()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
-	}
-	log.WithJSON(config).Trace("config")
+	plugin, config, builder, err := build.ParseFlags()
+	log.If(err != nil).Fatal("ParseFlags: %v", err)
+
+	log.SetLevelFromString(config.Verbose)
+	log.WithJSON(plugin).Debug("plugin")
+	log.WithJSON(config).Debug("config")
 	log.WithJSON(builder).Trace("builder")
 
-	// TODO: generate codes
+	err = generate(builder, plugin, config)
+	log.If(err != nil).Error("generate go: %v", err)
 }
 
-func goFieldDecl(f *build.Field) string {
-	if len(f.Names) == 0 {
-		return "_ " + buildType(f.Type)
-	}
-	return strings.Join(f.Names, ", ") + " " + buildType(f.Type)
-}
-
-func buildType(typ build.Type) string {
-	/*switch t := typ.(type) {
-	case *build.BasicType:
-		return t.Name
-	case *build.ArrayType:
-	return fmt.Sprintf("[%s]%s", build.BuildExpr(t.Size), buildType(t.T))
-	case *ast.VectorType:
-		return fmt.Sprintf("[]%s", buildType(t.T))
-	case *ast.MapType:
-		return fmt.Sprintf("map[%s]%s", buildType(t.K), buildType(t.V))
-	case *ast.StructType:
-		if t.Package != nil {
-			return t.Package.Name + "." + t.Name.Name
-		}
-		return t.Name.Name
-	case *ast.FuncType:
-		var buf bytes.Buffer
-		buf.WriteByte('(')
-		if t.Params != nil && len(t.Params.List) > 0 {
-			for i, field := range t.Params.List {
-				if i > 0 {
-					buf.WriteByte(',')
-				}
-				bf := build.BuildField(field)
-				buf.WriteString(goFieldDecl(bf))
+func generate(builder *build.Builder, plugin build.Plugin, config build.PluginRuntimeConfig) (err error) {
+	defer func() {
+		return
+		if e := recover(); e != nil {
+			switch x := e.(type) {
+			case error:
+				err = x
+			case string:
+				err = errors.Error(x)
+			default:
+				err = fmt.Errorf("%v", x)
 			}
 		}
-		buf.WriteByte(')')
-		if t.Result != nil {
-			buf.WriteString(buildType(t.Result))
+	}()
+
+	infos, err := generator.OpenTemplatesDir(plugin.Lang, plugin.TemplatesDir)
+	if err != nil {
+		return errors.Throw(err.Error())
+	}
+	if len(infos) == 0 {
+		return nil
+	}
+
+	pkgs := builder.Packages
+	for _, pkg := range pkgs {
+		outdir := filepath.Join(config.Outdir, pkg.Name)
+		if files, err := generator.GeneratePackage(outdir, pkg, plugin, config, buildType, infos); err != nil {
+			return err
+		} else {
+			for file := range files {
+				if err = generator.GoFmt(file); err != nil {
+					return errors.Throw("gofmt file `" + file + "` error: " + err.Error())
+				}
+			}
 		}
-		return buf.String()
-	}*/
-	return ""
+	}
+	return nil
 }

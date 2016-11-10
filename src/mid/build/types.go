@@ -2,10 +2,16 @@ package build
 
 import (
 	"encoding/gob"
+	"errors"
 	"strings"
 
 	"github.com/midlang/mid/src/mid/ast"
 	"github.com/midlang/mid/src/mid/lexer"
+	"github.com/mkideal/log"
+)
+
+var (
+	ErrAmbiguousNames = errors.New("ambiguous names")
 )
 
 func init() {
@@ -44,7 +50,8 @@ func BuildComment(comment *ast.CommentGroup) string {
 	if comment == nil {
 		return ""
 	}
-	return comment.Text()
+	text := comment.Text()
+	return text
 }
 
 func BuildTag(tag *ast.BasicLit) string {
@@ -89,6 +96,24 @@ func (field Field) NamesString() string {
 	return strings.Join(field.Names, ", ")
 }
 
+func (field Field) Name() (string, error) {
+	if len(field.Names) == 0 {
+		return "_", nil
+	}
+	if len(field.Names) == 1 {
+		return field.Names[0], nil
+	}
+	return "", ErrAmbiguousNames
+}
+
+func (field Field) Value() string {
+	switch e := field.Default.(type) {
+	case *BasicLit:
+		return e.Value
+	}
+	panic("unsupported expr")
+}
+
 func BuildField(field *ast.Field) *Field {
 	out := &Field{
 		Doc:     BuildDoc(field.Doc),
@@ -99,6 +124,7 @@ func BuildField(field *ast.Field) *Field {
 		Tag:     BuildTag(field.Tag),
 		Comment: BuildComment(field.Comment),
 	}
+	log.Trace("BuildField: field=%v", out.Names)
 	return out
 }
 
@@ -177,7 +203,6 @@ func BuildType(typ ast.Type) Type {
 	case *ast.FuncType:
 		return BuildFunc(t)
 	default:
-		//TODO: alert error
 		return &TypeBase{}
 	}
 }
@@ -259,12 +284,15 @@ type Bean struct {
 }
 
 func BuildBean(bean *ast.BeanDecl) *Bean {
-	return &Bean{
+	log.Trace("BuildBean: kind=%s, name=%s, len(fields)=%d", bean.Kind, bean.Name.Name, len(bean.Fields.List))
+	b := &Bean{
 		Kind:   bean.Kind,
 		Doc:    BuildDoc(bean.Doc),
 		Name:   BuildIdent(bean.Name),
 		Fields: BuildFieldList(bean.Fields),
 	}
+	log.Trace("BuildBean: %v", bean)
+	return b
 }
 
 type ImportSpec struct {
@@ -288,6 +316,14 @@ type ConstSpec struct {
 	Name    string
 	Value   Expr
 	Comment string
+}
+
+func (c ConstSpec) ValueString() string {
+	switch e := c.Value.(type) {
+	case *BasicLit:
+		return e.Value
+	}
+	panic("unsupported expr")
 }
 
 func BuildConstSpec(spec *ast.ConstSpec) *ConstSpec {
@@ -323,6 +359,7 @@ func BuildGenDecl(decl *ast.GenDecl) *GenDecl {
 }
 
 type File struct {
+	Filename   string
 	Doc        string
 	Package    string
 	Beans      []*Bean
@@ -332,6 +369,7 @@ type File struct {
 
 func BuildFile(file *ast.File) *File {
 	f := &File{
+		Filename:   file.Filename,
 		Doc:        BuildDoc(file.Doc),
 		Package:    BuildIdent(file.Name),
 		Unresolved: BuildIdentList(file.Unresolved),

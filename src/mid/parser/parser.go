@@ -12,12 +12,13 @@ import (
 	"github.com/midlang/mid/src/mid/ast"
 	"github.com/midlang/mid/src/mid/lexer"
 	"github.com/midlang/mid/src/mid/scanner"
+	"github.com/mkideal/pkg/errors"
 )
 
 type parser struct {
 	scanner *scanner.Scanner
 	file    *lexer.File
-	errors  *ErrorList
+	errors  *errors.ErrorList
 	mode    uint
 
 	pos lexer.Pos
@@ -535,18 +536,20 @@ func ParseFiles(fset *lexer.FileSet, files []string) (map[string]*ast.Package, e
 			}
 			pkg.Files[name] = f
 			if f.Scope != nil && f.Scope.Objects != nil {
-				errors := &ErrorList{errors: []*Error{}}
+				errors := &errors.ErrorList{}
 				for _, obj := range f.Scope.Objects {
 					if alt := pkg.Scope.Insert(obj); alt != nil {
 						prevDecl := ""
 						if pos := alt.Begin(); pos.IsValid() {
 							prevDecl = fmt.Sprintf("\n\tprevious declaration at %v", fset.Position(pos))
 						}
-						errors.Add(fset.Position(obj.Begin()), fmt.Sprintf("%s redeclared in this block%s", obj.Name, prevDecl))
+						pos := fset.Position(obj.Begin())
+						msg := fmt.Sprintf("%s redeclared in this block%s", obj.Name, prevDecl)
+						errors.Add(&Error{pos, msg})
 					}
 				}
 				if firstErr == nil && errors.Len() > 0 {
-					errors.Sort()
+					errors.Sort(compareError)
 					firstErr = errors.Err()
 				}
 			}

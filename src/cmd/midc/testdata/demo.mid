@@ -6,9 +6,11 @@ const (
 	B = 2
 )
 
+// doc: status
+// Status
 enum Status {
-	Ok = 0,
-	Bad = 1,
+	Ok = 0, // ok
+	Bad = 1, // bad
 }
 
 struct User {

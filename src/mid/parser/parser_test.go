@@ -34,6 +34,9 @@ func (v *traceVisitor) Visit(node ast.Node) ast.Visitor {
 		v.Fprintf(v.w, "%T: %d\n", n, len(n.List))
 	case *ast.Comment:
 	case *ast.CommentGroup:
+		if n != nil {
+			v.Fprintf(v.w, "CommentGroup: %s\n", n.Text())
+		}
 	case *ast.File:
 	case *ast.Package:
 	case *ast.Ident:
@@ -116,17 +119,16 @@ protocol UserInfo {
 }
 
 service HelloWorld {
-	User
-	name() string
+	name() 
 	say(string s)
 	abc(int32 a, bool b)
 }
 
+// doc
 enum Type {
 	A = 1,
 	B = 2,
 }
-C
 `)
 
 	fset := lexer.NewFileSet()

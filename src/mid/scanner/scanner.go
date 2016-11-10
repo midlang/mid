@@ -18,6 +18,7 @@ type Scanner struct {
 func NewScanner(file *lexer.File, src io.Reader) *Scanner {
 	s := new(Scanner)
 	s.Scanner.Init(file, src)
+	s.Scanner.Mode = scanner.ScanIdents | scanner.ScanFloats | scanner.ScanChars | scanner.ScanStrings | scanner.ScanRawStrings | scanner.ScanComments
 	return s
 }
 

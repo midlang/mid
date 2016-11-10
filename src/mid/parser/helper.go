@@ -3,12 +3,12 @@ package parser
 import (
 	"bytes"
 	"fmt"
-	"sort"
 
 	"github.com/midlang/mid/src/mid/ast"
 	xscanner "github.com/midlang/mid/src/mid/external/go/scanner"
 	"github.com/midlang/mid/src/mid/lexer"
 	"github.com/midlang/mid/src/mid/scanner"
+	"github.com/mkideal/pkg/errors"
 )
 
 type Error struct {
@@ -18,14 +18,11 @@ type Error struct {
 
 func (err Error) Error() string { return fmt.Sprintf("%v: %s", err.Pos, err.Msg) }
 
-type ErrorList struct {
-	errors []*Error
-}
-
-func (errs *ErrorList) Len() int { return len(errs.errors) }
-func (errs *ErrorList) Less(i, j int) bool {
-	pi := errs.errors[i].Pos
-	pj := errs.errors[j].Pos
+func compareError(erri, errj error) bool {
+	ei := erri.(*Error)
+	ej := errj.(*Error)
+	pi := ei.Pos
+	pj := ej.Pos
 	if pi.Filename != pj.Filename {
 		return pi.Filename < pj.Filename
 	} else if pi.Line != pj.Line {
@@ -34,43 +31,14 @@ func (errs *ErrorList) Less(i, j int) bool {
 		return pi.Column < pj.Column
 	}
 }
-func (errs *ErrorList) Swap(i, j int) { errs.errors[i], errs.errors[j] = errs.errors[j], errs.errors[i] }
-
-func (errs *ErrorList) Sort() {
-	sort.Sort(errs)
-}
-
-func (errs *ErrorList) Add(pos lexer.Position, msg string) {
-	errs.errors = append(errs.errors, &Error{pos, msg})
-}
-
-func (errs *ErrorList) Err() error {
-	if errs.Len() == 0 {
-		return nil
-	}
-	return errs
-}
-
-func (errs *ErrorList) Error() string {
-	buf := new(bytes.Buffer)
-	for _, e := range errs.errors {
-		if e != nil {
-			buf.WriteString(e.Error())
-			if buf.Len() > 0 && buf.Bytes()[buf.Len()-1] != '\n' {
-				buf.WriteByte('\n')
-			}
-		}
-	}
-	return buf.String()
-}
 
 func (p *parser) init(fset *lexer.FileSet, filename string, src []byte) {
 	p.file = fset.AddFile(filename, -1, len(src))
-	eh := func(s *xscanner.Scanner, msg string) { p.errors.Add(s.Pos(), msg) }
+	eh := func(s *xscanner.Scanner, msg string) { p.errors.Add(&Error{s.Pos(), msg}) }
 	p.scanner = scanner.NewScanner(p.file, bytes.NewReader(src))
 	p.scanner.Error = eh
 	p.comments = make([]*ast.CommentGroup, 0)
-	p.errors = &ErrorList{}
+	p.errors = &errors.ErrorList{}
 
 	p.next()
 }
@@ -234,7 +202,7 @@ func (p *parser) next() {
 type bailout struct{}
 
 func (p *parser) error(pos lexer.Pos, msg string) {
-	p.errors.Add(p.file.Position(pos), msg)
+	p.errors.Add(&Error{p.file.Position(pos), msg})
 }
 
 func (p *parser) errorExpected(pos lexer.Pos, msg string) {

@@ -9,6 +9,7 @@ import (
 )
 
 type PluginRuntimeConfig struct {
+	Verbose    string
 	Outdir     string
 	Extentions []string
 	Envvars    map[string]string
@@ -27,6 +28,7 @@ type Plugin struct {
 	Lang                string   `json:"lang"`
 	Name                string   `json:"name"`
 	Bin                 string   `json:"bin"`
+	TemplatesDir        string   `json:"templates,omitempty"`
 	SupportedExtentions []string `json:"supported_exts"`
 
 	RuntimeConfig PluginRuntimeConfig `json:"-"`
@@ -57,7 +59,11 @@ func (plugin *Plugin) IsSupportExt(ext string) bool {
 func (plugin Plugin) Generate(builder *Builder, stdout, stderr io.Writer) error {
 	source := builder.Encode()
 	runtimeConfig := plugin.RuntimeConfig.Encode()
-	cmd := exec.Command(plugin.Bin, runtimeConfig, source)
+	encodedPlugin, err := json.Marshal(plugin)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(plugin.Bin, string(encodedPlugin), runtimeConfig, source)
 	if stdout != nil {
 		cmd.Stdout = stdout
 	}
@@ -92,19 +98,22 @@ func (pset *PluginSet) Lookup(lang string) (*Plugin, bool) {
 	return nil, false
 }
 
-func ParseFlags() (config PluginRuntimeConfig, builder *Builder, err error) {
+func ParseFlags() (plugin Plugin, config PluginRuntimeConfig, builder *Builder, err error) {
 	args := os.Args[1:]
-	if len(args) != 2 {
-		err = fmt.Errorf("usage: %s <json_ecnoded_config> <gob_and_base64_encoded_source>", os.Args[0])
+	if len(args) != 3 {
+		err = fmt.Errorf("usage: %s <json_ecnoded_plugin> <json_ecnoded_config> <gob_and_base64_encoded_source>", os.Args[0])
 		return
 	}
-	if err = config.Decode(args[0]); err != nil {
+	if err = json.Unmarshal([]byte(args[0]), &plugin); err != nil {
+		err = fmt.Errorf("decode plugin error: %v", err)
+		return
+	}
+	if err = config.Decode(args[1]); err != nil {
 		err = fmt.Errorf("decode config error: %v", err)
 		return
 	}
-	source := args[1]
 	builder = new(Builder)
-	if err = builder.Decode(source); err != nil {
+	if err = builder.Decode(args[2]); err != nil {
 		err = fmt.Errorf("decode source error: %v", err)
 	}
 	return

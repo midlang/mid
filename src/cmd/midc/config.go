@@ -8,7 +8,8 @@ import (
 )
 
 type Config struct {
-	Suffix string `cli:"suffix" usage:"source file suffix" dft".mid" name:"SUFFIX"`
+	Suffix           string `cli:"suffix" usage:"source file suffix" dft".mid" name:"SUFFIX"`
+	TemplatesRootDir string `cli:"template-root-dir" usage:"templates root directory" dft:"$MID_TEMP_ROOT_DIR"`
 
 	Plugins       *build.PluginSet `json:"-" cli:"-"`
 	LoadedPlugins []build.Plugin   `json:"plugins" cli:"-"`

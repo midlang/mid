@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/midlang/mid/src/mid/lexer"
@@ -278,8 +279,17 @@ type CommentGroup struct {
 func (g *CommentGroup) Begin() lexer.Pos { return g.List[0].Begin() }
 
 func (g *CommentGroup) Text() string {
-	//TODO
-	return ""
+	if g == nil || len(g.List) == 0 {
+		return ""
+	}
+	var buf bytes.Buffer
+	for _, c := range g.List {
+		if buf.Len() > 0 {
+			buf.WriteByte('\n')
+		}
+		buf.WriteString(c.Text)
+	}
+	return buf.String()
 }
 
 type Values map[string][]string
@@ -299,6 +309,7 @@ func (v Values) Exist(key string) bool {
 
 // File node
 type File struct {
+	Filename   string
 	Doc        *CommentGroup   // associated documentation; or nil
 	Package    lexer.Pos       // position of "package" keyword
 	Name       *Ident          // package name
