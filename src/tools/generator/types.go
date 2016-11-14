@@ -2,26 +2,11 @@ package generator
 
 import (
 	"bytes"
-	"strings"
-	"text/template"
 
 	"github.com/midlang/mid/src/mid/build"
 )
 
-type Context struct {
-	Pkg       *build.Package
-	Root      *template.Template
-	buildType BuildTypeFunc
-}
-
-func (ctx *Context) BuildType(typ build.Type) string {
-	return ctx.buildType(typ)
-}
-
-func (ctx *Context) Title(s string) string {
-	return strings.Title(s)
-}
-
+// Package wraps build.Package
 type Package struct {
 	*build.Package
 	Context *Context
@@ -54,6 +39,7 @@ func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
 	return buf.String(), nil
 }
 
+// File wraps build.File
 type File struct {
 	*build.File
 	Context *Context
@@ -82,6 +68,7 @@ func (f File) GenerateDeclsBySubTemplates() (string, error) {
 	return buf.String(), nil
 }
 
+// GenDecl wraps build.GenDecl
 type GenDecl struct {
 	*build.GenDecl
 	File    *build.File
@@ -96,6 +83,7 @@ func NewGenDecl(ctx *Context, file *build.File, c *build.GenDecl) *GenDecl {
 	}
 }
 
+// Bean wraps build.Bean
 type Bean struct {
 	*build.Bean
 	File    *build.File

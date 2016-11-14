@@ -18,12 +18,12 @@ type argT struct {
 	Config
 	ConfigFile   string            `cli:"c,config" usage:"config filename"`
 	LogLevel     logger.Level      `cli:"v,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
-	Inputs       []string          `cli:"I,input" usage:"input directories or files which has SUFFIX"`
-	Outdirs      map[string]string `cli:"O,outdir" usage:"out directory for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
+	Inputs       []string          `cli:"I,input" usage:"input directories or files which has suffix SUFFIX"`
+	Outdirs      map[string]string `cli:"O,outdir" usage:"output directories for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
 	Extentions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql:go (only for go generator)"`
 	Envvars      map[string]string `cli:"E,env" usage:"custom defined environment variables"`
 	ImportPaths  []string          `cli:"P,importpath" usage:"import paths for lookuping imports"`
-	TemplatesDir map[string]string `cli:"T,template" usage:"templates directory"`
+	TemplatesDir map[string]string `cli:"T,template" usage:"templates directories for each language, e.g. -Tgo=dir1 -Tjava=dir2"`
 }
 
 func newArgT() *argT {
@@ -179,7 +179,7 @@ var root = &cli.Command{
 }
 
 func main() {
-	defer log.Uninit(log.InitConsole(log.LvWARN))
+	defer log.Uninit(log.InitConsole(log.LvTRACE))
 	err := root.Run(os.Args[1:])
 	log.If(err != nil).Error("%v", err)
 }
