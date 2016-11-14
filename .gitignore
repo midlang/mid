@@ -1,3 +1,4 @@
 *.swp
 *.swo
 src/cmd/midc/midc
+src/cmd/midc/go/

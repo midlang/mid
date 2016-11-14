@@ -11,12 +11,15 @@ import (
 )
 
 func main() {
-	defer log.Uninit(log.InitConsole(log.LvWARN))
+	defer log.Uninit(log.InitColoredConsole(log.LvWARN))
 
 	plugin, config, builder, err := build.ParseFlags()
 	log.If(err != nil).Fatal("ParseFlags: %v", err)
 
-	log.SetLevelFromString(config.Verbose)
+	level := log.SetLevelFromString(config.Verbose)
+	if !level.MoreVerboseThan(log.LvWARN) {
+		log.NoHeader()
+	}
 	log.WithJSON(plugin).Debug("plugin")
 	log.WithJSON(config).Debug("config")
 	log.WithJSON(builder).Trace("builder")

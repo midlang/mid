@@ -1,3 +1,6 @@
+---
+file: const.go
+---
 {{$ctx := .Context}}
 package {{$ctx.Pkg.Name}}
 

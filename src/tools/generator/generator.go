@@ -47,7 +47,7 @@ func GeneratePackage(
 		kind, suffix := ParseTemplateFilename(info.Name())
 		log.Debug("kind=%s, suffix=%s", kind, suffix)
 
-		ctx := NewContext(pkg, temp, buildType)
+		ctx := NewContext(pkg, temp, config.Envvars, buildType)
 		switch kind {
 		case "package":
 			dftName := pkg.Name + "." + suffix

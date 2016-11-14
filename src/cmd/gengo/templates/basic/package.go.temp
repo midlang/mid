@@ -21,7 +21,7 @@ type {{$type}} int
 {{$type := .Name}}
 {{$ctx := .Context}}
 {{.Doc}}type {{$type}} struct {
-	{{range $field := .Fields}}{{$field.Name | $ctx.Title}} {{$ctx.BuildType $field.Type}}{{$field.Comment}}
+	{{range $field := .Fields}}{{$field.Name | title}} {{$ctx.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 }
 {{end}}
@@ -34,7 +34,7 @@ type {{$type}} int
 {{$type := .Name}}
 {{$ctx := .Context}}
 {{.Doc}}type {{$type}} interface {
-	{{range $field := .Fields}}{{$field.Name | $ctx.Title}} {{$ctx.BuildType $field.Type}}{{$field.Comment}}
+	{{range $field := .Fields}}{{$field.Name | title}} {{$ctx.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 }
 {{end}}

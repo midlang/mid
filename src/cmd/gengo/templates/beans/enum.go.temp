@@ -1,3 +1,6 @@
+---
+file: {{.Name}}.go
+---
 {{$ctx := .Context}}
 package {{$ctx.Pkg.Name}}
 

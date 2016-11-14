@@ -1,6 +1,10 @@
 package generator
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +27,20 @@ var Funcs = template.FuncMap{
 		// TODO: implements `include`
 		return "", nil
 	},
-	"title": func(s string) string { return strings.Title(s) },
+	// string operations
+	"title":       func(s string) string { return strings.Title(s) },
+	"toLower":     func(s string) string { return strings.ToLower(s) },
+	"toUpper":     func(s string) string { return strings.ToUpper(s) },
+	"contains":    func(s, sub string) bool { return strings.Contains(s, sub) },
+	"containsAny": func(s, chars string) bool { return strings.ContainsAny(s, chars) },
+	"count":       func(s, sep string) int { return strings.Count(s, sep) },
+	"index":       func(s, sep string) int { return strings.Index(s, sep) },
+	"lastIndex":   func(s, sep string) int { return strings.LastIndex(s, sep) },
+	"join":        func(strs []string, sep string) string { return strings.Join(strs, sep) },
+	"split":       func(s, sep string) []string { return strings.Split(s, sep) },
+	"splitN":      func(s, sep string, n int) []string { return strings.SplitN(s, sep, n) },
+	"repeat":      func(s string, count int) string { return strings.Repeat(s, count) },
+	"replace":     func(s, old, new string, n int) string { return strings.Replace(s, old, new, n) },
 }
 
 // Template wraps template.Template
@@ -34,7 +51,6 @@ type Template struct {
 // NewTemplate creates a Template by template.Template
 func NewTemplate(temp *template.Template) *Template {
 	log.Debug("NewTemplate: %s", temp.Name())
-	temp = temp.Funcs(Funcs)
 	t := &Template{temp}
 	return t
 }
@@ -80,25 +96,63 @@ func OpenTemplatesDir(lang, dir string) ([]os.FileInfo, error) {
 
 // TemplateMeta represents meta information of a template file
 type TemplateMeta struct {
-	Dir    string
 	File   string
-	Date   string
 	Values map[string]string
 }
 
 // ParseTemplateFile parses template file
 func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
-	meta := &TemplateMeta{}
-	// TODO: parse template file meta info
+	meta := &TemplateMeta{
+		Values: make(map[string]string),
+	}
+	// parse template file meta info
 	// e.g.
 	//
 	// ---
 	// dir: aaa
 	// file: {{.Name}}.go
 	// ---
-	temp, err := template.ParseFiles(filename)
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Warn("ParseTemplateFile %s: %v", filename, err)
+		err = fmt.Errorf("ParseTemplateFile %s: %v", filename, err)
+		return nil, nil, err
+	}
+	advance, token, _ := bufio.ScanLines(data, true)
+	const metaHeaderFlag = "---"
+	if string(token) == metaHeaderFlag {
+		ended := false
+		line := 1
+		for advance < len(data) {
+			tmp, tok, _ := bufio.ScanLines(data[advance:], true)
+			advance += tmp
+			if tmp == 0 {
+				break
+			}
+			if string(tok) == metaHeaderFlag {
+				ended = true
+				break
+			}
+			line++
+			kv := strings.SplitN(string(tok), ":", 2)
+			if len(kv) != 2 {
+				err = fmt.Errorf("%s:%d: not a key value pair split by `:`", filename, line)
+				return nil, nil, err
+			}
+			kv[0] = strings.TrimSpace(kv[0])
+			meta.Values[kv[0]] = kv[1]
+			log.Debug("%s:%d: key value pair: <%s:%s>", filename, line, kv[0], kv[1])
+		}
+		if !ended {
+			err = fmt.Errorf("%s: unexpected meta header end", filename)
+			return nil, nil, err
+		}
+		data = data[advance:]
+	}
+	temp := template.New(filename)
+	temp = temp.Funcs(Funcs)
+	temp, err = temp.Parse(string(data))
+	if err != nil {
+		err = fmt.Errorf("ParseTemplateFile %s: %v", filename, err)
 		return nil, nil, err
 	}
 	return meta, NewTemplate(temp), err
@@ -106,8 +160,32 @@ func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
 
 // ApplyMeta creates a target file by the template meta
 func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName string) (*os.File, error) {
-	//TODO: execute template for meta
+	// execute template for meta
+	values := make(map[string]string)
+	for k, v := range meta.Values {
+		temp := template.New(k)
+		temp = temp.Funcs(Funcs)
+		temp, err := temp.Parse(v)
+		if err != nil {
+			log.Error("ApplyMeta: %v", err)
+			return nil, err
+		}
+		var buf bytes.Buffer
+		if err = temp.Execute(&buf, data); err != nil {
+			log.Error("ApplyMeta: %v", err)
+			return nil, err
+		}
+		v = strings.TrimSpace(buf.String())
+		values[k] = v
+		log.Debug("meta key value pair: <%s,%s>", k, v)
+	}
+	meta.Values = values
 
+	// pick `file` value to meta.File
+	if value, ok := meta.Values["file"]; ok {
+		meta.File = value
+		delete(meta.Values, "file")
+	}
 	if meta.File == "" {
 		meta.File = dftName
 	}

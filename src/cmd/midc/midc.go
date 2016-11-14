@@ -141,7 +141,7 @@ var root = &cli.Command{
 			plugins = append(plugins, plugin)
 			for _, x := range argv.Extentions {
 				if !plugin.IsSupportExt(x) {
-					log.Warn("plugin %s not support extension %s", formatPlugin(plugin.Lang, plugin.Name), x)
+					log.Warn("plugin %s does not support extension %s", formatPlugin(plugin.Lang, plugin.Name), x)
 				}
 			}
 		}
