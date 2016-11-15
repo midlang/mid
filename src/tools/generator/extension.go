@@ -13,7 +13,7 @@ type Rule struct {
 	AddedMethods   map[string]string
 }
 
-type Extention struct {
+type Extension struct {
 	TemplateDir string
 	Name        string
 	Rules       map[Pattern]Rule
