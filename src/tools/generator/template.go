@@ -65,6 +65,7 @@ var Funcs = template.FuncMap{
 		}
 		return s[startIndex:endIndex]
 	},
+	"underScore": func(s string) string { return s }, //TODO
 }
 
 // Template wraps template.Template

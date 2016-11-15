@@ -48,6 +48,7 @@ const (
 	SERVICE  // service
 	REQUIRED // required
 	OPTIONAL // optional
+	EXTEND   // extend
 	keyword_end
 )
 
@@ -88,6 +89,7 @@ var tokens = [...]string{
 	SERVICE:  "service",
 	REQUIRED: "required",
 	OPTIONAL: "optional",
+	EXTEND:   "extend",
 }
 
 func (tok Token) String() string {
