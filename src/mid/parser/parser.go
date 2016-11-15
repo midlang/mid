@@ -179,7 +179,7 @@ func (p *parser) parseBeanDecl(parentScope *ast.Scope) ast.Decl {
 			list = append(list, p.parseEnumSpec(scope))
 		}
 	default:
-		for p.tok == lexer.IDENT || p.tok == lexer.LPAREN {
+		for p.tok == lexer.IDENT || p.tok == lexer.EXTEND || p.tok == lexer.LPAREN {
 			list = append(list, p.parseFieldDecl(scope))
 		}
 	}
@@ -200,11 +200,20 @@ func (p *parser) parseBeanDecl(parentScope *ast.Scope) ast.Decl {
 }
 
 func (p *parser) parseFieldDecl(scope *ast.Scope) *ast.Field {
-	doc := p.leadComment
-	options := p.parseFieldOptions()
-	typ := p.parseTypeName()
-	idents := p.parseIdentList()
-	var tag *ast.BasicLit
+	var (
+		doc     = p.leadComment
+		options = p.parseFieldOptions()
+		typ     ast.Type
+		idents  []*ast.Ident
+		tag     *ast.BasicLit
+	)
+	if p.tok == lexer.EXTEND {
+		p.next()
+		typ = p.parseTypeName()
+	} else {
+		typ = p.parseTypeName()
+		idents = p.parseIdentList()
+	}
 	if p.tok == lexer.STRING {
 		tag = &ast.BasicLit{TokPos: p.pos, Tok: p.tok, Value: p.lit}
 		p.next()
@@ -224,8 +233,8 @@ func (p *parser) parseFieldDecl(scope *ast.Scope) *ast.Field {
 }
 
 func (p *parser) parseMethodSpec(scope *ast.Scope) *ast.Field {
-	doc := p.leadComment
 	var (
+		doc    = p.leadComment
 		typ    ast.Type
 		idents []*ast.Ident
 	)

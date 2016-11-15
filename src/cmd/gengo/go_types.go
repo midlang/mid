@@ -11,7 +11,7 @@ import (
 
 func goFieldDecl(f *build.Field) string {
 	if len(f.Names) == 0 {
-		return "_ " + buildType(f.Type)
+		return buildType(f.Type)
 	}
 	return strings.Join(f.Names, ", ") + " " + buildType(f.Type)
 }
@@ -44,6 +44,8 @@ func buildType(typ build.Type) string {
 			return "[]byte"
 		case lexer.String:
 			return "string"
+		case lexer.Int:
+			return "int"
 		case lexer.Int8:
 			return "int8"
 		case lexer.Int16:
@@ -52,6 +54,8 @@ func buildType(typ build.Type) string {
 			return "int32"
 		case lexer.Int64:
 			return "int64"
+		case lexer.Uint:
+			return "uint"
 		case lexer.Uint8:
 			return "uint8"
 		case lexer.Uint16:
