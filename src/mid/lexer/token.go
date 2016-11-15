@@ -143,10 +143,12 @@ const (
 	Byte                      // byte
 	Bytes                     // bytes
 	String                    // string
+	Int                       // int
 	Int8                      // int8
 	Int16                     // int16
 	Int32                     // int32
 	Int64                     // int64
+	Uint                      // uint
 	Uint8                     // uint8
 	Uint16                    // uint16
 	Uint32                    // uint32
@@ -168,6 +170,8 @@ func LookupType(ident string) (BuiltinType, bool) {
 		return Bytes, true
 	case "string":
 		return String, true
+	case "int":
+		return Int, true
 	case "int8":
 		return Int8, true
 	case "int16":
@@ -176,6 +180,8 @@ func LookupType(ident string) (BuiltinType, bool) {
 		return Int32, true
 	case "int64":
 		return Int64, true
+	case "uint":
+		return Uint, true
 	case "uint8":
 		return Uint8, true
 	case "uint16":
@@ -206,6 +212,8 @@ func (bt BuiltinType) String() string {
 		return "bytes"
 	case String:
 		return "string"
+	case Int:
+		return "int"
 	case Int8:
 		return "int8"
 	case Int16:
@@ -214,6 +222,8 @@ func (bt BuiltinType) String() string {
 		return "int32"
 	case Int64:
 		return "int64"
+	case Uint:
+		return "uint"
 	case Uint8:
 		return "uint8"
 	case Uint16:

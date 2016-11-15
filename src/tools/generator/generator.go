@@ -42,6 +42,7 @@ func GeneratePackage(
 		if err != nil {
 			return files, err
 		}
+		oldMetaFile := meta.File
 
 		var file *os.File
 		kind, suffix := ParseTemplateFilename(info.Name())
@@ -62,6 +63,7 @@ func GeneratePackage(
 		case "file":
 			for _, f := range pkg.Files {
 				dftName := f.Filename + "." + suffix
+				meta.File = oldMetaFile
 				if file, err = ApplyMeta(outdir, meta, f, dftName); err == nil {
 					files[meta.File] = true
 					err = temp.Execute(file, File{
@@ -78,6 +80,7 @@ func GeneratePackage(
 			for _, f := range pkg.Files {
 				for _, c := range f.Decls {
 					if len(c.Consts) > 0 {
+						meta.File = oldMetaFile
 						if file, err = ApplyMeta(outdir, meta, c, "constants."+suffix); err == nil {
 							files[meta.File] = true
 							err = temp.Execute(file, NewGenDecl(ctx, f, c))
@@ -95,6 +98,7 @@ func GeneratePackage(
 				for _, b := range f.Beans {
 					if b.Kind == kind {
 						dftName := b.Name + "." + suffix
+						meta.File = oldMetaFile
 						if file, err = ApplyMeta(outdir, meta, b, dftName); err == nil {
 							files[meta.File] = true
 							err = temp.Execute(file, NewBean(ctx, f, b))

@@ -79,6 +79,7 @@ var root = &cli.Command{
 				log.Error("invalid templates dir: %s", red(dir))
 				return nil
 			}
+			log.Debug("language %s templates directory: %s", cyan(lang), dir)
 			templatesDir[lang] = absDir
 		}
 		argv.TemplatesDir = templatesDir

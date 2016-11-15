@@ -41,6 +41,30 @@ var Funcs = template.FuncMap{
 	"splitN":      func(s, sep string, n int) []string { return strings.SplitN(s, sep, n) },
 	"repeat":      func(s string, count int) string { return strings.Repeat(s, count) },
 	"replace":     func(s, old, new string, n int) string { return strings.Replace(s, old, new, n) },
+	"hasPrefix":   func(s string, prefix string) bool { return strings.HasPrefix(s, prefix) },
+	"hasSuffix":   func(s string, suffix string) bool { return strings.HasSuffix(s, suffix) },
+	"trimPrefix":  func(s string, prefix string) string { return strings.TrimPrefix(s, prefix) },
+	"trimSuffix":  func(s string, suffix string) string { return strings.TrimSuffix(s, suffix) },
+	"trimSpace":   func(s string) string { return strings.TrimSpace(s) },
+	"substr": func(s string, startIndex, endIndex int) string {
+		n := len(s)
+		if n == 0 {
+			return ""
+		}
+		if startIndex < 0 {
+			startIndex = startIndex%n + n
+		}
+		if endIndex < 0 {
+			endIndex = endIndex%n + n
+		}
+		if endIndex > n {
+			endIndex = n
+		}
+		if startIndex > endIndex {
+			return ""
+		}
+		return s[startIndex:endIndex]
+	},
 }
 
 // Template wraps template.Template
