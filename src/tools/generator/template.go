@@ -47,6 +47,7 @@ var Funcs = template.FuncMap{
 	"trimPrefix":  func(s string, prefix string) string { return strings.TrimPrefix(s, prefix) },
 	"trimSuffix":  func(s string, suffix string) string { return strings.TrimSuffix(s, suffix) },
 	"trimSpace":   func(s string) string { return strings.TrimSpace(s) },
+	"append":      func(appended string, origin string) string { return origin + appended },
 	"substr": func(s string, startIndex, endIndex int) string {
 		n := len(s)
 		if n == 0 {

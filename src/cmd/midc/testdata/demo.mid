@@ -1,9 +1,9 @@
-package demo
+package demo;
 
 // constants
 const (
-	A = 1
-	B = 2
+	A = 1;
+	B = 2;
 )
 
 // doc: status
@@ -32,6 +32,7 @@ service UserService {
 }
 
 struct Info {
-	extend User;
+	extend User; // extend extends another structure
 	string desc;
+	map<int64,vector<map<int,array<bool,5>>>> xxx;
 }

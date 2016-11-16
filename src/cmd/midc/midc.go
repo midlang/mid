@@ -41,7 +41,7 @@ func newArgT() *argT {
 var root = &cli.Command{
 	Name:      "midc",
 	Argv:      func() interface{} { return newArgT() },
-	Desc:      "midlang compiler",
+	Desc:      "midlang compiler and generate codes for program languages",
 	NumOption: cli.AtLeast(1),
 
 	Fn: func(ctx *cli.Context) error {
@@ -70,13 +70,14 @@ var root = &cli.Command{
 
 		if err := argv.Config.Load(argv.ConfigFile); err != nil {
 			log.Error("load config %s: %v", cyan(argv.ConfigFile), red(err))
+			return nil
 		}
 
 		templatesDir := make(map[string]string)
 		for lang, dir := range argv.TemplatesDir {
 			absDir, err := filepath.Abs(dir)
 			if err != nil {
-				log.Error("invalid templates dir: %s", red(dir))
+				log.Error("invalid templates directory: %s", red(dir))
 				return nil
 			}
 			log.Debug("language %s templates directory: %s", cyan(lang), dir)

@@ -3,6 +3,6 @@
 package {{$ctx.Pkg.Name}}
 
 {{.Doc}}type {{$type}} struct {
-	{{range $field := .Fields}}{{$field.Name | title}} {{$ctx.BuildType $field.Type}}{{$field.Comment}}
+	{{range $field := .Fields}} {{if ne $field.Name "_"}} {{$field.Name | title}} {{end}} {{$ctx.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 }

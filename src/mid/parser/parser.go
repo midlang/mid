@@ -131,7 +131,7 @@ func (p *parser) parseGenDecl(keyword lexer.Token, specFunc parseSpecFunction) *
 			list = append(list, specFunc(p.leadComment, keyword, iota))
 		}
 		rparen = p.expect(lexer.RPAREN)
-		p.expectSemi()
+		//p.expectSemi()
 	} else {
 		list = append(list, specFunc(nil, keyword, 0))
 	}
