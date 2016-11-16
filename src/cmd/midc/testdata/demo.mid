@@ -14,14 +14,14 @@ enum Status {
 }
 
 struct User {
-	int64 id
-	string name
-	vector<string> otherNames
-	array<byte,6> code
+	int64 id;
+	string name;
+	vector<string> otherNames;
+	array<byte,6> code;
 }
 
 protocol UserList {
-	map<int64,User> users
+	map<int64,User> users;
 }
 
 service UserService {
@@ -29,4 +29,9 @@ service UserService {
 	getUsers() UserList
 	findUser(int64 uid) User
 	delUser(int64) Status
+}
+
+struct Info {
+	extend User;
+	string desc;
 }

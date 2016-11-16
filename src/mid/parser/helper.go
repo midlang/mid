@@ -269,11 +269,14 @@ func (p *parser) expectSemi() {
 	// semicolon is optional before a closing ')' or '}'
 	if p.tok != lexer.RPAREN && p.tok != lexer.RBRACE {
 		switch p.tok {
-		case lexer.COMMA:
-			// permit a ',' instead of a ';' but complain
-			p.errorExpected(p.pos, "';'")
-			fallthrough
+		//case lexer.COMMA:
+		// permit a ',' instead of a ';' but complain
+		//p.errorExpected(p.pos, "';'")
+		//fallthrough
 		case lexer.SEMICOLON:
+			p.next()
+		default:
+			p.errorExpected(p.pos, ";")
 			p.next()
 		}
 	}

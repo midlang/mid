@@ -98,28 +98,26 @@ func TestParser(t *testing.T) {
 	w := os.Stdout
 	defer log.Uninit(log.InitWithProvider(provider.NewConsoleWithWriter("", w, w)))
 
-	src := []byte(`package demo
+	src := []byte(`package demo;
 
-import (
-	"a/b/c"
-	x "o/p/q"
-)
+import "a/b/c";
+import x "o/p/q";
 
 struct User {
-	int32 id
+	int32 id;
 }
 
 protocol UserInfo {
-	int16 a,b
-	bool x
-	string y
-	int32 z
-	vector<int32> list
-	array<int32,6> arr
+	int16 a,b;
+	bool x;
+	string y;
+	int32 z;
+	vector<int32> list;
+	array<int32,6> arr;
 }
 
 service HelloWorld {
-	name() 
+	name()
 	say(string s)
 	abc(int32 a, bool b)
 }

@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/mkideal/log"
+	"github.com/mkideal/pkg/textutil/namemapper"
 )
 
 const (
@@ -65,7 +66,11 @@ var Funcs = template.FuncMap{
 		}
 		return s[startIndex:endIndex]
 	},
-	"underScore": func(s string) string { return s }, //TODO
+	"underScore": func(s string) string { return namemapper.UnderScore(s) },
+	"upper":      func(s string) string { return namemapper.Upper(s) },
+	"lower":      func(s string) string { return namemapper.Lower(s) },
+	"upperCamel": func(s string) string { return namemapper.UpperCamel(s) },
+	"lowerCamel": func(s string) string { return namemapper.LowerCamel(s) },
 }
 
 // Template wraps template.Template
