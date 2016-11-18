@@ -2,3 +2,4 @@
 *.swo
 src/cmd/midc/midc
 src/cmd/midc/go/
+src/cmd/testdata/generated/

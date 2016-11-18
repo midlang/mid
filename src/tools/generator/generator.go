@@ -44,12 +44,18 @@ func Init(
 		"context": func() *Context { return context },
 		// include includes a text file
 		"include": func(filename string) (string, error) {
+			if !filepath.IsAbs(filename) {
+				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
+			}
 			content, err := ioutil.ReadFile(filename)
 			return string(content), err
 		},
 		// include_template includes a template file with `data`
 		// NOTE: include_template ignores meta header
 		"include_template": func(filename string, data interface{}) (string, error) {
+			if !filepath.IsAbs(filename) {
+				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
+			}
 			_, temp, err := ParseTemplateFile(filename)
 			if err != nil {
 				return "", err
@@ -110,6 +116,10 @@ func Init(
 
 // GoFmt formats go code file
 func GoFmt(filename string) error {
+	if !strings.HasSuffix(filename, ".go") {
+		// ignore non-golang file
+		return nil
+	}
 	const gofmt = "gofmt"
 	if _, err := exec.LookPath(gofmt); err != nil {
 		// do nothing if failed to lookup `gofmt`
@@ -121,7 +131,7 @@ func GoFmt(filename string) error {
 	return cmd.Run()
 }
 
-// GeneratePackage generates code for package
+// GeneratePackage generates codes for package
 func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 	if context == nil {
 		return nil, errors.Throw("generator not initialized")

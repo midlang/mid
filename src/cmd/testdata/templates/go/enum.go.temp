@@ -1,0 +1,12 @@
+---
+file: {{.Name}}.go
+---
+package {{context.Pkg.Name}}
+
+{{$type := .Name}}
+type {{$type}} int
+
+{{.Doc}}const (
+	{{range $field := .Fields}}{{$type}}_{{$field.Name}} = {{$field.Value}}{{$field.Comment}}
+	{{end}}
+)
