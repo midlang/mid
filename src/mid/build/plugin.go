@@ -55,7 +55,6 @@ func (plugin *Plugin) IsSupportExt(ext string) bool {
 	return false
 }
 
-// /path/to/bin <out_dir> <source_string>
 func (plugin Plugin) Generate(builder *Builder, stdout, stderr io.Writer) error {
 	source := builder.Encode()
 	runtimeConfig := plugin.RuntimeConfig.Encode()

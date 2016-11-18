@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./midc -I ./testdata/ -vt -Ogo=./go -Xproto -Ea=1 -Tgo=../gengo/templates/beans/
+midc -I ./testdata/ -vt -Ogo=./go -Xproto -Ea=1 -Tgo=../gengo/templates/beans/

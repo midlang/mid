@@ -1,8 +1,7 @@
 ---
 file: const.go
 ---
-{{$ctx := .Context}}
-package {{$ctx.Pkg.Name}}
+package {{context.Pkg.Name}}
 
 {{.Doc}}const (
 	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}

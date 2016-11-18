@@ -1,8 +1,7 @@
 ---
 file: {{.Name}}.go
 ---
-{{$ctx := .Context}}
-package {{$ctx.Pkg.Name}}
+package {{context.Pkg.Name}}
 
 {{$type := .Name}}
 type {{$type}} int

@@ -9,17 +9,16 @@ import (
 // Package wraps build.Package
 type Package struct {
 	*build.Package
-	Context *Context
 }
 
 func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
 	buf := new(bytes.Buffer)
 
-	if temp := pkg.Context.Root.Lookup("T_const"); temp != nil {
+	if temp := context.Root.Lookup("T_const"); temp != nil {
 		for _, f := range pkg.Files {
 			for _, c := range f.Decls {
 				if len(c.Consts) > 0 {
-					if err := temp.Execute(buf, NewGenDecl(pkg.Context, f, c)); err != nil {
+					if err := temp.Execute(buf, NewGenDecl(f, c)); err != nil {
 						return "", err
 					}
 				}
@@ -29,8 +28,8 @@ func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
 
 	for _, f := range pkg.Files {
 		for _, b := range f.Beans {
-			if temp := pkg.Context.Root.Lookup("T_" + b.Kind); temp != nil {
-				if err := temp.Execute(buf, NewBean(pkg.Context, f, b)); err != nil {
+			if temp := context.Root.Lookup("T_" + b.Kind); temp != nil {
+				if err := temp.Execute(buf, NewBean(f, b)); err != nil {
 					return "", err
 				}
 			}
@@ -42,16 +41,15 @@ func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
 // File wraps build.File
 type File struct {
 	*build.File
-	Context *Context
 }
 
 func (f File) GenerateDeclsBySubTemplates() (string, error) {
 	buf := new(bytes.Buffer)
 
-	if temp := f.Context.Root.Lookup("T_const"); temp != nil {
+	if temp := context.Root.Lookup("T_const"); temp != nil {
 		for _, c := range f.Decls {
 			if len(c.Consts) > 0 {
-				if err := temp.Execute(buf, NewGenDecl(f.Context, f.File, c)); err != nil {
+				if err := temp.Execute(buf, NewGenDecl(f.File, c)); err != nil {
 					return "", err
 				}
 			}
@@ -59,8 +57,8 @@ func (f File) GenerateDeclsBySubTemplates() (string, error) {
 	}
 
 	for _, b := range f.Beans {
-		if temp := f.Context.Root.Lookup("T_" + b.Kind); temp != nil {
-			if err := temp.Execute(buf, NewBean(f.Context, f.File, b)); err != nil {
+		if temp := context.Root.Lookup("T_" + b.Kind); temp != nil {
+			if err := temp.Execute(buf, NewBean(f.File, b)); err != nil {
 				return "", err
 			}
 		}
@@ -71,29 +69,42 @@ func (f File) GenerateDeclsBySubTemplates() (string, error) {
 // GenDecl wraps build.GenDecl
 type GenDecl struct {
 	*build.GenDecl
-	File    *build.File
-	Context *Context
+	File *build.File
 }
 
-func NewGenDecl(ctx *Context, file *build.File, c *build.GenDecl) *GenDecl {
+func NewGenDecl(file *build.File, c *build.GenDecl) *GenDecl {
 	return &GenDecl{
 		GenDecl: c,
 		File:    file,
-		Context: ctx,
 	}
 }
 
 // Bean wraps build.Bean
 type Bean struct {
 	*build.Bean
-	File    *build.File
-	Context *Context
+	File *build.File
 }
 
-func NewBean(ctx *Context, file *build.File, b *build.Bean) *Bean {
+func NewBean(file *build.File, b *build.Bean) *Bean {
 	return &Bean{
-		Bean:    b,
-		File:    file,
-		Context: ctx,
+		Bean: b,
+		File: file,
 	}
+}
+
+// AddTag is a chain function for adding tag
+func (bean *Bean) AddTag(key, value string, field *build.Field) *build.Field {
+	return bean.addTag(key, value, field, true)
+}
+
+func (bean *Bean) AddTagNX(key, value string, field *build.Field) *build.Field {
+	return bean.addTag(key, value, field, false)
+}
+
+func (bean *Bean) addTag(key, value string, field *build.Field, force bool) *build.Field {
+	_, found := field.Tag.Lookup(key)
+	if !found || force {
+		field.Tag.Set(key, value)
+	}
+	return field
 }

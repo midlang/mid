@@ -4,38 +4,61 @@ import (
 	"github.com/midlang/mid/src/mid/build"
 )
 
+// Context holds current context for generate codes of specified package
 type Context struct {
-	Pkg       *build.Package
-	Root      *Template
-	Envvars   map[string]string
+	// Pkg represents current package
+	Pkg *build.Package
+	// Root represents root template
+	Root *Template
+	// Plugin represents current plugin
+	Plugin build.Plugin
+	// Config represents current plugin runtime config
+	Config build.PluginRuntimeConfig
+
 	buildType BuildTypeFunc
-	beans     map[string]*build.Bean
+
+	// beans holds all beans in current package
+	beans map[string]*build.Bean
 }
 
-func NewContext(pkg *build.Package, rootTemp *Template, envvars map[string]string, buildType BuildTypeFunc) *Context {
+// NewContext creates a context by buildType,plugin,plugin_config
+func NewContext(
+	buildType BuildTypeFunc,
+	plugin build.Plugin,
+	config build.PluginRuntimeConfig,
+) *Context {
 	ctx := &Context{
-		Pkg:       pkg,
-		Root:      rootTemp,
-		Envvars:   envvars,
 		buildType: buildType,
+		Plugin:    plugin,
+		Config:    config,
 	}
+	return ctx
+}
+
+func (ctx *Context) initWithPkg(pkg *build.Package) {
+	ctx.Pkg = pkg
 	ctx.beans = make(map[string]*build.Bean)
 	for _, file := range ctx.Pkg.Files {
 		for _, bean := range file.Beans {
 			ctx.beans[bean.Name] = bean
 		}
 	}
-	return ctx
 }
 
+// BuildType executes buildType function
 func (ctx *Context) BuildType(typ build.Type) string {
 	return ctx.buildType(typ)
 }
 
+// Env gets custom envvar
 func (ctx *Context) Env(key string) string {
-	return ctx.Envvars[key]
+	if ctx.Config.Envvars == nil {
+		return ""
+	}
+	return ctx.Config.Envvars[key]
 }
 
+// FindBean finds bean by name in current package
 func (ctx *Context) FindBean(name string) *build.Bean {
 	return ctx.beans[name]
 }

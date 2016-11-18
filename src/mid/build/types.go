@@ -1,8 +1,10 @@
 package build
 
 import (
+	"bytes"
 	"encoding/gob"
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/midlang/mid/src/mid/ast"
@@ -54,11 +56,11 @@ func BuildComment(comment *ast.CommentGroup) string {
 	return text
 }
 
-func BuildTag(tag *ast.BasicLit) string {
+func BuildTag(tag *ast.BasicLit) Tag {
 	if tag == nil {
 		return ""
 	}
-	return tag.Value
+	return Tag(tag.Value)
 }
 
 func BuildIdent(ident *ast.Ident) string {
@@ -79,13 +81,104 @@ func BuildIdentList(idents []*ast.Ident) []string {
 	return strs
 }
 
+type Tag string
+
+func (tag Tag) Get(key string) string {
+	value, _ := tag.Lookup(key)
+	return value
+}
+
+func (tag *Tag) Set(key, value string) {
+	pairs, _, index := tag.parse(key)
+	if index >= 0 {
+		pairs[index][1] = value
+	} else {
+		pairs = append(pairs, tagpair{key, value})
+	}
+	*tag = Tag(tag.format(pairs))
+}
+
+func (tag Tag) Lookup(key string) (value string, ok bool) {
+	_, value, index := tag.parse(key)
+	return value, index >= 0
+}
+
+type tagpair [2]string
+
+func (tag Tag) format(pairs []tagpair) string {
+	var buf bytes.Buffer
+	for i, pair := range pairs {
+		if i > 0 {
+			buf.WriteByte(' ')
+		}
+		buf.WriteString(pair[0])
+		buf.WriteByte(':')
+		buf.WriteByte('"')
+		buf.WriteString(pair[1])
+		buf.WriteByte('"')
+	}
+	return buf.String()
+}
+
+func (tag Tag) parse(key string) (pairs []tagpair, value string, index int) {
+	pairs = make([]tagpair, 0)
+	index = -1
+	count := 0
+	for tag != "" {
+		// Skip leading space.
+		i := 0
+		for i < len(tag) && tag[i] == ' ' {
+			i++
+		}
+		tag = tag[i:]
+		if tag == "" {
+			break
+		}
+		i = 0
+		for i < len(tag) && tag[i] > ' ' && tag[i] != ':' && tag[i] != '"' && tag[i] != 0x7f {
+			i++
+		}
+		if i == 0 || i+1 >= len(tag) || tag[i] != ':' || tag[i+1] != '"' {
+			break
+		}
+		name := string(tag[:i])
+		tag = tag[i+1:]
+
+		// Scan quoted string to find value.
+		i = 1
+		for i < len(tag) && tag[i] != '"' {
+			if tag[i] == '\\' {
+				i++
+			}
+			i++
+		}
+		if i >= len(tag) {
+			break
+		}
+		qvalue := string(tag[:i+1])
+		tag = tag[i+1:]
+
+		v, err := strconv.Unquote(qvalue)
+		if err != nil {
+			continue
+		}
+		if key == name && key != "" && index == -1 {
+			value = v
+			index = len(pairs)
+		}
+		pairs = append(pairs, tagpair{name, v})
+		count++
+	}
+	return
+}
+
 type Field struct {
 	Doc     string
 	Options []string
 	Type    Type
 	Names   []string
 	Default Expr
-	Tag     string
+	Tag     Tag
 	Comment string
 }
 

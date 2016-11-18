@@ -11,68 +11,16 @@ import (
 	"text/template"
 
 	"github.com/mkideal/log"
-	"github.com/mkideal/pkg/textutil/namemapper"
+	"github.com/mkideal/pkg/errors"
 )
 
 const (
-	// IncludesDir contains template files for `Include` function
+	// IncludesDir contains template files for `include` function
 	IncludesDir = "includes"
 
 	// TemplateFileSuffix is the template filename suffix could be recognized
 	TemplateFileSuffix = ".temp"
 )
-
-// Funcs holds all shared template functions
-var Funcs = template.FuncMap{
-	"include": func(filename string) (string, error) {
-		// TODO: implements `include`
-		return "", nil
-	},
-	// string operations
-	"title":       func(s string) string { return strings.Title(s) },
-	"toLower":     func(s string) string { return strings.ToLower(s) },
-	"toUpper":     func(s string) string { return strings.ToUpper(s) },
-	"contains":    func(s, sub string) bool { return strings.Contains(s, sub) },
-	"containsAny": func(s, chars string) bool { return strings.ContainsAny(s, chars) },
-	"count":       func(s, sep string) int { return strings.Count(s, sep) },
-	"index":       func(s, sep string) int { return strings.Index(s, sep) },
-	"lastIndex":   func(s, sep string) int { return strings.LastIndex(s, sep) },
-	"join":        func(strs []string, sep string) string { return strings.Join(strs, sep) },
-	"split":       func(s, sep string) []string { return strings.Split(s, sep) },
-	"splitN":      func(s, sep string, n int) []string { return strings.SplitN(s, sep, n) },
-	"repeat":      func(s string, count int) string { return strings.Repeat(s, count) },
-	"replace":     func(s, old, new string, n int) string { return strings.Replace(s, old, new, n) },
-	"hasPrefix":   func(s string, prefix string) bool { return strings.HasPrefix(s, prefix) },
-	"hasSuffix":   func(s string, suffix string) bool { return strings.HasSuffix(s, suffix) },
-	"trimPrefix":  func(s string, prefix string) string { return strings.TrimPrefix(s, prefix) },
-	"trimSuffix":  func(s string, suffix string) string { return strings.TrimSuffix(s, suffix) },
-	"trimSpace":   func(s string) string { return strings.TrimSpace(s) },
-	"append":      func(appended string, origin string) string { return origin + appended },
-	"substr": func(s string, startIndex, endIndex int) string {
-		n := len(s)
-		if n == 0 {
-			return ""
-		}
-		if startIndex < 0 {
-			startIndex = startIndex%n + n
-		}
-		if endIndex < 0 {
-			endIndex = endIndex%n + n
-		}
-		if endIndex > n {
-			endIndex = n
-		}
-		if startIndex > endIndex {
-			return ""
-		}
-		return s[startIndex:endIndex]
-	},
-	"underScore": func(s string) string { return namemapper.UnderScore(s) },
-	"upper":      func(s string) string { return namemapper.Upper(s) },
-	"lower":      func(s string) string { return namemapper.Lower(s) },
-	"upperCamel": func(s string) string { return namemapper.UpperCamel(s) },
-	"lowerCamel": func(s string) string { return namemapper.LowerCamel(s) },
-}
 
 // Template wraps template.Template
 type Template struct {
@@ -100,13 +48,12 @@ func OpenTemplatesDir(lang, dir string) ([]os.FileInfo, error) {
 	// open templates directory
 	fs, err := os.Open(dir)
 	if err != nil {
-		log.With(lang).Error("open templates directory %s error: %v", dir, err)
-		return nil, err
+		return nil, errors.Throw(fmt.Sprintf("open templates directory %s error: %v", dir, err))
 	}
 	defer fs.Close()
 	infos, err := fs.Readdir(-1)
 	if err != nil {
-		return nil, err
+		return nil, errors.Throw(err.Error())
 	}
 	templates := make([]os.FileInfo, 0, len(infos))
 	for _, info := range infos {
@@ -117,10 +64,6 @@ func OpenTemplatesDir(lang, dir string) ([]os.FileInfo, error) {
 			continue
 		}
 		templates = append(templates, info)
-	}
-	if len(templates) == 0 {
-		log.With(lang).Warn("no templates found")
-		return nil, nil
 	}
 	return templates, nil
 }
@@ -136,7 +79,7 @@ func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
 	meta := &TemplateMeta{
 		Values: make(map[string]string),
 	}
-	// parse template file meta info
+	// parse template file meta header
 	// e.g.
 	//
 	// ---
@@ -180,7 +123,7 @@ func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
 		data = data[advance:]
 	}
 	temp := template.New(filename)
-	temp = temp.Funcs(Funcs)
+	temp = temp.Funcs(funcs)
 	temp, err = temp.Parse(string(data))
 	if err != nil {
 		err = fmt.Errorf("ParseTemplateFile %s: %v", filename, err)
@@ -195,7 +138,7 @@ func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName stri
 	values := make(map[string]string)
 	for k, v := range meta.Values {
 		temp := template.New(k)
-		temp = temp.Funcs(Funcs)
+		temp = temp.Funcs(funcs)
 		temp, err := temp.Parse(v)
 		if err != nil {
 			log.Error("ApplyMeta: %v", err)

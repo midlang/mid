@@ -1,8 +1,7 @@
 {{$type := .Name}}
-{{$ctx := .Context}}
-package {{$ctx.Pkg.Name}}
+package {{context.Pkg.Name}}
 
 {{.Doc}}type {{$type}} interface {
-	{{range $field := .Fields}}{{$field.Name | title}} {{$ctx.BuildType $field.Type}}{{$field.Comment}}
+	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 }

@@ -36,3 +36,4 @@ struct Info {
 	string desc;
 	map<int64,vector<map<int,array<bool,5>>>> xxx;
 }
+
