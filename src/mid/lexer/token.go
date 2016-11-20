@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"strconv"
-	//"go/token"
 )
 
 type Token int
