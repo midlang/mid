@@ -1,0 +1,11 @@
+{
+	"suffix": "mid",
+
+	"plugins": [
+		{
+			"lang": "go",
+			"name": "std",
+			"bin": "gengo"
+		}
+	]
+}

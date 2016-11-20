@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/midlang/mid/src/mid"
 	"github.com/midlang/mid/src/mid/build"
 	"github.com/midlang/mid/src/mid/lexer"
 	"github.com/midlang/mid/src/mid/parser"
@@ -16,13 +17,15 @@ import (
 type argT struct {
 	cli.Helper
 	Config
+	Version      bool              `cli:"!v,version" usage:"display version information"`
 	ConfigFile   string            `cli:"c,config" usage:"config filename"`
-	LogLevel     logger.Level      `cli:"v,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
+	LogLevel     logger.Level      `cli:"log,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
 	Inputs       []string          `cli:"I,input" usage:"input directories or files which has suffix SUFFIX"`
 	Outdirs      map[string]string `cli:"O,outdir" usage:"output directories for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
 	Extentions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql:go (only for go generator)"`
 	Envvars      map[string]string `cli:"E,env" usage:"custom defined environment variables"`
 	ImportPaths  []string          `cli:"P,importpath" usage:"import paths for lookuping imports"`
+	TemplateKind string            `cli:"K,tk,template-kind" usage:"template kind, a directory name" dft:"default"`
 	TemplatesDir map[string]string `cli:"T,template" usage:"templates directories for each language, e.g. -Tgo=dir1 -Tjava=dir2"`
 }
 
@@ -32,7 +35,6 @@ func newArgT() *argT {
 		TemplatesDir: map[string]string{},
 		Envvars:      map[string]string{},
 		Config:       *newConfig(),
-		ConfigFile:   filepath.Join(os.Getenv("HOME"), ".midconfig"),
 		ImportPaths:  strings.Split(os.Getenv("MID_IMPORT_PATH"), ":"),
 	}
 	return argv
@@ -41,11 +43,15 @@ func newArgT() *argT {
 var root = &cli.Command{
 	Name:      "midc",
 	Argv:      func() interface{} { return newArgT() },
-	Desc:      "midlang compiler and generate codes for program languages",
+	Desc:      "midlang compiler - compile source files and generate other languages code",
 	NumOption: cli.AtLeast(1),
 
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
+		if argv.Version {
+			ctx.String("v%s\n", mid.Meta["version"])
+			return nil
+		}
 		log.SetLevel(argv.LogLevel)
 		if !argv.LogLevel.MoreVerboseThan(log.LvINFO) {
 			log.NoHeader()
@@ -68,11 +74,26 @@ var root = &cli.Command{
 			}
 		)
 
+		// load config file
+		if argv.ConfigFile == "" {
+			for _, dir := range []string{os.Getenv("HOME"), "/etc", "/usr/local/etc"} {
+				fullpath := filepath.Join(dir, "midconfig")
+				if tmpInfo, err := os.Lstat(fullpath); err == nil && tmpInfo != nil && !tmpInfo.IsDir() {
+					argv.ConfigFile = fullpath
+					break
+				}
+			}
+		}
+		if argv.ConfigFile == "" {
+			log.Error("missing config file")
+			return nil
+		}
 		if err := argv.Config.Load(argv.ConfigFile); err != nil {
 			log.Error("load config %s: %v", cyan(argv.ConfigFile), red(err))
 			return nil
 		}
 
+		// migrate templates directories
 		templatesDir := make(map[string]string)
 		for lang, dir := range argv.TemplatesDir {
 			absDir, err := filepath.Abs(dir)
@@ -132,9 +153,32 @@ var root = &cli.Command{
 				plugin.TemplatesDir = templatesDir
 			}
 			if plugin.TemplatesDir == "" {
+				// if templatesDir is empty
+				var pendingDir []string
 				if argv.Config.TemplatesRootDir != "" {
-					plugin.TemplatesDir = filepath.Join(argv.Config.TemplatesRootDir, plugin.Lang)
+					pendingDir = append(pendingDir, argv.Config.TemplatesRootDir)
 				} else {
+					pendingDir = []string{
+						filepath.Join(os.Getenv("HOME"), "mid_templates"),
+						filepath.Join("/etc", "mid_templates"),
+						filepath.Join("/usr/local/usr", "mid_templates"),
+					}
+				}
+				for _, dir := range pendingDir {
+					fullpath := filepath.Join(dir, argv.TemplateKind, plugin.Lang)
+					log.Trace("try lookup templates dir for plugin %s in directory %s, fullpath=%s", plugin.Lang, dir, fullpath)
+					tmpInfo, err := os.Lstat(fullpath)
+					if err != nil || tmpInfo == nil || !tmpInfo.IsDir() {
+						continue
+					}
+					plugin.TemplatesDir, err = filepath.Abs(fullpath)
+					if err != nil {
+						log.Error("get abs of path `%s` error: %v", fullpath, err)
+						return nil
+					}
+					break
+				}
+				if plugin.TemplatesDir == "" {
 					log.Error("templates directory of plugin %s missing", formatPlugin(plugin.Lang, plugin.Name))
 					hasError = true
 					continue

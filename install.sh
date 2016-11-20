@@ -1,34 +1,31 @@
 #!/bin/bash
 
-cat > $HOME/.midconfig <<EOF
-{
-	"suffix": "mid",
+set -e
 
-	"plugins": [
-		{
-			"lang": "go",
-			"name": "std",
-			"bin": "gengo",
-			"supported_exts": ["proto", "redis", "mysql"]
-		}
-	]
-}
-EOF
-
-PWD=`pwd`
-cd cmd/gengo
-echo "install gengo"
+cd ./src/cmd/midc
+echo "Installing compiler: midc"
 go install
+cd ../../..
 
-cd $PWD
-cd cmd/midc
-echo "install midc"
-go install
+generators='
+go
+'
 
-cd $PWD
-echo "copy templates"
-TEMP_ROOTDIR=$HOME/.mid/templates
-mkdir -p $TEMP_ROOTDIR
+for lang in $generators
+do
+	_pwd=`pwd`
+	cd ./src/cmd/gen$lang
+	echo "Installing generator: gen$lang"
+	go install
+	cd $_pwd
+done
 
-mkdir $TEMP_ROOTDIR/go
-cp -r cmd/gengo/templates/* $TEMP_ROOTDIR/go/
+echo "Coping config file"
+cp ./midconfig $HOME/midconfig
+
+echo "Coping templates"
+templates_dir=$HOME/mid_templates
+if [[ -d "$templates_dir" ]]; then
+	rm -r $templates_dir
+fi
+cp -r ./templates $templates_dir
