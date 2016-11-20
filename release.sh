@@ -31,13 +31,14 @@ function mid_release_with_os_cpu() {
 	mkdir -p $_target_dir/bin
 
 	# Building compiler `midc`
+	echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc ./src/cmd/midc/"
 	GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc ./src/cmd/midc/
 
 	# Building generators
 	for lang in $generators
 	do
-		echo "$Go build -o $_target_dir/bin/gen$lang ./src/cmd/gen$lang"
-		$Go build -o $_target_dir/bin/gen$lang ./src/cmd/gen$lang
+		echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang ./src/cmd/gen$lang"
+		GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang ./src/cmd/gen$lang
 	done
 
 	# Coping files
@@ -46,12 +47,21 @@ function mid_release_with_os_cpu() {
 	cp ./README.md $_target_dir/
 	cp -r ./templates $_target_dir/mid_templates
 
-	# Targz
-	mkdir -p $released_dir/$_version
-	tar zcf $_target_dir.tar.gz $_target_dir
-	mv $_target_dir.tar.gz $released_dir/$_version/
+	# Targz or zip( for windows )
+	if [[ "$_os" == "windows" ]]; then
+		zip -q $_target_dir.zip -r $_target_dir
+		mv $_target_dir.zip $released_dir/$_version/
+	else
+		tar zcf $_target_dir.tar.gz $_target_dir
+		mv $_target_dir.tar.gz $released_dir/$_version/
+	fi
 	rm -rf $_target_dir 2> /dev/null
 }
+
+if [[ -d "$released_dir/$_version" ]]; then
+	rm -r $released_dir/$_version
+fi
+mkdir -p $released_dir/$version
 
 mid_release_with_os_cpu $version windows 386
 mid_release_with_os_cpu $version windows amd64
