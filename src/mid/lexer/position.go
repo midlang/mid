@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"sort"
 	"sync"
-
-	"github.com/mkideal/log"
 )
 
 type Pos int
@@ -182,7 +180,7 @@ func (f *File) position(p Pos, adjusted bool) (pos Position) {
 func (f *File) PositionFor(p Pos, adjusted bool) (pos Position) {
 	if p.IsValid() {
 		if int(p) < f.base || int(p) > f.base+f.size {
-			log.Fatal("illegal Pos value: p=%d, base=%d, size=%d", p, f.base, f.size)
+			panic(fmt.Sprintf("illegal Pos value: p=%d, base=%d, size=%d", p, f.base, f.size))
 		}
 		pos = f.position(p, adjusted)
 	}
