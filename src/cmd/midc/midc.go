@@ -143,7 +143,7 @@ var root = &cli.Command{
 				continue
 			}
 			if err := plugin.Init(outdir, argv.Extentions, argv.Envvars); err != nil {
-				log.Error("init plugin %s: %s", formatPlugin(plugin.Lang, plugin.Name))
+				log.Error("init plugin %s: %v", formatPlugin(plugin.Lang, plugin.Name), err)
 				hasError = true
 				continue
 			}

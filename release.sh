@@ -29,16 +29,20 @@ function mid_release_with_os_cpu() {
 
 	local _target_dir=mid$_version.$_os-$_cpu
 	mkdir -p $_target_dir/bin
+	local _suffix=
+	if [[ "_os" == "windows" ]]; then
+		_suffix=.exe
+	fi
 
 	# Building compiler `midc`
-	echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc ./src/cmd/midc/"
-	GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc ./src/cmd/midc/
+	echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc$_suffix ./src/cmd/midc/"
+	GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc$_suffix ./src/cmd/midc/
 
 	# Building generators
 	for lang in $generators
 	do
-		echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang ./src/cmd/gen$lang"
-		GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang ./src/cmd/gen$lang
+		echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang$_suffix ./src/cmd/gen$lang"
+		GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang$_suffix ./src/cmd/gen$lang
 	done
 
 	# Coping files
