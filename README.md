@@ -1,6 +1,93 @@
 midlang
 =======
 
+What's midlang?
+---------------
+
+The aim of the first stage is to implement a `Data Define Language` like `protobuf`, but have some differences.
+
+1.	`midlang` generated code is highly customizable. Using go template to generates your codes, even documents.
+2.	`midlang` was committed to eradicating boring and tedious code which can be generated, not just as a data interchange format.
+
+The compiler `midc` compile midlang source code to an AST, and then you can visit the AST in template file.
+
+Here is an example template file (`package.go.temp`\):
+
+```markdown
+package {{.Name}}
+
+{{define "T_const"}}
+{{.Doc}}const (
+	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}
+	{{end}}
+)
+{{end}}
+
+{{define "T_enum"}}
+{{$type := .Name}}
+type {{$type}} int
+
+{{.Doc}}const (
+	{{range $field := .Fields}}{{$type}}_{{$field.Name}} = {{$field.Value}}{{$field.Comment}}
+	{{end}}
+)
+{{end}}
+
+{{define "T_struct"}}
+{{$type := .Name}}
+{{.Doc}}type {{$type}} struct {
+	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
+	{{end}}
+}
+{{end}}
+
+{{define "T_protocol"}}
+{{template "T_struct" .}}
+{{end}}
+
+{{define "T_service"}}
+{{$type := .Name}}
+{{.Doc}}type {{$type}} interface {
+	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
+	{{end}}
+}
+{{end}}
+
+{{.GenerateDeclsBySubTemplates}}
+```
+
+The following will be devoted to writing a document on how to use template in midlang.
+
+Mainly includes the following points:
+
+-	template filename form: \<kind\>\[.suffix\][.flags].temp
+
+	-	kind maybe `package`,`file`,`const` and other bean kinds like `struct`,`protocol`,`service` etc.
+	-	struct.go.temp -> (struct, go)
+	-	struct.h.temp -> (struct, h)
+	-	struct.cpp.temp -> (struct, cpp)
+	-	struct.cpp.1.temp -> (struct, cpp)
+
+-	template kind `package`: each package as a data be applied to the template file
+
+-	template kind `file`: each source file as a data be applied to the template file
+
+-	template kind `const`: each constant group as a data be applied to the template file
+
+-	template kind `enum`: each enum type as a data be applied to the template file
+
+-	template kind `struct`: each struct as a data be applied to the template file
+
+-	template kind `protocol`: each protocol as a data be applied to the template file
+
+-	template kind `service`: each service as a data be applied to the template file
+
+-	template can use some builtin functions, e.g. `context`,`include`,`include_template`,`osenv` and many utility string functions.(all these functions are defined in `mid/src/tools/generator/generator.go`\)
+
+-	The `context` function returns a object `Context` which has fields `Pkg`, `Plugin`, `Config` and methods `BuildType`, `Env`, `FindBean` etc.
+
+See [builtin templates](./mid/templates)
+
 Install
 -------
 
