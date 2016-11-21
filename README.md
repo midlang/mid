@@ -171,10 +171,18 @@ struct Info {
 ### Compile and generate codes
 
 ```sh
-$ midc -I demo.pid -Ogo=generated/go
+$ midc -I demo.mid -Ogo=generated/go
+# Or
+# midc -I demo.mid -Ogo=generated/go -K default
 ```
 
 Try `midc -h` to get help information of compiler `midc`
+
+Try this:
+
+```sh
+$ midc -I demo.mid -Ogo=generated/go -K beans
+```
 
 Language plugins
 ----------------
