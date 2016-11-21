@@ -86,7 +86,7 @@ Mainly includes the following points:
 
 -	The `context` function returns a object `Context` which has fields `Pkg`, `Plugin`, `Config` and methods `BuildType`, `Env`, `FindBean` etc.
 
-See [builtin templates](./mid/templates)
+See [builtin templates](https://github.com/midlang/mid/tree/master/templates)
 
 Install
 -------
