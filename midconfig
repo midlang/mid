@@ -6,6 +6,11 @@
 			"lang": "go",
 			"name": "std",
 			"bin": "gengo"
+		},
+		{
+			"lang": "cpp",
+			"name": "std",
+			"bin": "gencpp"
 		}
 	]
 }

@@ -62,3 +62,11 @@ func (ctx *Context) Env(key string) string {
 func (ctx *Context) FindBean(name string) *build.Bean {
 	return ctx.beans[name]
 }
+
+// AutoGenDeclaration returns a declaration in each generated file header
+func (ctx *Context) AutoGenDeclaration() string {
+	if value := ctx.Config.Getenv(ctx.Plugin.Lang + ":autogen_decl"); value != "" {
+		return value
+	}
+	return ctx.Config.Getenv("autogen_decl")
+}

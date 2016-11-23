@@ -7,11 +7,9 @@ echo "Installing compiler: midc"
 go install
 cd ../../..
 
-generators='
-go
-'
+languages=`cat languages.txt`
 
-for lang in $generators
+for lang in $languages
 do
 	_pwd=`pwd`
 	cd ./src/cmd/gen$lang

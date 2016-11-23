@@ -92,6 +92,19 @@ func NewBean(file *build.File, b *build.Bean) *Bean {
 	}
 }
 
+// Extends gets extends of bean as a string slice
+func (bean *Bean) Extends(ctx *Context) []string {
+	extends := bean.Bean.Extends()
+	if len(extends) == 0 {
+		return nil
+	}
+	var strs []string
+	for _, ex := range extends {
+		strs = append(strs, ctx.BuildType(ex))
+	}
+	return strs
+}
+
 // AddTag is a chain function for adding tag
 func (bean *Bean) AddTag(key, value string, field *build.Field) *build.Field {
 	return bean.addTag(key, value, field, true)

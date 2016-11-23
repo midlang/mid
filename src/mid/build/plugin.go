@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 type PluginRuntimeConfig struct {
@@ -22,6 +23,43 @@ func (config PluginRuntimeConfig) Encode() string {
 
 func (config *PluginRuntimeConfig) Decode(s string) error {
 	return json.Unmarshal([]byte(s), config)
+}
+
+func (config *PluginRuntimeConfig) Getenv(name string) string {
+	if config.Envvars == nil {
+		return ""
+	}
+	return config.Envvars[name]
+}
+
+func (config *PluginRuntimeConfig) BoolEnv(name string) bool {
+	if config.Envvars != nil {
+		v, found := config.Envvars[name]
+		if found && v == "" {
+			return true
+		}
+	}
+	s := config.Getenv(name)
+	b, _ := strconv.ParseBool(s)
+	return b
+}
+
+func (config *PluginRuntimeConfig) IntEnv(name string) int64 {
+	s := config.Getenv(name)
+	i, _ := strconv.ParseInt(s, 0, 64)
+	return i
+}
+
+func (config *PluginRuntimeConfig) UintEnv(name string) uint64 {
+	s := config.Getenv(name)
+	u, _ := strconv.ParseUint(s, 0, 64)
+	return u
+}
+
+func (config *PluginRuntimeConfig) FloatEnv(name string) float64 {
+	s := config.Getenv(name)
+	f, _ := strconv.ParseFloat(s, 64)
+	return f
 }
 
 type Plugin struct {
@@ -80,11 +118,15 @@ func NewPluginSet() *PluginSet {
 	return &PluginSet{plugins: []*Plugin{}}
 }
 
-func (pset *PluginSet) Register(plugin *Plugin) error {
+func (pset *PluginSet) Len() int {
+	return len(pset.plugins)
+}
+
+func (pset *PluginSet) Register(plugin Plugin) error {
 	if _, existed := pset.Lookup(plugin.Lang); existed {
 		return fmt.Errorf("plugin %s existed", plugin.Lang)
 	}
-	pset.plugins = append(pset.plugins, plugin)
+	pset.plugins = append(pset.plugins, &plugin)
 	return nil
 }
 

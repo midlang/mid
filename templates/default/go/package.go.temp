@@ -2,7 +2,7 @@ package {{.Name}}
 
 {{define "T_const"}}
 {{.Doc}}const (
-	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}
+	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}{{$field.Comment}}
 	{{end}}
 )
 {{end}}

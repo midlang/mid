@@ -8,9 +8,8 @@ function verbose() {
 
 Go=go
 released_dir=targets
-generators='
-	go
-'
+languages=`cat languages.txt`
+
 version_file=VERSION
 version=`cat $version_file`
 
@@ -39,7 +38,7 @@ function mid_release_with_os_cpu() {
 	GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc$_suffix ./src/cmd/midc/
 
 	# Building generators
-	for lang in $generators
+	for lang in $languages
 	do
 		echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang$_suffix ./src/cmd/gen$lang"
 		GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang$_suffix ./src/cmd/gen$lang

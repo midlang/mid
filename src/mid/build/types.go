@@ -388,6 +388,16 @@ func BuildBean(bean *ast.BeanDecl) *Bean {
 	return b
 }
 
+func (bean Bean) Extends() []Type {
+	var extends []Type
+	for _, f := range bean.Fields {
+		if len(f.Names) == 0 {
+			extends = append(extends, f.Type)
+		}
+	}
+	return extends
+}
+
 type ImportSpec struct {
 	Doc     string
 	Name    string

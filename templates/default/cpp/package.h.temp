@@ -1,0 +1,34 @@
+{{context.AutoGenDeclaration}}
+
+{{define "T_const"}}
+{{.Doc}}{{range $field := .Consts}}const int {{$field.Name}} = {{$field.ValueString}};{{$field.Comment}}
+{{end}}
+{{end}}
+
+{{define "T_enum"}}
+{{$type := .Name}}
+{{.Doc}}enum {{$type}} {
+	{{range $field := .Fields}}{{$field.Name}} = {{$field.Value}},{{$field.Comment}}
+	{{end}}
+};
+{{end}}
+
+{{define "T_struct"}}
+{{$type := .Name}}
+{{$extends := .Extends context}}
+{{.Doc}}struct {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
+	{{range $field := .Fields}} {{if ne $field.Name "_"}} {{context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}} {{end}}
+	{{end}}
+};
+{{end}}
+
+{{define "T_protocol"}}
+{{$type := .Name}}
+{{$extends := .Extends context}}
+{{.Doc}}struct {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
+	{{range $field := .Fields}} {{if ne $field.Name "_"}} {{context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}} {{end}}
+	{{end}}
+};
+{{end}}
+
+{{.GenerateDeclsBySubTemplates}}
