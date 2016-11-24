@@ -83,7 +83,6 @@ func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
 	// e.g.
 	//
 	// ---
-	// dir: aaa
 	// file: {{.Name}}.go
 	// ---
 	data, err := ioutil.ReadFile(filename)

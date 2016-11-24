@@ -63,11 +63,10 @@ func (config *PluginRuntimeConfig) FloatEnv(name string) float64 {
 }
 
 type Plugin struct {
-	Lang                string   `json:"lang"`
-	Name                string   `json:"name"`
-	Bin                 string   `json:"bin"`
-	TemplatesDir        string   `json:"templates,omitempty"`
-	SupportedExtentions []string `json:"supported_exts"`
+	Lang         string `json:"lang"`
+	Name         string `json:"name"`
+	Bin          string `json:"bin"`
+	TemplatesDir string `json:"templates,omitempty"`
 
 	RuntimeConfig PluginRuntimeConfig `json:"-"`
 }
@@ -82,15 +81,6 @@ func (plugin *Plugin) Init(outdir string, extensions []string, envvars map[strin
 	plugin.RuntimeConfig.Extentions = extensions
 	plugin.RuntimeConfig.Envvars = envvars
 	return nil
-}
-
-func (plugin *Plugin) IsSupportExt(ext string) bool {
-	for _, x := range plugin.SupportedExtentions {
-		if ext == x {
-			return true
-		}
-	}
-	return false
 }
 
 func (plugin Plugin) Generate(builder *Builder, stdout, stderr io.Writer) error {

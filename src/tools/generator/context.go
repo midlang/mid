@@ -4,7 +4,7 @@ import (
 	"github.com/midlang/mid/src/mid/build"
 )
 
-// Context holds current context for generate codes of specified package
+// Context holds current context for generating codes of specified package
 type Context struct {
 	// Pkg represents current package
 	Pkg *build.Package
@@ -31,6 +31,7 @@ func NewContext(
 		buildType: buildType,
 		Plugin:    plugin,
 		Config:    config,
+		beans:     make(map[string]*build.Bean),
 	}
 	return ctx
 }
@@ -50,8 +51,8 @@ func (ctx *Context) BuildType(typ build.Type) string {
 	return ctx.buildType(typ)
 }
 
-// Env gets custom envvar
-func (ctx *Context) Env(key string) string {
+// Getenv gets custom envvar
+func (ctx *Context) Getenv(key string) string {
 	if ctx.Config.Envvars == nil {
 		return ""
 	}
@@ -63,7 +64,7 @@ func (ctx *Context) FindBean(name string) *build.Bean {
 	return ctx.beans[name]
 }
 
-// AutoGenDeclaration returns a declaration in each generated file header
+// AutoGenDeclaration returns a declaration which would be written to each generated file header
 func (ctx *Context) AutoGenDeclaration() string {
 	if value := ctx.Config.Getenv(ctx.Plugin.Lang + ":autogen_decl"); value != "" {
 		return value

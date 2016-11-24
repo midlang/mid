@@ -192,6 +192,7 @@ Midlang language plugin used to generate code for the program language
 Here are all builtin plugins:
 
 -	gengo - golang plugin
+-	gencpp - c++ plugin
 
 You can write yourself plugin instead of using builtin plugin.
 

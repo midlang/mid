@@ -25,10 +25,10 @@ var (
 	context *Context
 )
 
-// Init initialize generator
+// Init initializes generator
 // NOTE: You MUST initialize generator before using generator
 //
-// buildType is a function for build build.Type to a string
+// buildType is a function for building build.Type to a string
 // plugin is the language plugin
 // config is runtime config of the plugin
 func Init(
