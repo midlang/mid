@@ -12,7 +12,7 @@ import (
 type PluginRuntimeConfig struct {
 	Verbose    string
 	Outdir     string
-	Extentions []string
+	Extentions []Extention
 	Envvars    map[string]string
 }
 
@@ -71,7 +71,7 @@ type Plugin struct {
 	RuntimeConfig PluginRuntimeConfig `json:"-"`
 }
 
-func (plugin *Plugin) Init(outdir string, extensions []string, envvars map[string]string) error {
+func (plugin *Plugin) Init(outdir string, extensions []Extention, envvars map[string]string) error {
 	bin, err := exec.LookPath(plugin.Bin)
 	if err != nil {
 		return err

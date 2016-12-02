@@ -21,9 +21,11 @@ done
 echo "Coping config file"
 cp ./midconfig $HOME/midconfig
 
-echo "Coping templates"
-templates_dir=$HOME/mid_templates
-if [[ -d "$templates_dir" ]]; then
-	rm -r $templates_dir
+echo "Coping templates and extensions"
+midroot=$HOME/.mid
+if [[ -d "$midroot" ]]; then
+	rm -r $midroot
 fi
-cp -r ./templates $templates_dir
+mkdir -p $midroot
+cp -r ./templates $midroot/
+cp -r ./extensions $midroot/

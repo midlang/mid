@@ -43,13 +43,13 @@ func newArgT() *argT {
 var root = &cli.Command{
 	Name:      "midc",
 	Argv:      func() interface{} { return newArgT() },
-	Desc:      "midlang compiler - compile source files and generate other languages code",
+	Desc:      "midlang compiler - compile source files and generate other languages code or documents",
 	NumOption: cli.AtLeast(1),
 
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
 		if argv.Version {
-			ctx.String("v%s\n", mid.Meta["version"])
+			ctx.String("v%v\n", mid.Meta["version"])
 			return nil
 		}
 		log.SetLevel(argv.LogLevel)
@@ -90,6 +90,16 @@ var root = &cli.Command{
 		}
 		if err := argv.Config.Load(argv.ConfigFile); err != nil {
 			log.Error("load config %s: %v", cyan(argv.ConfigFile), red(err))
+			return nil
+		}
+
+		// load extensions
+		if argv.Config.MidRoot == "" {
+			argv.Config.MidRoot = filepath.Join(os.Getenv("HOME"), ".mid")
+		}
+		extensions, err := build.LoadExtensions(filepath.Join(argv.Config.MidRoot, "extensions"), argv.Extentions)
+		if err != nil {
+			log.Error("load extensions error: %v", err)
 			return nil
 		}
 
@@ -142,7 +152,7 @@ var root = &cli.Command{
 				hasError = true
 				continue
 			}
-			if err := plugin.Init(outdir, argv.Extentions, argv.Envvars); err != nil {
+			if err := plugin.Init(outdir, extensions, argv.Envvars); err != nil {
 				log.Error("init plugin %s: %v", formatPlugin(plugin.Lang, plugin.Name), err)
 				hasError = true
 				continue
@@ -154,29 +164,18 @@ var root = &cli.Command{
 			}
 			if plugin.TemplatesDir == "" {
 				// if templatesDir is empty
-				var pendingDir []string
+				var pendingDir string
 				if argv.Config.TemplatesRootDir != "" {
-					pendingDir = append(pendingDir, argv.Config.TemplatesRootDir)
+					pendingDir = argv.Config.TemplatesRootDir
 				} else {
-					pendingDir = []string{
-						filepath.Join(os.Getenv("HOME"), "mid_templates"),
-						filepath.Join("/etc", "mid_templates"),
-						filepath.Join("/usr/local/usr", "mid_templates"),
-					}
+					pendingDir = filepath.Join(argv.MidRoot, "templates")
 				}
-				for _, dir := range pendingDir {
-					fullpath := filepath.Join(dir, argv.TemplateKind, plugin.Lang)
-					log.Trace("try lookup templates dir for plugin %s in directory %s, fullpath=%s", plugin.Lang, dir, fullpath)
-					tmpInfo, err := os.Lstat(fullpath)
-					if err != nil || tmpInfo == nil || !tmpInfo.IsDir() {
-						continue
-					}
-					plugin.TemplatesDir, err = filepath.Abs(fullpath)
-					if err != nil {
-						log.Error("get abs of path `%s` error: %v", fullpath, err)
-						return nil
-					}
-					break
+				fullpath := filepath.Join(pendingDir, argv.TemplateKind, plugin.Lang)
+				log.Trace("try lookup templates dir for plugin %s in directory %s, fullpath=%s", plugin.Lang, pendingDir, fullpath)
+				plugin.TemplatesDir, err = filepath.Abs(fullpath)
+				if err != nil {
+					log.Error("get abs of path `%s` error: %v", fullpath, err)
+					return nil
 				}
 				if plugin.TemplatesDir == "" {
 					log.Error("templates directory of plugin %s missing", formatPlugin(plugin.Lang, plugin.Name))
@@ -185,11 +184,6 @@ var root = &cli.Command{
 				}
 			}
 			plugins = append(plugins, plugin)
-			for _, x := range argv.Extentions {
-				if !plugin.IsSupportExt(x) {
-					log.Warn("plugin %s does not support extension %s", formatPlugin(plugin.Lang, plugin.Name), x)
-				}
-			}
 		}
 		if hasError {
 			return nil

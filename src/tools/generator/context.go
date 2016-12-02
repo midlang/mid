@@ -71,3 +71,8 @@ func (ctx *Context) AutoGenDeclaration() string {
 	}
 	return ctx.Config.Getenv("autogen_decl")
 }
+
+// Extention inserts code for extensions at specific position
+func (ctx *Context) Extention(at string) error {
+	return nil
+}

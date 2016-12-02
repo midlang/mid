@@ -1,40 +1,61 @@
+{{context.Extension "file_head"}}
 package {{.Name}}
 
+{{context.Extension "before_import"}}
+import (
+{{range $import := .ExtentionImports}}{{$import.Alias}} "{{$import.Package}}"
+{{end}}
+)
+{{context.Extension "after_import"}}
+
 {{define "T_const"}}
+{{context.Extension "before_const"}}
 {{.Doc}}const (
 	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}{{$field.Comment}}
 	{{end}}
 )
+{{context.Extension "after_const"}}
 {{end}}
 
 {{define "T_enum"}}
 {{$type := .Name}}
 type {{$type}} int
-
+{{context.Extension "before_enum"}}
 {{.Doc}}const (
 	{{range $field := .Fields}}{{$type}}_{{$field.Name}} = {{$field.Value}}{{$field.Comment}}
 	{{end}}
 )
+{{context.Extension "after_enum"}}
 {{end}}
 
 {{define "T_struct"}}
 {{$type := .Name}}
+{{context.Extension "before_struct"}}
 {{.Doc}}type {{$type}} struct {
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 }
+{{context.Extension "after_struct"}}
 {{end}}
 
 {{define "T_protocol"}}
-{{template "T_struct" .}}
+{{$type := .Name}}
+{{context.Extension "before_protocol"}}
+{{.Doc}}type {{$type}} struct {
+	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
+	{{end}}
+}
+{{context.Extension "after_protocol"}}
 {{end}}
 
 {{define "T_service"}}
 {{$type := .Name}}
+{{context.Extension "before_service"}}
 {{.Doc}}type {{$type}} interface {
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 }
+{{context.Extension "after_service"}}
 {{end}}
 
 {{.GenerateDeclsBySubTemplates}}

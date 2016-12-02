@@ -13,13 +13,9 @@ languages=`cat languages.txt`
 version_file=VERSION
 version=`cat $version_file`
 
-cat > ./src/mid/meta.go <<EOF
-package mid
-
-var Meta = map[string]interface{} {
-	"version": "$version",
-}
-EOF
+cd ./hack
+source ./genmeta.sh $version
+cd ..
 
 function mid_release_with_os_cpu() {
 	local _version=$1
@@ -27,7 +23,9 @@ function mid_release_with_os_cpu() {
 	local _cpu=$3
 
 	local _target_dir=mid$_version.$_os-$_cpu
+	local _target_midroot=$_target_dir/mid
 	mkdir -p $_target_dir/bin
+	mkdir -p $_target_midroot
 	local _suffix=
 	if [[ "_os" == "windows" ]]; then
 		_suffix=.exe
@@ -48,7 +46,8 @@ function mid_release_with_os_cpu() {
 	cp ./midconfig $_target_dir/
 	cp $version_file $_target_dir/
 	cp ./README.md $_target_dir/
-	cp -r ./templates $_target_dir/mid_templates
+	cp -r ./templates $_target_midroot/
+	cp -r ./extensions $_target_midroot/
 
 	# Targz or zip( for windows )
 	if [[ "$_os" == "windows" ]]; then

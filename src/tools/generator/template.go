@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	// IncludesDir contains template files for `include` function
+	// IncludesDir contains template files for `include` and `include_template` functions
 	IncludesDir = "includes"
 
 	// TemplateFileSuffix is the template filename suffix could be recognized

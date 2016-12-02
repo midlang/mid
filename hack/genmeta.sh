@@ -1,3 +1,16 @@
+#!/bin/bash
+
+set -e
+
+file=../src/mid/meta.go
+version=$1
+
+if [[ "$version" == "" ]]; then
+	echo "var version missing as first argument"
+	exit 1
+fi
+
+cat > $file <<EOF
 package mid
 
 import "fmt"
@@ -19,7 +32,10 @@ func (m Map) String(key string) string {
 	}
 }
 
-var Meta = Map{
-	"version":        "0.1",
+var Meta = Map {
+	"version": "$version",
 	"officialAuthor": "midc",
 }
+EOF
+
+gofmt -w $file
