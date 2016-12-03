@@ -20,6 +20,6 @@ func (m Map) String(key string) string {
 }
 
 var Meta = Map{
-	"version":        "0.1",
+	"version":        "0.1.1",
 	"officialAuthor": "midc",
 }
