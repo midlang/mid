@@ -91,11 +91,14 @@ func buildType(typ build.Type) string {
 		}
 	case *build.StructType:
 		if t.Package != "" {
-			return t.Package + "." + t.Name
+			return t.Package + "::" + t.Name
 		}
 		return t.Name
 	case *build.FuncType:
 		var buf bytes.Buffer
+		if t.Result != nil {
+			buf.WriteString(buildType(t.Result))
+		}
 		buf.WriteByte('(')
 		if len(t.Params) > 0 {
 			for i, field := range t.Params {
@@ -106,9 +109,6 @@ func buildType(typ build.Type) string {
 			}
 		}
 		buf.WriteByte(')')
-		if t.Result != nil {
-			buf.WriteString(buildType(t.Result))
-		}
 		return buf.String()
 	default:
 		return ""

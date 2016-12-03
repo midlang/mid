@@ -1,0 +1,4 @@
+
+func (x {{.Name}}) ProtoName() string {
+	return "{{.Name}}"
+}

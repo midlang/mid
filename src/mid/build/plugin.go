@@ -10,10 +10,11 @@ import (
 )
 
 type PluginRuntimeConfig struct {
-	Verbose    string
-	Outdir     string
-	Extentions []Extention
-	Envvars    map[string]string
+	Verbose       string
+	Outdir        string
+	ExtentionsDir string
+	Extentions    []Extention
+	Envvars       map[string]string
 }
 
 func (config PluginRuntimeConfig) Encode() string {
@@ -71,15 +72,12 @@ type Plugin struct {
 	RuntimeConfig PluginRuntimeConfig `json:"-"`
 }
 
-func (plugin *Plugin) Init(outdir string, extensions []Extention, envvars map[string]string) error {
+func (plugin *Plugin) Init() error {
 	bin, err := exec.LookPath(plugin.Bin)
 	if err != nil {
 		return err
 	}
 	plugin.Bin = bin
-	plugin.RuntimeConfig.Outdir = outdir
-	plugin.RuntimeConfig.Extentions = extensions
-	plugin.RuntimeConfig.Envvars = envvars
 	return nil
 }
 

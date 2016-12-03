@@ -16,6 +16,7 @@ var (
 )
 
 const (
+	// positions
 	FileHead       = "file_head"
 	BeforeImport   = "before_import"
 	InImport       = "in_import"
@@ -30,6 +31,9 @@ const (
 	AfterProtocol  = "after_protocol"
 	BeforeService  = "before_service"
 	AfterService   = "after_service"
+
+	// Extention config filename
+	ExtConfigFilename = "ext.json"
 )
 
 type EmbeddedPosition string
@@ -85,13 +89,14 @@ func (v EmbeddedValue) IsValid() bool {
 }
 
 type Extention struct {
-	Name    string
-	Author  string
-	URL     string
-	Version string
-
+	Name    string `json:"name"`
+	Author  string `json:"author"`
+	URL     string `json:"url"`
+	Version string `json:"version"`
 	// language -> position -> embedded_values
-	EmbeddedAt map[string]map[EmbeddedPosition][]EmbeddedValue
+	EmbeddedAt map[string]map[EmbeddedPosition][]EmbeddedValue `json:"at"`
+
+	Path string `json:"path"`
 }
 
 func (e Extention) Find(lang, kind, at string) []EmbeddedValue {
@@ -133,7 +138,11 @@ func GetExtentionKey(name string) (ExtentionKey, error) {
 }
 
 func (key ExtentionKey) Path(rootdir string) string {
-	return filepath.Join(rootdir, key.Author, key.Name)
+	return filepath.Join(rootdir, key.Subdir())
+}
+
+func (key ExtentionKey) Subdir() string {
+	return filepath.Join(key.Author, key.Name)
 }
 
 func LoadExtensions(rootdir string, names []string) ([]Extention, error) {
@@ -148,7 +157,7 @@ func LoadExtensions(rootdir string, names []string) ([]Extention, error) {
 			continue
 		}
 		seen[key] = true
-		data, err := ioutil.ReadFile(key.Path(rootdir))
+		data, err := ioutil.ReadFile(filepath.Join(key.Path(rootdir), ExtConfigFilename))
 		if err != nil {
 			return nil, err
 		}
@@ -162,6 +171,7 @@ func LoadExtensions(rootdir string, names []string) ([]Extention, error) {
 		if ext.Name == "" {
 			ext.Name = key.Name
 		}
+		ext.Path = key.Subdir()
 		if ext.EmbeddedAt != nil {
 			for lang, x := range ext.EmbeddedAt {
 				if x != nil {

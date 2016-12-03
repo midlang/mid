@@ -1,0 +1,33 @@
+{
+    "at": {
+        "cpp": {},
+        "go": {
+            "after_protocol": [
+                {
+                    "template": "after_protocol.go.temp"
+                }
+            ],
+            "after_struct": [
+                {
+                    "template": "after_struct.go.temp"
+                }
+            ],
+            "before_import": [
+                {
+                    "text": "// `proto` before_import"
+                },
+                {
+                    "template": "before_import.go.temp"
+                }
+            ],
+            "package.file_head": [
+                {
+                    "text": "// use extension `proto`"
+                }
+            ]
+        }
+    },
+    "author": "midc",
+    "name": "proto",
+    "version": "0.1"
+}

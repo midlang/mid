@@ -22,7 +22,7 @@ type argT struct {
 	LogLevel     logger.Level      `cli:"log,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
 	Inputs       []string          `cli:"I,input" usage:"input directories or files which has suffix SUFFIX"`
 	Outdirs      map[string]string `cli:"O,outdir" usage:"output directories for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
-	Extentions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql:go (only for go generator)"`
+	Extentions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql -Xrpc"`
 	Envvars      map[string]string `cli:"E,env" usage:"custom defined environment variables"`
 	ImportPaths  []string          `cli:"P,importpath" usage:"import paths for lookuping imports"`
 	TemplateKind string            `cli:"K,tk,template-kind" usage:"template kind, a directory name" dft:"default"`
@@ -97,7 +97,8 @@ var root = &cli.Command{
 		if argv.Config.MidRoot == "" {
 			argv.Config.MidRoot = filepath.Join(os.Getenv("HOME"), ".mid")
 		}
-		extensions, err := build.LoadExtensions(filepath.Join(argv.Config.MidRoot, "extensions"), argv.Extentions)
+		extensionsDir := filepath.Join(argv.Config.MidRoot, "extensions")
+		extensions, err := build.LoadExtensions(extensionsDir, argv.Extentions)
 		if err != nil {
 			log.Error("load extensions error: %v", err)
 			return nil
@@ -152,11 +153,16 @@ var root = &cli.Command{
 				hasError = true
 				continue
 			}
-			if err := plugin.Init(outdir, extensions, argv.Envvars); err != nil {
+			if err := plugin.Init(); err != nil {
 				log.Error("init plugin %s: %v", formatPlugin(plugin.Lang, plugin.Name), err)
 				hasError = true
 				continue
 			}
+			// initialize RuntimeConfig for plugin
+			plugin.RuntimeConfig.Outdir = outdir
+			plugin.RuntimeConfig.ExtentionsDir = extensionsDir
+			plugin.RuntimeConfig.Extentions = extensions
+			plugin.RuntimeConfig.Envvars = argv.Envvars
 			plugin.RuntimeConfig.Verbose = argv.LogLevel.String()
 			if templatesDir, ok := argv.TemplatesDir[plugin.Lang]; ok {
 				// replace default templatesDir

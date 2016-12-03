@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"errors"
 	"strconv"
-	"strings"
 
 	"github.com/midlang/mid/src/mid/ast"
 	"github.com/midlang/mid/src/mid/lexer"
@@ -182,16 +181,9 @@ type Field struct {
 	Comment string
 }
 
-func (field Field) NamesString() string {
-	if len(field.Names) == 0 {
-		return ""
-	}
-	return strings.Join(field.Names, ", ")
-}
-
 func (field Field) Name() (string, error) {
 	if len(field.Names) == 0 {
-		return "_", nil
+		return "", nil
 	}
 	if len(field.Names) == 1 {
 		return field.Names[0], nil
@@ -205,6 +197,23 @@ func (field Field) Value() string {
 		return e.Value
 	}
 	panic("unsupported expr")
+}
+
+func (field Field) IsExtended() bool {
+	return len(field.Names) == 0
+}
+
+func (field Field) GetTag(key string) string {
+	return field.Tag.Get(key)
+}
+
+func (field Field) HasTag(key string) bool {
+	_, ok := field.Tag.Lookup(key)
+	return ok
+}
+
+func (field *Field) AddTag(key, value string) {
+	field.Tag.Set(key, value)
 }
 
 func BuildField(field *ast.Field) *Field {
@@ -397,6 +406,15 @@ func (bean Bean) Extends() []Type {
 	}
 	return extends
 }
+
+func (bean Bean) Field(i int) *Field {
+	if i >= len(bean.Fields) || i < 0 {
+		return nil
+	}
+	return bean.Fields[i]
+}
+
+func (bean Bean) NumField() int { return len(bean.Fields) }
 
 type ImportSpec struct {
 	Doc     string

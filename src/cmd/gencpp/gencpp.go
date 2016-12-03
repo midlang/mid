@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/midlang/mid/src/genutil"
 	"github.com/midlang/mid/src/mid/build"
-	"github.com/midlang/mid/src/tools/generator"
 	"github.com/mkideal/log"
 	"github.com/mkideal/pkg/errors"
 )
@@ -44,11 +44,11 @@ func generate(builder *build.Builder, plugin build.Plugin, config build.PluginRu
 	}()
 
 	// initialize generator
-	generator.Init(buildType, plugin, config)
+	genutil.Init(buildType, plugin, config)
 
 	pkgs := builder.Packages
 	for _, pkg := range pkgs {
-		if _, err := generator.GeneratePackage(pkg); err != nil {
+		if _, err := genutil.GeneratePackage(pkg); err != nil {
 			return err
 		}
 	}

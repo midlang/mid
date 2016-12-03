@@ -1,10 +1,9 @@
-package generator
+package genutil
 
 import (
 	"bytes"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -114,23 +113,6 @@ func Init(
 
 }
 
-// GoFmt formats go code file
-func GoFmt(filename string) error {
-	if !strings.HasSuffix(filename, ".go") {
-		// ignore non-golang file
-		return nil
-	}
-	const gofmt = "gofmt"
-	if _, err := exec.LookPath(gofmt); err != nil {
-		// do nothing if failed to lookup `gofmt`
-		return nil
-	}
-	cmd := exec.Command(gofmt, "-w", filename)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
 // GeneratePackage generates codes for package
 func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 	if context == nil {
@@ -164,8 +146,11 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 		kind, suffix := ParseTemplateFilename(info.Name())
 		log.Debug("kind=%s, suffix=%s", kind, suffix)
 
-		// sets context.Root
+		// sets context.Root and context.Kind
 		context.Root = temp
+		context.Kind = kind
+
+		// apply template to specific kind node
 		switch kind {
 		case "package":
 			dftName := pkg.Name + "." + suffix
@@ -176,6 +161,8 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 				if err != nil {
 					return files, err
 				}
+			} else {
+				return files, err
 			}
 		case "file":
 			for _, f := range pkg.Files {
@@ -188,6 +175,8 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 					if err != nil {
 						return files, err
 					}
+				} else {
+					return files, err
 				}
 			}
 		case "const":
@@ -202,11 +191,13 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 							if err != nil {
 								return files, err
 							}
+						} else {
+							return files, err
 						}
 					}
 				}
 			}
-		// beans: enum,struct,...
+		// beans: enum,struct,protocol,service
 		default:
 			for _, f := range pkg.Files {
 				for _, b := range f.Beans {
@@ -220,6 +211,8 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 							if err != nil {
 								return files, err
 							}
+						} else {
+							return files, err
 						}
 					}
 				}

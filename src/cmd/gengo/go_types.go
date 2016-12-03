@@ -9,9 +9,12 @@ import (
 	"github.com/midlang/mid/src/mid/lexer"
 )
 
-func goFieldDecl(f *build.Field) string {
+func goFieldDecl(f *build.Field, emptyIfNoName bool) string {
 	if len(f.Names) == 0 {
-		return buildType(f.Type)
+		if emptyIfNoName {
+			return buildType(f.Type)
+		}
+		return "_ " + buildType(f.Type)
 	}
 	return strings.Join(f.Names, ", ") + " " + buildType(f.Type)
 }
@@ -86,11 +89,18 @@ func buildType(typ build.Type) string {
 		var buf bytes.Buffer
 		buf.WriteByte('(')
 		if len(t.Params) > 0 {
+			allNoName := true
+			for _, field := range t.Params {
+				if len(field.Names) > 0 {
+					allNoName = false
+					break
+				}
+			}
 			for i, field := range t.Params {
 				if i > 0 {
 					buf.WriteByte(',')
 				}
-				buf.WriteString(goFieldDecl(field))
+				buf.WriteString(goFieldDecl(field, allNoName))
 			}
 		}
 		buf.WriteByte(')')

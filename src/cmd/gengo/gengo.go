@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/midlang/mid/src/genutil"
 	"github.com/midlang/mid/src/mid/build"
-	"github.com/midlang/mid/src/tools/generator"
 	"github.com/mkideal/log"
 	"github.com/mkideal/pkg/errors"
 )
@@ -43,15 +43,15 @@ func generate(builder *build.Builder, plugin build.Plugin, config build.PluginRu
 	}()
 
 	// initialize generator
-	generator.Init(buildType, plugin, config)
+	genutil.Init(buildType, plugin, config)
 
 	pkgs := builder.Packages
 	for _, pkg := range pkgs {
-		if files, err := generator.GeneratePackage(pkg); err != nil {
+		if files, err := genutil.GeneratePackage(pkg); err != nil {
 			return err
 		} else {
 			for file := range files {
-				if err = generator.GoFmt(file); err != nil {
+				if err = genutil.GoFmt(file); err != nil {
 					return errors.Throw("gofmt file `" + file + "` error: " + err.Error())
 				}
 			}
