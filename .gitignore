@@ -1,5 +1,6 @@
 *.swp
 *.swo
+*.DS_Store
 src/cmd/midc/midc
 src/cmd/midc/go/
 testdata/generated/
