@@ -1,5 +1,5 @@
 languageCode = "en-us"
-title = "midlang website"
+title = "midlang"
 baseurl = "http://midlang.org/"
 theme = "hugo-material-docs"
 metadataformat = "yaml"
