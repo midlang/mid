@@ -1,34 +1,78 @@
 {{context.AutoGenDeclaration}}
 
-{{define "T_const"}}
+{{- context.Extension "file_head" .}}
+
+{{- context.Extension "before_import" .}}
+{{- context.Extension "after_import" .}}
+
+{{- define "T_const"}}
+{{- context.Extension "before_const" .}}
+{{- context.Extension "const_front" .}}
 {{.Doc}}{{range $field := .Consts}}const int {{$field.Name}} = {{$field.ValueString}};{{$field.Comment}}
+{{- context.Extension "const_back" .}}
 {{end}}
+{{- context.Extension "after_const" .}}
 {{end}}
 
-{{define "T_enum"}}
-{{$type := .Name}}
+{{- define "T_enum"}}
+{{- $type := .Name}}
+{{- context.Extension "before_enum" .}}
 {{.Doc}}enum {{$type}} {
-	{{range $field := .Fields}}{{$field.Name}} = {{$field.Value}},{{$field.Comment}}
+	{{- context.Extension "enum_front" .}}
+	{{range $field := .Fields}}
+		{{- $field.Name}} = {{$field.Value}},{{$field.Comment}}
 	{{end}}
+	{{- context.Extension "enum_back" .}}
 };
+{{- context.Extension "after_enum" .}}
 {{end}}
 
-{{define "T_struct"}}
-{{$type := .Name}}
-{{$extends := .Extends context}}
+{{- define "T_struct"}}
+{{- $type := .Name}}
+{{- context.Extension "before_struct" .}}
+{{- $extends := .Extends context}}
 {{.Doc}}struct {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
-	{{range $field := .Fields}} {{if ne $field.Name "_"}} {{context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}} {{end}}
+	{{- context.Extension "struct_front" .}}
+	{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}
+			{{- context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}}
+		{{- end}}
 	{{end}}
+	{{- context.Extension "struct_back" .}}
 };
+{{- context.Extension "after_struct" .}}
 {{end}}
 
-{{define "T_protocol"}}
-{{$type := .Name}}
-{{$extends := .Extends context}}
+{{- define "T_protocol"}}
+{{- $type := .Name}}
+{{- context.Extension "before_protocol" .}}
+{{- $extends := .Extends context}}
 {{.Doc}}struct {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
-	{{range $field := .Fields}} {{if ne $field.Name "_"}} {{context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}} {{end}}
+	{{- context.Extension "protocol_front" .}}
+	{{range $field := .Fields}}
+		{{- if ne $field.Name ""}} 
+			{{- context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}}
+		{{- end}}
 	{{end}}
+	{{- context.Extension "protocol_back" .}}
 };
+{{- context.Extension "after_protocol" .}}
 {{end}}
 
-{{.GenerateDeclsBySubTemplates}}
+{{- define "T_service"}}
+{{- $type := .Name}}
+{{- context.Extension "before_service" .}}
+{{- $extends := .Extends context}}
+{{.Doc}}class {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
+	{{- context.Extension "service_front" .}}
+	{{range $field := .Fields}}
+		{{- if ne $field.Name ""}} 
+			{{- if true}} virtual {{$field.Name}}{{- context.BuildType $field.Type}} = 0;{{$field.Comment}}{{end}}
+		{{- end}}
+	{{end}}
+	{{- context.Extension "service_back" .}}
+};
+{{- context.Extension "after_service" .}}
+{{end}}
+
+{{- .GenerateDeclsBySubTemplates -}}

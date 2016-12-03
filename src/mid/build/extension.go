@@ -23,13 +23,23 @@ const (
 	AfterImport    = "after_import"
 	BeforeConst    = "before_const"
 	AfterConst     = "after_const"
+	ConstFront     = "const_front"
+	ConstBack      = "const_back"
 	BeforeEnum     = "before_enum"
+	EnumFront      = "enum_front"
+	EnumBack       = "enum_back"
 	AfterEnum      = "after_enum"
 	BeforeStruct   = "before_struct"
+	StructFront    = "struct_front"
+	StructBack     = "struct_back"
 	AfterStruct    = "after_struct"
 	BeforeProtocol = "before_protocol"
+	ProtocolFront  = "protocol_front"
+	ProtocolBack   = "protocol_back"
 	AfterProtocol  = "after_protocol"
 	BeforeService  = "before_service"
+	ServiceFront   = "service_front"
+	ServiceBack    = "service_back"
 	AfterService   = "after_service"
 
 	// Extention config filename
@@ -59,14 +69,24 @@ func (pos EmbeddedPosition) IsValid() bool {
 		InImport,
 		AfterImport,
 		BeforeConst,
+		ConstFront,
+		ConstBack,
 		AfterConst,
 		BeforeEnum,
+		EnumFront,
+		EnumBack,
 		AfterEnum,
 		BeforeStruct,
+		StructFront,
+		StructBack,
 		AfterStruct,
 		BeforeProtocol,
+		ProtocolFront,
+		ProtocolBack,
 		AfterProtocol,
 		BeforeService,
+		ServiceFront,
+		ServiceBack,
 		AfterService:
 	default:
 		return false
