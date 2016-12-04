@@ -1,0 +1,5 @@
+---
+date: 2016-12-04 17:28
+author: mkideal
+---
+{{include_template (joinPath (pwd) "struct_front.h.temp") .}}

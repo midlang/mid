@@ -102,6 +102,7 @@ func (pos EmbeddedPosition) Match(kind, at string) bool {
 type EmbeddedValue struct {
 	Text     string `join:"text"`
 	Template string `json:"template"`
+	Suffix   string `json:"suffix"`
 }
 
 func (v EmbeddedValue) IsValid() bool {
@@ -109,10 +110,11 @@ func (v EmbeddedValue) IsValid() bool {
 }
 
 type Extention struct {
-	Name    string `json:"name"`
-	Author  string `json:"author"`
-	URL     string `json:"url"`
-	Version string `json:"version"`
+	Name    string   `json:"name"`
+	Author  string   `json:"author"`
+	URL     string   `json:"url"`
+	Version string   `json:"version"`
+	Deps    []string `json:"deps"`
 	// language -> position -> embedded_values
 	EmbeddedAt map[string]map[EmbeddedPosition][]EmbeddedValue `json:"at"`
 

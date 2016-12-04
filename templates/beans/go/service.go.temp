@@ -1,7 +1,19 @@
-{{$type := .Name}}
+---
+date: 2016-12-04 23:31
+author: mkideal
+---
+{{context.AutoGenDeclaration}}
+
+{{context.Extension "file_head" .}}
 package {{context.Pkg.Name}}
 
+{{$type := .Name}}
+{{context.Extension "before_service" .}}
 {{.Doc}}type {{$type}} interface {
+	{{context.Extension "service_front" .}}
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
+	{{context.Extension "service_back" .}}
 }
+{{context.Extension "after_service" .}}
+{{context.Extension "file_end" .}}

@@ -1,0 +1,49 @@
+---
+date: 2016-12-04 12:45
+author: mkideal
+---
+
+type {{.Name}}Meta struct {
+	{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}
+			{{- if true}}F_{{$field.Name}} string{{end}}
+		{{- else}}
+			{{- $fieldType := context.BuildType $field.Type}}
+			{{- if true}}F_{{$fieldType}} string{{end}}
+		{{- end}}
+	{{end}}
+}
+
+func ({{.Name}}Meta) Name() string {
+	return "{{.Name}}"
+}
+
+func ({{.Name}}Meta) NumField() int {
+	return {{len .Fields}}
+}
+
+func ({{.Name}}Meta) Field(i int, v {{.Name}}) (string, interface{}) {
+	switch i {
+	{{range $index, $field := .Fields}}
+		{{- if true}}case {{$index}}:{{end}}
+		{{- if ne $field.Name ""}}
+		return "{{$field.Name}}", v.{{$field.Name | title}}
+		{{- else}}
+		{{- $fieldType := context.BuildType $field.Type}}
+		return "{{$fieldType}}", v.{{$fieldType}}
+		{{- end}}
+	{{end}}
+	}
+	return "", nil
+}
+
+var {{.Name}}MetaVar = {{.Name}}Meta{
+	{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}
+			{{- if true}}F_{{$field.Name}}: "{{$field.Name}}",{{end}}
+		{{- else}}
+			{{- $fieldType := context.BuildType $field.Type}}
+			{{- if true}}F_{{$fieldType}}: "{{$fieldType}}",{{end}}
+		{{- end}}
+	{{end}}
+}

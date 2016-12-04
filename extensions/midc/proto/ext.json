@@ -28,6 +28,9 @@
         }
     },
     "author": "midc",
+    "deps": [
+        "meta"
+    ],
     "name": "proto",
     "version": "0.1"
 }

@@ -24,9 +24,46 @@ type Writer interface {
 	io.ByteWriter
 }
 
+type extendByteWriter struct {
+	w   io.Writer
+	buf [1]byte
+}
+
+func (w extendByteWriter) Write(b []byte) (int, error) { return w.w.Write(b) }
+func (w extendByteWriter) WriteByte(c byte) error {
+	w.buf[0] = c
+	_, err := w.w.Write(w.buf[:])
+	return err
+}
+
+func wrapWriter(w io.Writer) Writer {
+	if wc, ok := w.(Writer); ok {
+		return wc
+	}
+	return extendByteWriter{w: w}
+}
+
 type Reader interface {
 	io.Reader
 	io.ByteReader
+}
+
+type extendByteReader struct {
+	r   io.Reader
+	buf [1]byte
+}
+
+func (r extendByteReader) Read(p []byte) (int, error) { return r.r.Read(p) }
+func (r extendByteReader) ReadByte() (byte, error) {
+	_, err := r.r.Read(r.buf[:])
+	return r.buf[0], err
+}
+
+func wrapReader(r io.Reader) Reader {
+	if rc, ok := r.(Reader); ok {
+		return rc
+	}
+	return extendByteReader{r: r}
 }
 
 type Encoder interface {

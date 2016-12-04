@@ -1,0 +1,18 @@
+---
+date: 2016-12-04 17:04
+author: mkideal
+---
+
+	struct Meta {
+		{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}
+			{{- if true}}const static std::string F_{{$field.Name}};{{end}}
+		{{- else}}
+			{{- $fieldType := context.BuildType $field.Type}}
+			{{- if true}}const static std::string F_{{$fieldType}};{{end}}
+		{{- end}}
+		{{end}}
+		static std::string name();
+		static int numField();
+		static std::string field(int i);
+	};

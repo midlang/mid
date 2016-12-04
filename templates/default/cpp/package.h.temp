@@ -3,6 +3,11 @@
 {{- context.Extension "file_head" .}}
 
 {{- context.Extension "before_import" .}}
+#include <string>
+#include <vector>
+#include <array>
+#include <map>
+#include <unordered_map>
 {{- context.Extension "after_import" .}}
 
 {{- define "T_const"}}
@@ -66,8 +71,9 @@
 {{.Doc}}class {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
 	{{- context.Extension "service_front" .}}
 	{{range $field := .Fields}}
-		{{- if ne $field.Name ""}} 
-			{{- if true}} virtual {{$field.Name}}{{- context.BuildType $field.Type}} = 0;{{$field.Comment}}{{end}}
+		{{- if ne $field.Name ""}}
+			{{- $strs := splitN "(" 2 (context.BuildType $field.Type)}}
+			{{- if true}} virtual {{stringAt $strs 0}} {{$field.Name}} ({{stringAt $strs 1}} = 0;{{$field.Comment}}{{end}}
 		{{- end}}
 	{{end}}
 	{{- context.Extension "service_back" .}}
@@ -75,4 +81,8 @@
 {{- context.Extension "after_service" .}}
 {{end}}
 
-{{- .GenerateDeclsBySubTemplates -}}
+namespace {{.Name}} {
+{{.GenerateDeclsBySubTemplates}}
+} // end namespace {{.Name}}
+
+{{context.Extension "file_end" .}}

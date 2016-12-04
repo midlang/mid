@@ -1,12 +1,19 @@
 ---
-file: {{.Name}}.go
+date: 2016-12-04 23:30
+author: mkideal
 ---
+{{context.AutoGenDeclaration}}
+
+{{context.Extension "file_head" .}}
 package {{context.Pkg.Name}}
 
 {{$type := .Name}}
 type {{$type}} int
-
+{{context.Extension "before_enum" .}}
 {{.Doc}}const (
+	{{context.Extension "enum_front" .}}
 	{{range $field := .Fields}}{{$type}}_{{$field.Name}} = {{$field.Value}}{{$field.Comment}}
 	{{end}}
+	{{context.Extension "enum_back" .}}
 )
+{{context.Extension "after_enum" .}}

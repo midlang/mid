@@ -1,7 +1,19 @@
-{{$type := .Name}}
+---
+date: 2016-12-04 23:31
+author: mkideal
+---
+{{context.AutoGenDeclaration}}
+
+{{context.Extension "file_head" .}}
 package {{context.Pkg.Name}}
 
+{{$type := .Name}}
+{{context.Extension "before_struct" .}}
 {{.Doc}}type {{$type}} struct {
+	{{context.Extension "struct_front" .}}
 	{{range $field := .Fields}} {{if ne $field.Name "_"}} {{$field.Name | title}} {{end}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
+	{{context.Extension "struct_back" .}}
 }
+{{context.Extension "after_struct" .}}
+{{context.Extension "file_end" .}}

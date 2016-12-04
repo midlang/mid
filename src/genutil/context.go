@@ -21,6 +21,10 @@ type Context struct {
 	Config build.PluginRuntimeConfig
 	// Kind holds current template kind
 	Kind string
+	// Suffix holds current template suffix
+	Suffix string
+	// Pwd holds current template file directory
+	Pwd string
 
 	// BuildType functions for current language
 	buildType BuildTypeFunc
@@ -103,6 +107,9 @@ func (ctx *Context) Extension(at string, data interface{}) (string, error) {
 				}).Warn("value %v is invalid", value)
 				continue
 			}
+			if value.Suffix != "" && value.Suffix != ctx.Suffix {
+				continue
+			}
 			if buf.Len() > 0 {
 				buf.WriteByte('\n')
 			}
@@ -119,7 +126,11 @@ func (ctx *Context) Extension(at string, data interface{}) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			if err = temp.Execute(&buf, data); err != nil {
+			pwd := context.Pwd
+			ctx.Pwd, _ = filepath.Split(filename)
+			err = temp.Execute(&buf, data)
+			context.Pwd = pwd
+			if err != nil {
 				return "", err
 			}
 		}

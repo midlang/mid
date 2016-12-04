@@ -1,0 +1,45 @@
+{
+    "at": {
+        "cpp": {
+            "after_protocol": [
+                {
+                    "suffix": "cpp",
+                    "template": "cpp/after_protocol.cpp.temp"
+                }
+            ],
+            "after_struct": [
+                {
+                    "suffix": "cpp",
+                    "template": "cpp/after_struct.cpp.temp"
+                }
+            ],
+            "protocol_front": [
+                {
+                    "suffix": "h",
+                    "template": "cpp/protocol_front.h.temp"
+                }
+            ],
+            "struct_front": [
+                {
+                    "suffix": "h",
+                    "template": "cpp/struct_front.h.temp"
+                }
+            ]
+        },
+        "go": {
+            "after_protocol": [
+                {
+                    "template": "go/after_protocol.go.temp"
+                }
+            ],
+            "after_struct": [
+                {
+                    "template": "go/after_struct.go.temp"
+                }
+            ]
+        }
+    },
+    "author": "midc",
+    "name": "meta",
+    "version": "0.1"
+}

@@ -1,0 +1,5 @@
+---
+date: 2016-12-04 13:14
+author: mkideal
+---
+{{include_template (joinPath (pwd) "after_struct.go.temp") .}}

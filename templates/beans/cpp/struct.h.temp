@@ -1,0 +1,33 @@
+---
+date: 2016-12-04 23:34
+author: mkideal
+---
+{{context.AutoGenDeclaration}}
+
+{{- context.Extension "file_head" .}}
+
+{{- context.Extension "before_import" .}}
+#include <string>
+#include <vector>
+#include <array>
+#include <map>
+#include <unordered_map>
+{{- context.Extension "after_import" .}}
+
+namespace {{context.Pkg.Name}} {
+{{- $type := .Name}}
+{{- context.Extension "before_struct" .}}
+{{- $extends := .Extends context}}
+{{.Doc}}struct {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
+	{{- context.Extension "struct_front" .}}
+	{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}
+			{{- context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}}
+		{{- end}}
+	{{end}}
+	{{- context.Extension "struct_back" .}}
+};
+{{- context.Extension "after_struct" .}}
+
+{{- context.Extension "file_end" .}}
+}

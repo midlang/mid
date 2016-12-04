@@ -1,4 +1,4 @@
 
-func (x {{.Name}}) ProtoName() string {
+func (x {{.Name}}) MessageName() string {
 	return "{{.Name}}"
 }

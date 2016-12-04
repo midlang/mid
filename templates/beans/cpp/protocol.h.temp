@@ -1,0 +1,33 @@
+---
+date; 2016-12-04 23:33
+author: mkideal
+---
+{{context.AutoGenDeclaration}}
+
+{{- context.Extension "file_head" .}}
+
+{{- context.Extension "before_import" .}}
+#include <string>
+#include <vector>
+#include <array>
+#include <map>
+#include <unordered_map>
+{{- context.Extension "after_import" .}}
+
+namespace {{context.Pkg.Name}} {
+{{- $type := .Name}}
+{{- context.Extension "before_protocol" .}}
+{{- $extends := .Extends context}}
+{{.Doc}}struct {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
+	{{- context.Extension "protocol_front" .}}
+	{{range $field := .Fields}}
+		{{- if ne $field.Name ""}} 
+			{{- context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}}
+		{{- end}}
+	{{end}}
+	{{- context.Extension "protocol_back" .}}
+};
+{{- context.Extension "after_protocol" .}}
+
+{{- context.Extension "file_end" .}}
+}

@@ -1,4 +1,4 @@
-package zcode
+package proto
 
 import (
 	"bytes"

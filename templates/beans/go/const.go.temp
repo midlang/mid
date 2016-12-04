@@ -1,9 +1,18 @@
 ---
-file: const.go
+date: 2016-12-04 23:30
+author: mkideal
 ---
+{{context.AutoGenDeclaration}}
+
+{{context.Extension "file_head" .}}
 package {{context.Pkg.Name}}
 
+{{context.Extension "before_const" .}}
 {{.Doc}}const (
+	{{context.Extension "const_front" .}}
 	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}
 	{{end}}
+	{{context.Extension "const_back" .}}
 )
+{{context.Extension "after_const" .}}
+{{context.Extension "file_end" .}}

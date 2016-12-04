@@ -1,0 +1,18 @@
+---
+date: 2016-12-04 23:32
+author: mkideal
+---
+{{context.AutoGenDeclaration}}
+
+{{- context.Extension "file_head" .}}
+
+namespace {{context.Pkg.Name}} {
+{{- context.Extension "before_const" .}}
+{{- context.Extension "const_front" .}}
+{{.Doc}}{{range $field := .Consts}}const int {{$field.Name}} = {{$field.ValueString}};{{$field.Comment}}
+{{- context.Extension "const_back" .}}
+{{end}}
+{{- context.Extension "after_const" .}}
+
+{{- context.Extension "file_end" .}}
+}

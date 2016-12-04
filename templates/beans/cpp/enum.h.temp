@@ -1,0 +1,22 @@
+---
+date: 2016-12-04 23:33
+author: mkideal
+---
+{{context.AutoGenDeclaration}}
+
+{{- context.Extension "file_head" .}}
+
+namespace {{context.Pkg.Name}} {
+{{$type := .Name}}
+{{- context.Extension "before_enum" .}}
+{{.Doc}}enum {{$type}} {
+	{{- context.Extension "enum_front" .}}
+	{{range $field := .Fields}}
+		{{- $field.Name}} = {{$field.Value}},{{$field.Comment}}
+	{{end}}
+	{{- context.Extension "enum_back" .}}
+};
+{{- context.Extension "after_enum" .}}
+
+{{- context.Extension "file_end" .}}
+}

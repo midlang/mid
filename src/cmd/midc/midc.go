@@ -92,15 +92,15 @@ var root = &cli.Command{
 			log.Error("load config %s: %v", cyan(argv.ConfigFile), red(err))
 			return nil
 		}
-
-		// load extensions
+		// set MidRoot
 		if argv.Config.MidRoot == "" {
 			argv.Config.MidRoot = filepath.Join(os.Getenv("HOME"), ".mid")
 		}
+
+		// load extensions
 		extensionsDir := filepath.Join(argv.Config.MidRoot, "extensions")
-		extensions, err := build.LoadExtensions(extensionsDir, argv.Extentions)
+		extensions, err := loadExtensions(extensionsDir, argv)
 		if err != nil {
-			log.Error("load extensions error: %v", err)
 			return nil
 		}
 
@@ -250,4 +250,34 @@ func filesInDir(dir string, filter func(os.FileInfo) bool) ([]string, error) {
 		files = append(files, filename)
 	}
 	return files, nil
+}
+
+func loadExtensions(extensionsDir string, argv *argT) (extensions []build.Extention, err error) {
+	loaded := map[string]bool{}
+	deps := map[string]bool{}
+	shouldLoadExts := make([]string, len(argv.Extentions))
+	copy(shouldLoadExts, argv.Extentions)
+	for len(shouldLoadExts) > 0 {
+		var exts []build.Extention
+		exts, err = build.LoadExtensions(extensionsDir, shouldLoadExts)
+		if err != nil {
+			log.Error("load extensions error: %v", err)
+			break
+		}
+		extensions = append(extensions, exts...)
+		// load deps
+		shouldLoadExts = shouldLoadExts[0:0]
+		for _, ext := range exts {
+			loaded[ext.Path] = true
+		}
+		for _, ext := range exts {
+			for _, dep := range ext.Deps {
+				if !loaded[dep] && !deps[dep] {
+					shouldLoadExts = append(shouldLoadExts, dep)
+				}
+				deps[dep] = true
+			}
+		}
+	}
+	return
 }

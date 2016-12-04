@@ -80,24 +80,28 @@ func buildType(typ build.Type) string {
 		if !ok {
 			panic("array.Size not a integer")
 		}
-		return fmt.Sprintf("std::array<%s,%s>", buildType(t.T), size)
+		return fmt.Sprintf("std::array<%s,%s> ", buildType(t.T), size)
 	case *build.VectorType:
-		return fmt.Sprintf("std::vector<%s>", buildType(t.T))
+		return fmt.Sprintf("std::vector<%s> ", buildType(t.T))
 	case *build.MapType:
 		if config.BoolEnv(Env_unordered_map) {
-			return fmt.Sprintf("std::unordered_map<%s,%s>", buildType(t.K), buildType(t.V))
+			return fmt.Sprintf("std::unordered_map<%s,%s> ", buildType(t.K), buildType(t.V))
 		} else {
-			return fmt.Sprintf("std::map<%s,%s>", buildType(t.K), buildType(t.V))
+			return fmt.Sprintf("std::map<%s,%s> ", buildType(t.K), buildType(t.V))
 		}
 	case *build.StructType:
 		if t.Package != "" {
 			return t.Package + "::" + t.Name
 		}
 		return t.Name
+	case build.TypeBase, *build.TypeBase:
+		return "void"
 	case *build.FuncType:
 		var buf bytes.Buffer
 		if t.Result != nil {
 			buf.WriteString(buildType(t.Result))
+		} else {
+			buf.WriteString("void")
 		}
 		buf.WriteByte('(')
 		if len(t.Params) > 0 {

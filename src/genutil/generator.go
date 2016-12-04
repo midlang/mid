@@ -60,9 +60,16 @@ func Init(
 				return "", err
 			}
 			var buf bytes.Buffer
+			pwd := context.Pwd
+			context.Pwd, _ = filepath.Split(filename)
 			err = temp.Execute(&buf, data)
+			context.Pwd = pwd
 			return buf.String(), err
 		},
+		// pwd returns current template file directory
+		"pwd": func() string { return context.Pwd },
+		// joinPath joins file paths
+		"joinPath": func(paths ...string) string { return filepath.Join(paths...) },
 		// os
 		"osenv": func(key string) string { return os.Getenv(key) },
 		// string operations
@@ -77,6 +84,7 @@ func Init(
 		"join":        func(sep string, strs []string) string { return strings.Join(strs, sep) },
 		"split":       func(sep, s string) []string { return strings.Split(s, sep) },
 		"splitN":      func(sep string, n int, s string) []string { return strings.SplitN(s, sep, n) },
+		"stringAt":    func(strs []string, index int) string { return strs[index] },
 		"repeat":      func(count int, s string) string { return strings.Repeat(s, count) },
 		"replace":     func(old, new string, n int, s string) string { return strings.Replace(s, old, new, n) },
 		"hasPrefix":   func(prefix string, s string) bool { return strings.HasPrefix(s, prefix) },
@@ -130,6 +138,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 
 	// sets context.Pkg
 	context.initWithPkg(pkg)
+	context.Pwd = context.Plugin.TemplatesDir
 
 	outdir := filepath.Join(context.Config.Outdir, pkg.Name)
 	files = make(map[string]bool)
@@ -149,6 +158,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 		// sets context.Root and context.Kind
 		context.Root = temp
 		context.Kind = kind
+		context.Suffix = suffix
 
 		// apply template to specific kind node
 		switch kind {

@@ -1,4 +1,5 @@
 {{context.AutoGenDeclaration}}
+
 {{context.Extension "file_head" .}}
 package {{.Name}}
 
@@ -10,8 +11,10 @@ import (
 {{define "T_const"}}
 {{context.Extension "before_const" .}}
 {{.Doc}}const (
+	{{context.Extension "const_front" .}}
 	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}{{$field.Comment}}
 	{{end}}
+	{{context.Extension "const_back" .}}
 )
 {{context.Extension "after_const" .}}
 {{end}}
@@ -21,8 +24,10 @@ import (
 type {{$type}} int
 {{context.Extension "before_enum" .}}
 {{.Doc}}const (
+	{{context.Extension "enum_front" .}}
 	{{range $field := .Fields}}{{$type}}_{{$field.Name}} = {{$field.Value}}{{$field.Comment}}
 	{{end}}
+	{{context.Extension "enum_back" .}}
 )
 {{context.Extension "after_enum" .}}
 {{end}}
@@ -31,8 +36,10 @@ type {{$type}} int
 {{$type := .Name}}
 {{context.Extension "before_struct" .}}
 {{.Doc}}type {{$type}} struct {
+	{{context.Extension "struct_front" .}}
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
+	{{context.Extension "struct_back" .}}
 }
 {{context.Extension "after_struct" .}}
 {{end}}
@@ -41,8 +48,10 @@ type {{$type}} int
 {{$type := .Name}}
 {{context.Extension "before_protocol" .}}
 {{.Doc}}type {{$type}} struct {
+	{{context.Extension "protocol_front" .}}
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
+	{{context.Extension "protocol_back" .}}
 }
 {{context.Extension "after_protocol" .}}
 {{end}}
@@ -51,10 +60,14 @@ type {{$type}} int
 {{$type := .Name}}
 {{context.Extension "before_service" .}}
 {{.Doc}}type {{$type}} interface {
+	{{context.Extension "service_front" .}}
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
+	{{context.Extension "service_back" .}}
 }
 {{context.Extension "after_service" .}}
 {{end}}
 
 {{.GenerateDeclsBySubTemplates}}
+
+{{context.Extension "file_end" .}}

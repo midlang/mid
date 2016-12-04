@@ -1,0 +1,34 @@
+---
+date: 2016-12-04 23:34
+author: mkideal
+---
+{{context.AutoGenDeclaration}}
+
+{{- context.Extension "file_head" .}}
+
+{{- context.Extension "before_import" .}}
+#include <string>
+#include <vector>
+#include <array>
+#include <map>
+#include <unordered_map>
+{{- context.Extension "after_import" .}}
+
+namespace {{context.Pkg.Name}} {
+{{- $type := .Name}}
+{{- context.Extension "before_service" .}}
+{{- $extends := .Extends context}}
+{{.Doc}}class {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
+	{{- context.Extension "service_front" .}}
+	{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}
+			{{- $strs := splitN "(" 2 (context.BuildType $field.Type)}}
+			{{- if true}} virtual {{stringAt $strs 0}} {{$field.Name}} ({{stringAt $strs 1}} = 0;{{$field.Comment}}{{end}}
+		{{- end}}
+	{{end}}
+	{{- context.Extension "service_back" .}}
+};
+{{- context.Extension "after_service" .}}
+
+{{- context.Extension "file_end" .}}
+}
