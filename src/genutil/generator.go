@@ -96,7 +96,7 @@ func Init(
 		"count":       func(sep, s string) int { return strings.Count(s, sep) },
 		"index":       func(sep, s string) int { return strings.Index(s, sep) },
 		"lastIndex":   func(sep, s string) int { return strings.LastIndex(s, sep) },
-		"join":        func(sep string, strs []string) string { return strings.Join(strs, sep) },
+		"join":        func(sep string, strs ...string) string { return strings.Join(strs, sep) },
 		"split":       func(sep, s string) []string { return strings.Split(s, sep) },
 		"splitN":      func(sep string, n int, s string) []string { return strings.SplitN(s, sep, n) },
 		"stringAt":    func(strs []string, index int) string { return strs[index] },
