@@ -282,13 +282,21 @@ func BuildExpr(expr ast.Expr) Expr {
 type Type interface {
 	Expr
 	TypeNode()
+	IsArray() bool
+	IsVector() bool
+	IsMap() bool
+	IsStruct() bool
 }
 
 type TypeBase struct {
 	ExprBase
 }
 
-func (TypeBase) TypeNode() {}
+func (TypeBase) TypeNode()      {}
+func (TypeBase) IsArray() bool  { return false }
+func (TypeBase) IsVector() bool { return false }
+func (TypeBase) IsMap() bool    { return false }
+func (TypeBase) IsStruct() bool { return false }
 
 func BuildType(typ ast.Type) Type {
 	switch t := typ.(type) {
@@ -320,6 +328,8 @@ type ArrayType struct {
 	Size Expr
 }
 
+func (ArrayType) IsArray() bool { return true }
+
 func BuildArray(t *ast.ArrayType) *ArrayType {
 	return &ArrayType{
 		T:    BuildType(t.T),
@@ -333,6 +343,8 @@ type MapType struct {
 	V Type
 }
 
+func (MapType) IsMap() bool { return true }
+
 func BuildMap(t *ast.MapType) *MapType {
 	return &MapType{
 		K: BuildType(t.K),
@@ -345,6 +357,8 @@ type VectorType struct {
 	T Type
 }
 
+func (VectorType) IsVector() bool { return true }
+
 func BuildVector(t *ast.VectorType) *VectorType {
 	return &VectorType{
 		T: BuildType(t.T),
@@ -356,6 +370,8 @@ type StructType struct {
 	Package string
 	Name    string
 }
+
+func (StructType) IsStruct() bool { return true }
 
 func BuildStruct(t *ast.StructType) *StructType {
 	return &StructType{
