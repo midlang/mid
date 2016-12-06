@@ -121,3 +121,17 @@ func (bean *Bean) addTag(key, value string, field *build.Field, force bool) *bui
 	}
 	return field
 }
+
+type Field struct {
+	*build.Field
+	Bean *Bean
+	Type string
+}
+
+func NewField(bean *Bean, field *build.Field, typ string) *Field {
+	return &Field{
+		Field: field,
+		Bean:  bean,
+		Type:  typ,
+	}
+}

@@ -137,3 +137,7 @@ func (ctx *Context) Extension(at string, data interface{}) (string, error) {
 	}
 	return buf.String(), nil
 }
+
+func (ctx *Context) WrapField(bean *Bean, field *build.Field, typ string) *Field {
+	return NewField(bean, field, typ)
+}
