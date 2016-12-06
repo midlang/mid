@@ -2,6 +2,7 @@ package genutil
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -41,6 +42,20 @@ func Init(
 	funcs = template.FuncMap{
 		// context returns context
 		"context": func() *Context { return context },
+		// error print error log and returns an error
+		"error": func(format string, args ...interface{}) error {
+			err := fmt.Errorf(format, args...)
+			log.Error("Error: %v", err)
+			return err
+		},
+		"isInt": func(typ string) bool {
+			switch typ {
+			case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
+				return true
+			default:
+				return false
+			}
+		},
 		// include includes a text file
 		"include": func(filename string) (string, error) {
 			if !filepath.IsAbs(filename) {
@@ -81,7 +96,7 @@ func Init(
 		"count":       func(sep, s string) int { return strings.Count(s, sep) },
 		"index":       func(sep, s string) int { return strings.Index(s, sep) },
 		"lastIndex":   func(sep, s string) int { return strings.LastIndex(s, sep) },
-		"join":        func(sep string, strs []string) string { return strings.Join(strs, sep) },
+		"join":        func(sep string, strs ...string) string { return strings.Join(strs, sep) },
 		"split":       func(sep, s string) []string { return strings.Split(s, sep) },
 		"splitN":      func(sep string, n int, s string) []string { return strings.SplitN(s, sep, n) },
 		"stringAt":    func(strs []string, index int) string { return strs[index] },
@@ -117,6 +132,10 @@ func Init(
 		"lower":      func(s string) string { return namemapper.Lower(s) },
 		"upperCamel": func(s string) string { return namemapper.UpperCamel(s) },
 		"lowerCamel": func(s string) string { return namemapper.LowerCamel(s) },
+		// values
+		"newBool":   func() *Bool { b := Bool(false); return &b },
+		"newString": func() *String { s := String(""); return &s },
+		"newInt":    func() *Int { i := Int(0); return &i },
 	}
 
 }

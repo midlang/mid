@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/midlang/mid/src/mid/ast"
 	"github.com/midlang/mid/src/mid/lexer"
@@ -59,7 +60,15 @@ func BuildTag(tag *ast.BasicLit) Tag {
 	if tag == nil {
 		return ""
 	}
-	return Tag(tag.Value)
+	s := tag.Value
+	const q = "`"
+	if strings.HasPrefix(s, q) {
+		s = strings.TrimPrefix(s, q)
+	}
+	if strings.HasSuffix(s, q) {
+		s = strings.TrimSuffix(s, q)
+	}
+	return Tag(s)
 }
 
 func BuildIdent(ident *ast.Ident) string {
@@ -400,6 +409,8 @@ type Bean struct {
 	Fields  []*Field
 	Comment string
 }
+
+func (bean *Bean) IsNil() bool { return bean == nil }
 
 func BuildBean(bean *ast.BeanDecl) *Bean {
 	log.Trace("BuildBean: kind=%s, name=%s, len(fields)=%d", bean.Kind, bean.Name.Name, len(bean.Fields.List))
