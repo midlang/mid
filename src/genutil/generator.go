@@ -81,6 +81,8 @@ func Init(
 			context.Pwd = pwd
 			return buf.String(), err
 		},
+		"valueAt": func(values []interface{}, index int) interface{} { return values[index] },
+		"slice":   func(values ...interface{}) []interface{} { return values },
 		// pwd returns current template file directory
 		"pwd": func() string { return context.Pwd },
 		// joinPath joins file paths
@@ -97,6 +99,7 @@ func Init(
 		"index":       func(sep, s string) int { return strings.Index(s, sep) },
 		"lastIndex":   func(sep, s string) int { return strings.LastIndex(s, sep) },
 		"join":        func(sep string, strs ...string) string { return strings.Join(strs, sep) },
+		"joinStrings": func(sep string, strs []string) string { return strings.Join(strs, sep) },
 		"split":       func(sep, s string) []string { return strings.Split(s, sep) },
 		"splitN":      func(sep string, n int, s string) []string { return strings.SplitN(s, sep, n) },
 		"stringAt":    func(strs []string, index int) string { return strs[index] },

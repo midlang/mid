@@ -35,5 +35,16 @@ struct Info {
 	extend User; // extend extends another structure
 	string desc;
 	map<int64,vector<map<int,array<bool,5>>>> xxx;
+	int a;
+	int8 b;
+	int16 c;
+	int32 d;
+	int64 e;
+	uint f;
+	uint8 g;
+	uint16 h;
+	uint32 i;
+	uint64 j;
+	bool k;
+	byte l;
 }
-

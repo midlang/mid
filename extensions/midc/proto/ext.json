@@ -10,19 +10,17 @@
             "after_struct": [
                 {
                     "template": "after_struct.go.temp"
+                },
+                {
+                    "template": "encode.go.temp"
+                },
+                {
+                    "template": "decode.go.temp"
                 }
             ],
             "before_import": [
                 {
-                    "text": "// `proto` before_import"
-                },
-                {
                     "template": "before_import.go.temp"
-                }
-            ],
-            "package.file_head": [
-                {
-                    "text": "// use extension `proto`"
                 }
             ]
         }

@@ -3,6 +3,9 @@ Change log
 
 ## Head
 
+* Add extension `meta` and `proto`
+* Add template `beans/cpp`
+* Add `deps` in Extension
 * Add embedded positions `*_front` and `*_back`
 * Fix template `default/cpp`
 * Add docs directory

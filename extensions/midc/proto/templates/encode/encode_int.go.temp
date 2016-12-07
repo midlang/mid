@@ -1,0 +1,16 @@
+---
+date: 2016-12-05 23:55
+author: mkideal
+category: int
+---
+
+{{- $fieldVar := .}}
+{{- if context.Config.BoolEnv "use_fixed_encode"}}
+if _, err := proto.Enc.EncodeInt64f(w, int64({{$fieldVar}})); err != nil {
+	return err
+}
+{{- else}}
+if _, err := proto.Enc.EncodeInt64v(w, int64({{$fieldVar}})); err != nil {
+	return err
+}
+{{- end}}

@@ -140,7 +140,7 @@ type BuiltinType int
 
 const (
 	Void   BuiltinType = iota // void
-	Bool               = iota // bool
+	Bool                      // bool
 	Byte                      // byte
 	Bytes                     // bytes
 	String                    // string
@@ -241,4 +241,22 @@ func (bt BuiltinType) String() string {
 		return "array"
 	}
 	return "<unknown>"
+}
+
+func (bt BuiltinType) IsInt() bool {
+	switch bt {
+	case Byte,
+		Int,
+		Int8,
+		Int16,
+		Int32,
+		Int64,
+		Uint,
+		Uint8,
+		Uint16,
+		Uint32,
+		Uint64:
+		return true
+	}
+	return false
 }

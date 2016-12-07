@@ -1,0 +1,10 @@
+---
+date: 2016-12-07 22:53
+author: mkideal
+category: string
+---
+
+{{- $fieldVar := .}}
+if _, err := proto.Enc.EncodeString(w, {{$fieldVar}}); err != nil {
+	return err
+}

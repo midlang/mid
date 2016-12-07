@@ -1,0 +1,18 @@
+---
+date: 2016-12-05 23:29
+author: mkideal
+---
+
+{{- $bean := .}}
+func (x *{{.Name}}) Decode(r proto.Reader) error {
+	{{- range $field := .Fields}}
+		{{- $varName := newString}}
+		{{- if ne $field.Name ""}}
+			{{- $varName.Set (join "" "x." (title $field.Name))}}
+		{{- else}}
+			{{- $varName.Set (join "" "x." (context.BuildType $field.Type))}}
+		{{- end}}
+		{{- $dep := newInt}}
+	{{- end}}
+	return nil
+}

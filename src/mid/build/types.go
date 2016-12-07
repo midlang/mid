@@ -295,6 +295,9 @@ type Type interface {
 	IsVector() bool
 	IsMap() bool
 	IsStruct() bool
+	IsString() bool
+	IsInt() bool
+	IsBool() bool
 }
 
 type TypeBase struct {
@@ -306,6 +309,9 @@ func (TypeBase) IsArray() bool  { return false }
 func (TypeBase) IsVector() bool { return false }
 func (TypeBase) IsMap() bool    { return false }
 func (TypeBase) IsStruct() bool { return false }
+func (TypeBase) IsString() bool { return false }
+func (TypeBase) IsInt() bool    { return false }
+func (TypeBase) IsBool() bool   { return false }
 
 func BuildType(typ ast.Type) Type {
 	switch t := typ.(type) {
@@ -329,6 +335,17 @@ func BuildType(typ ast.Type) Type {
 type BasicType struct {
 	TypeBase
 	Name string
+}
+
+func (t BasicType) IsVector() bool { return t.Name == lexer.Bytes.String() }
+func (t BasicType) IsString() bool { return t.Name == lexer.String.String() }
+func (t BasicType) IsBool() bool   { return t.Name == lexer.Bool.String() }
+func (t BasicType) IsInt() bool {
+	bt, ok := lexer.LookupType(t.Name)
+	if !ok {
+		return false
+	}
+	return bt.IsInt()
 }
 
 type ArrayType struct {

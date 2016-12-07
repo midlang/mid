@@ -1,0 +1,16 @@
+---
+date: 2016-12-06 00:03
+author: mkideal
+category: uint32
+---
+
+{{- $fieldVar := .}}
+{{- if context.Config.BoolEnv "use_fixed_encode"}}
+if _, err := proto.Enc.EncodeUint32f(w, {{$fieldVar}}); err != nil {
+	return err
+}
+{{- else}}
+if _, err := proto.Enc.EncodeUint32v(w, {{$fieldVar}}); err != nil {
+	return err
+}
+{{- end}}

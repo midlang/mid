@@ -1,1 +1,1 @@
-// import "proto"
+import "github.com/midlang/mid/src/proto"

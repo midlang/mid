@@ -106,8 +106,9 @@ $ cd <name>
 
 -	Install to your local host
 
-1.	Copy all files in directory `bin` to any directory which contained in env `PATH`
-2.	Copy file `midconfig` and directory `mid_templates` to your home directory or one of these: `/etc`,`/usr/local/etc`
+1. Copy all files in directory `bin` to any directory which contained in env `PATH`
+2. Copy file `midconfig` your home directory or one of these: `/etc`,`/usr/local/etc`
+3. Copy directories `templates` and `extensions` to $HOME/.mid or $MIDROOT if exist
 
 ### install from source
 
@@ -116,8 +117,6 @@ $ go get github.com/midlang/mid
 $ cd /path/to/mid # replace `/path/to/mid` with your actual directory
 $ ./install.sh
 ```
-
-Now, the compiler `midc` and generators installed to `$GOPATH/bin`, file `midconfig` and directory `mid_templates` copied to `$HOME`
 
 Getting started
 ---------------
@@ -211,7 +210,6 @@ Plugin for editor
 TODO
 ----
 
--	Other generators: cpp,java,rust,swift,python,javascript,...
--	More builtin templates
--	Support extentions while generating codes
--	Build website and documents
+-	Other generators: java,rust,swift,python,javascript,...
+-	More builtin extensions
+-	Build documents

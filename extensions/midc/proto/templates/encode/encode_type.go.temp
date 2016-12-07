@@ -1,0 +1,27 @@
+---
+date: 2016-12-07 00:06
+author: mkideal
+---
+	{{- $fieldVar := valueAt . 0}}
+	{{- $type := valueAt . 1}}
+	{{- $dep := valueAt . 2}}
+	{{- $fieldType := context.BuildType $type}}
+	{{- $tempDir := "."}}
+	{{- if eq $fieldType "int"}}{{         include_template (joinPath (pwd) $tempDir "encode_int.go.temp")    $fieldVar }}
+	{{- else if eq $fieldType "int8"}}{{   include_template (joinPath (pwd) $tempDir "encode_int8.go.temp")   $fieldVar }}
+	{{- else if eq $fieldType "int16"}}{{  include_template (joinPath (pwd) $tempDir "encode_int16.go.temp")  $fieldVar }}
+	{{- else if eq $fieldType "int32"}}{{  include_template (joinPath (pwd) $tempDir "encode_int32.go.temp")  $fieldVar }}
+	{{- else if eq $fieldType "int64"}}{{  include_template (joinPath (pwd) $tempDir "encode_int64.go.temp")  $fieldVar }}
+	{{- else if eq $fieldType "uint"}}{{   include_template (joinPath (pwd) $tempDir "encode_uint.go.temp")   $fieldVar }}
+	{{- else if eq $fieldType "uint8"}}{{  include_template (joinPath (pwd) $tempDir "encode_uint8.go.temp")  $fieldVar }}
+	{{- else if eq $fieldType "uint16"}}{{ include_template (joinPath (pwd) $tempDir "encode_uint16.go.temp") $fieldVar }}
+	{{- else if eq $fieldType "uint32"}}{{ include_template (joinPath (pwd) $tempDir "encode_uint32.go.temp") $fieldVar }}
+	{{- else if eq $fieldType "uint64"}}{{ include_template (joinPath (pwd) $tempDir "encode_uint64.go.temp") $fieldVar }}
+	{{- else if eq $fieldType "byte"}}{{   include_template (joinPath (pwd) $tempDir "encode_byte.go.temp")   $fieldVar }}
+	{{- else if eq $fieldType "bool"}}{{   include_template (joinPath (pwd) $tempDir "encode_bool.go.temp")   $fieldVar }}
+	{{- else if eq $fieldType "string"}}{{ include_template (joinPath (pwd) $tempDir "encode_string.go.temp") $fieldVar }}
+	{{- else if $type.IsArray}}{{          include_template (joinPath (pwd) $tempDir "encode_array.go.temp")  (slice $fieldVar $type $dep)}}
+	{{- else if $type.IsVector}}{{         include_template (joinPath (pwd) $tempDir "encode_vector.go.temp") (slice $fieldVar $type $dep)}}
+	{{- else if $type.IsMap}}{{            include_template (joinPath (pwd) $tempDir "encode_map.go.temp")    (slice $fieldVar $type $dep)}}
+	{{- else if $type.IsStruct}}{{         include_template (joinPath (pwd) $tempDir "encode_struct.go.temp") (slice $fieldVar $type)}}
+	{{- end}}

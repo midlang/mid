@@ -1,0 +1,17 @@
+---
+date: 2016-12-08 00:03
+author: mkideal
+desc: define var for loop
+---
+
+{{- $dep := valueAt . 0}}
+{{- $res := valueAt . 1}}
+{{- if eq ($dep.Get) 0}}
+{{- $res.Set "i" }}
+{{- else if eq ($dep.Get) 1}}
+{{- $res.Set "j" }}
+{{- else if eq ($dep.Get) 2}}
+{{- $res.Set "k" }}
+{{- else}}
+{{- $res.Set (join "" "i" $dep.String)}}
+{{- end}}

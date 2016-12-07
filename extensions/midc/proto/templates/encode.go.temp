@@ -1,0 +1,29 @@
+---
+date: 2016-12-05 23:29
+author: mkideal
+---
+
+{{- $bean := .}}
+func (x {{.Name}}) Encode(w proto.Writer) error {
+	{{- $flag := newBool}}
+	{{- range $field := .Fields}}
+	{{$type := $field.Type}}
+		{{- if ($type.IsArray) or ($type.IsVector)}}
+			{{- if not $flag.Get}}
+				var length int
+				{{- $flag.Set true}}
+			{{- end}}
+		{{- end}}
+	{{- end}}
+	{{- range $field := .Fields}}
+		{{- $varName := newString}}
+		{{- if ne $field.Name ""}}
+			{{- $varName.Set (join "" "x." (title $field.Name))}}
+		{{- else}}
+			{{- $varName.Set (join "" "x." (context.BuildType $field.Type))}}
+		{{- end}}
+		{{- $dep := newInt}}
+		{{- include_template (joinPath (pwd) "encode/encode_type.go.temp") (slice ($varName.Get) $field.Type $dep)}}
+	{{- end}}
+	return nil
+}
