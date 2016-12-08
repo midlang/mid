@@ -11,12 +11,14 @@
 {{- context.Extension "after_import" .}}
 
 {{- define "T_const"}}
-{{- context.Extension "before_const" .}}
-{{- context.Extension "const_front" .}}
-{{.Doc}}{{range $field := .Consts}}const int {{$field.Name}} = {{$field.ValueString}};{{$field.Comment}}
-{{- context.Extension "const_back" .}}
+{{range $decl := .}}
+{{- context.Extension "before_const" $decl}}
+{{- context.Extension "const_front" $decl}}
+{{$decl.Doc}}{{range $field := $decl.Consts}}const int {{$field.Name}} = {{$field.ValueString}};{{$field.Comment}}
+{{- context.Extension "const_back" $decl}}
 {{end}}
-{{- context.Extension "after_const" .}}
+{{- context.Extension "after_const" $decl}}
+{{end}}
 {{end}}
 
 {{- define "T_enum"}}

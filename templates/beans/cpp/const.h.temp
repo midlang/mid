@@ -4,15 +4,19 @@ author: mkideal
 ---
 {{context.AutoGenDeclaration}}
 
+{{- range $decl := .}}
 {{- context.Extension "file_head" .}}
+{{- end}}
 
 namespace {{context.Pkg.Name}} {
-{{- context.Extension "before_const" .}}
-{{- context.Extension "const_front" .}}
-{{.Doc}}{{range $field := .Consts}}const int {{$field.Name}} = {{$field.ValueString}};{{$field.Comment}}
-{{- context.Extension "const_back" .}}
-{{end}}
-{{- context.Extension "after_const" .}}
+{{range $decl := .}}
+{{- context.Extension "before_const" $decl}}
+{{- context.Extension "const_front" $decl}}
+	{{$decl.Doc}}{{range $field := $decl.Consts}}const int {{$field.Name}} = {{$field.ValueString}};{{$field.Comment}}
+	{{- context.Extension "const_back" $decl}}
+	{{end}}
+	{{- context.Extension "after_const" $decl}}
 
-{{- context.Extension "file_end" .}}
+	{{- context.Extension "file_end" $decl}}
+{{end}}
 }

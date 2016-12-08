@@ -6,6 +6,11 @@ const (
 	B = 2;
 )
 
+const (
+	C = 3;
+	D = 4;
+)
+
 // doc: status
 // Status
 enum Status {

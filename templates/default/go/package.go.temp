@@ -9,14 +9,16 @@ import (
 {{context.Extension "after_import" .}}
 
 {{define "T_const"}}
-{{context.Extension "before_const" .}}
-{{.Doc}}const (
-	{{context.Extension "const_front" .}}
-	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}{{$field.Comment}}
+{{range $decl := .}}
+{{context.Extension "before_const" $decl}}
+{{$decl.Doc}}const (
+	{{context.Extension "const_front" $decl}}
+	{{range $field := $decl.Consts}}{{$field.Name}} = {{$field.ValueString}}{{$field.Comment}}
 	{{end}}
-	{{context.Extension "const_back" .}}
+	{{context.Extension "const_back" $decl}}
 )
-{{context.Extension "after_const" .}}
+{{context.Extension "after_const" $decl}}
+{{end}}
 {{end}}
 
 {{define "T_enum"}}

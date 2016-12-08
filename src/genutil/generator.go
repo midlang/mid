@@ -163,6 +163,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 	context.Pwd = context.Plugin.TemplatesDir
 
 	outdir := filepath.Join(context.Config.Outdir, pkg.Name)
+	constDecls := make([]*GenDecl, 0)
 	files = make(map[string]bool)
 	for _, info := range infos {
 		log.With(context.Plugin.Lang).Debug("template file: %s", info.Name())
@@ -212,21 +213,26 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 				}
 			}
 		case "const":
-			for _, f := range pkg.Files {
-				for _, c := range f.Decls {
-					if len(c.Consts) > 0 {
-						meta.File = oldMetaFile
-						if file, err = ApplyMeta(outdir, meta, c, "constants."+suffix); err == nil {
-							files[meta.File] = true
-							err = temp.Execute(file, NewGenDecl(f, c))
-							file.Close()
-							if err != nil {
-								return files, err
-							}
-						} else {
-							return files, err
+			if len(constDecls) == 0 {
+				for _, f := range pkg.Files {
+					for _, c := range f.Decls {
+						if len(c.Consts) > 0 {
+							constDecls = append(constDecls, NewGenDecl(f, c))
 						}
 					}
+				}
+			}
+			if len(constDecls) > 0 {
+				meta.File = oldMetaFile
+				if file, err = ApplyMeta(outdir, meta, constDecls, "constants."+suffix); err == nil {
+					files[meta.File] = true
+					err = temp.Execute(file, constDecls)
+					file.Close()
+					if err != nil {
+						return files, err
+					}
+				} else {
+					return files, err
 				}
 			}
 		// beans: enum,struct,protocol,service

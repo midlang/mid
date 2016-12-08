@@ -4,15 +4,19 @@ author: mkideal
 ---
 {{context.AutoGenDeclaration}}
 
-{{context.Extension "file_head" .}}
+{{range $decl := .}}
+{{context.Extension "file_head" $decl}}
+{{end}}
 package {{context.Pkg.Name}}
 
-{{context.Extension "before_const" .}}
-{{.Doc}}const (
-	{{context.Extension "const_front" .}}
-	{{range $field := .Consts}}{{$field.Name}} = {{$field.ValueString}}
+{{range $decl := .}}
+{{context.Extension "before_const" $decl}}
+{{$decl.Doc}}const (
+	{{context.Extension "const_front" $decl}}
+	{{range $field := $decl.Consts}}{{$field.Name}} = {{$field.ValueString}}
 	{{end}}
-	{{context.Extension "const_back" .}}
+	{{context.Extension "const_back" $decl}}
 )
-{{context.Extension "after_const" .}}
-{{context.Extension "file_end" .}}
+{{context.Extension "after_const" $decl}}
+{{context.Extension "file_end" $decl}}
+{{end}}

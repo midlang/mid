@@ -15,13 +15,17 @@ func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
 	buf := new(bytes.Buffer)
 
 	if temp := context.Root.Lookup("T_const"); temp != nil {
+		constDecls := make([]*GenDecl, 0)
 		for _, f := range pkg.Files {
 			for _, c := range f.Decls {
 				if len(c.Consts) > 0 {
-					if err := temp.Execute(buf, NewGenDecl(f, c)); err != nil {
-						return "", err
-					}
+					constDecls = append(constDecls, NewGenDecl(f, c))
 				}
+			}
+		}
+		if len(constDecls) > 0 {
+			if err := temp.Execute(buf, constDecls); err != nil {
+				return "", err
 			}
 		}
 	}

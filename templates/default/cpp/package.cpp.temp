@@ -6,10 +6,12 @@
 {{- context.Extension "after_import" .}}
 
 {{- define "T_const"}}
-{{- context.Extension "before_const" .}}
-{{- context.Extension "const_front" .}}
-{{- context.Extension "const_back" .}}
-{{- context.Extension "after_const" .}}
+{{range $decl := .}}
+{{- context.Extension "before_const" $decl}}
+{{- context.Extension "const_front" $decl}}
+{{- context.Extension "const_back" $decl}}
+{{- context.Extension "after_const" $decl}}
+{{end}}
 {{end}}
 
 {{- define "T_enum"}}
