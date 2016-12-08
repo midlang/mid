@@ -89,7 +89,7 @@ func TokenString(tok rune) string {
 // Its value selects Go's white space characters.
 const GoWhitespace = 1<<'\t' | 1<<'\n' | 1<<'\r' | 1<<' '
 
-const bufLen = 1024 // at least utf8.UTFMax
+const bufLen = 1 << 20 // at least utf8.UTFMax
 
 // A Scanner implements reading of Unicode characters and tokens from an io.Reader.
 type Scanner struct {
