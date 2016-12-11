@@ -1,7 +1,7 @@
 Change log
 ==========
 
-## Head
+## v0.1.2 (2016-12-12)
 
 * Add extension `meta` and `proto`
 * Add template `beans/cpp`
