@@ -6,7 +6,7 @@ What's midlang?
 
 The aim of the first stage is to implement a `Data Define Language` like `protobuf`, but have some differences.
 
-1.	`midlang` generated code is highly customizable. Using go template to generates your codes, even documents.
+1.	`midlang` generated code is highly customizable. Using go template to generate your codes, even documents.
 2.	`midlang` was committed to eradicating boring and tedious code which can be generated, not just as a data interchange format.
 
 The compiler `midc` compile midlang source code to an AST, and then you can visit the AST in template file.
@@ -201,6 +201,38 @@ Templates
 Templates used to generate codes. You can use option `-T<lang>=<template_dir>` to specify templates for specified language, also you can use option `-K <template_kind>` to specify template kind(default template kind is default).
 
 Builtin template kinds: `default`, `beans`
+
+Extensions
+----------
+
+Extension is a plugin for builtin template. You can insert code in some specified positions like:
+
+* file_head
+* before_import
+* in_import
+* after_import
+* before_const
+* after_const
+* const_front
+* const_back
+* before_enum
+* enum_front
+* enum_back
+* after_enum
+* before_struct
+* struct_front
+* struct_back
+* after_struct
+* before_protocol
+* protocol_front
+* protocol_back
+* after_protocol
+* before_service
+* service_front
+* service_back
+* after_service
+
+See [builtin extensions](https://github.com/midlang/mid/tree/master/extensions)
 
 Plugin for editor
 -----------------
