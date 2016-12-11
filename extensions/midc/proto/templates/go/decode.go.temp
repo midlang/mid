@@ -5,6 +5,16 @@ author: mkideal
 
 {{- $bean := .}}
 func (x *{{.Name}}) Decode(r proto.Reader) error {
+	{{- $flag := newBool}}
+	{{- range $field := .Fields}}
+	{{$type := $field.Type}}
+		{{- if OR ($type.IsMap) ($type.IsArray) ($type.IsVector)}}
+			{{- if not $flag.Get}}
+				var length int
+				{{- $flag.Set true}}
+			{{- end}}
+		{{- end}}
+	{{- end}}
 	{{- range $field := .Fields}}
 		{{- $varName := newString}}
 		{{- if ne $field.Name ""}}
@@ -13,6 +23,7 @@ func (x *{{.Name}}) Decode(r proto.Reader) error {
 			{{- $varName.Set (join "" "x." (context.BuildType $field.Type))}}
 		{{- end}}
 		{{- $dep := newInt}}
+		{{- include_template (joinPath (pwd) "decode/decode_type.go.temp") (slice ($varName.Get) $field.Type $dep)}}
 	{{- end}}
 	return nil
 }

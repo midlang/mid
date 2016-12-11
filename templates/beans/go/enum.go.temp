@@ -7,6 +7,9 @@ author: mkideal
 {{context.Extension "file_head" .}}
 package {{context.Pkg.Name}}
 
+{{context.Extension "before_import" .}}
+{{context.Extension "after_import" .}}
+
 {{$type := .Name}}
 type {{$type}} int
 {{context.Extension "before_enum" .}}

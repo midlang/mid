@@ -9,6 +9,9 @@ author: mkideal
 {{end}}
 package {{context.Pkg.Name}}
 
+{{context.Extension "before_import" .}}
+{{context.Extension "after_import" .}}
+
 {{range $decl := .}}
 {{context.Extension "before_const" $decl}}
 {{$decl.Doc}}const (

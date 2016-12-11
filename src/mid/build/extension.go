@@ -46,24 +46,19 @@ const (
 	ExtConfigFilename = "ext.json"
 )
 
-type EmbeddedPosition string
-
-func (pos EmbeddedPosition) split() (kind string, at string) {
-	index := strings.Index(string(pos), ".")
-	if index >= 0 {
-		return string(pos[:index]), string(pos[index+1:])
-	}
-	return "", string(pos)
-}
-
-func (pos EmbeddedPosition) IsValid() bool {
-	kind, at := pos.split()
+func IsValidKind(kind string) bool {
 	switch kind {
-	case "", "package", "file", "const", "enum", "struct", "protocol", "service":
+	case "package", "file", "const", "enum", "struct", "protocol", "service":
+		return true
 	default:
 		return false
 	}
-	switch at {
+}
+
+type EmbeddedPosition string
+
+func (pos EmbeddedPosition) IsValid() bool {
+	switch pos {
 	case FileHead,
 		BeforeImport,
 		InImport,
@@ -94,19 +89,40 @@ func (pos EmbeddedPosition) IsValid() bool {
 	return true
 }
 
-func (pos EmbeddedPosition) Match(kind, at string) bool {
-	k, a := pos.split()
-	return (k == "" || k == kind) && a == at
+func (pos EmbeddedPosition) Match(at string) bool {
+	return string(pos) == at
 }
 
 type EmbeddedValue struct {
-	Text     string `join:"text"`
-	Template string `json:"template"`
-	Suffix   string `json:"suffix"`
+	Text     string   `join:"text"`
+	Template string   `json:"template"`
+	Suffix   string   `json:"suffix"`
+	Kinds    []string `json:"kinds"`
 }
 
 func (v EmbeddedValue) IsValid() bool {
-	return (v.Text != "" && v.Template == "") || (v.Text == "" && v.Template != "")
+	valid := (v.Text != "" && v.Template == "") || (v.Text == "" && v.Template != "")
+	if !valid {
+		return false
+	}
+	for _, kind := range v.Kinds {
+		if !IsValidKind(kind) {
+			return false
+		}
+	}
+	return true
+}
+
+func (v EmbeddedValue) MatchKind(kind string) bool {
+	if len(v.Kinds) == 0 {
+		return true
+	}
+	for _, k := range v.Kinds {
+		if k == kind {
+			return true
+		}
+	}
+	return false
 }
 
 type Extention struct {
@@ -131,8 +147,12 @@ func (e Extention) Find(lang, kind, at string) []EmbeddedValue {
 	}
 	values := make([]EmbeddedValue, 0)
 	for pos, vals := range m {
-		if pos.Match(kind, at) {
-			values = append(values, vals...)
+		if pos.Match(at) {
+			for _, val := range vals {
+				if val.MatchKind(kind) {
+					values = append(values, val)
+				}
+			}
 		}
 	}
 	return values

@@ -1,0 +1,11 @@
+---
+date: 2016-12-11 14:43
+author: mkideal
+category: struct
+---
+
+{{- $fieldVar := valueAt . 0 }}
+{{- $type := valueAt . 1}}
+if err := {{$fieldVar}}.Decode(r); err != nil {
+	return err
+}

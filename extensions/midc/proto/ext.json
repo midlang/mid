@@ -2,25 +2,42 @@
     "at": {
         "cpp": {},
         "go": {
+            "after_import": [
+                {
+                    "kinds": [
+                        "package",
+                        "struct",
+                        "protocol",
+                        "service"
+                    ],
+                    "template": "go/after_import.go.temp"
+                }
+            ],
             "after_protocol": [
                 {
-                    "template": "after_protocol.go.temp"
+                    "template": "go/after_protocol.go.temp"
                 }
             ],
             "after_struct": [
                 {
-                    "template": "after_struct.go.temp"
+                    "template": "go/after_struct.go.temp"
                 },
                 {
-                    "template": "encode.go.temp"
+                    "template": "go/encode.go.temp"
                 },
                 {
-                    "template": "decode.go.temp"
+                    "template": "go/decode.go.temp"
                 }
             ],
             "before_import": [
                 {
-                    "template": "before_import.go.temp"
+                    "kinds": [
+                        "package",
+                        "struct",
+                        "protocol",
+                        "service"
+                    ],
+                    "template": "go/before_import.go.temp"
                 }
             ]
         }

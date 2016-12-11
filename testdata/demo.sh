@@ -13,6 +13,7 @@ midc \
 	-Ocpp=generated/cpp_$kind \
 	-Eautogen_decl="// NOTE: generated file, DON'T edit!!" \
 	-Ecpp:unordered_map \
+	-Euse_fixed_encode \
 	-Xproto \
 	-K $kind \
 	--log=info

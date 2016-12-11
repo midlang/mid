@@ -18,9 +18,6 @@ category: array
 	{{- $length.Set (join "" "length" $dep.String)}}
 	{{$length}} := len({{$fieldVar}})
 {{- end}}
-if _, err := proto.Enc.EncodeUint32v(w, uint32({{$length}})); err != nil {
-	return err
-}
 {{- $newDep := newInt}}
 {{- $newDep.Set ($dep.Add 1)}}
 for {{$i}} := 0; {{$i}} < {{$length}}; {{$i}}++ {

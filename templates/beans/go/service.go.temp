@@ -7,6 +7,9 @@ author: mkideal
 {{context.Extension "file_head" .}}
 package {{context.Pkg.Name}}
 
+{{context.Extension "before_import" .}}
+{{context.Extension "after_import" .}}
+
 {{$type := .Name}}
 {{context.Extension "before_service" .}}
 {{.Doc}}type {{$type}} interface {

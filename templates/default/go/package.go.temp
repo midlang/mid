@@ -4,8 +4,6 @@
 package {{.Name}}
 
 {{context.Extension "before_import" .}}
-import (
-)
 {{context.Extension "after_import" .}}
 
 {{define "T_const"}}

@@ -1,0 +1,27 @@
+---
+date: 2016-12-11 13:50
+author: mkideal
+category: array
+---
+
+{{- $fieldVar := valueAt . 0}}
+{{- $type := valueAt . 1}}
+{{- $dep := valueAt . 2}}
+
+{{- $length := newString}}
+{{- $forVar := newString}}
+{{- include_template (joinPath (pwd) "../for_var.go.temp") (slice $dep $forVar)}}
+{{- $i := $forVar.Get}}
+{{- if eq $dep.Get 0}}
+	{{- $length.Set "length"}}
+	{{$length}} = len({{$fieldVar}})
+{{- else}}
+	{{- $length.Set (join "" "length" $dep.String)}}
+	{{$length}} := len({{$fieldVar}})
+{{- end}}
+{{- $newDep := newInt}}
+{{- $newDep.Set ($dep.Add 1)}}
+for {{$i}} := 0; {{$i}} < {{$length}}; {{$i}}++ {
+	{{- $varName := join "" $fieldVar "[" $i "]"}}
+	{{- include_template (joinPath (pwd) "decode_type.go.temp") (slice $varName $type.T $newDep)}}
+}

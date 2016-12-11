@@ -1,0 +1,12 @@
+---
+date: 2016-12-11 14:23
+author: mkideal
+category: string
+---
+
+{{- $fieldVar := .}}
+if v, _, err := proto.Dec.DecodeString(r); err != nil {
+	return err
+} else {
+	{{$fieldVar}} = v
+}

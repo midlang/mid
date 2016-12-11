@@ -1,0 +1,12 @@
+---
+date: 2016-12-11 13:35
+author: mkideal
+category: int
+---
+
+{{- $fieldVar := .}}
+if v, _, err := proto.Dec.DecodeInt8(r); err != nil {
+	return err
+} else {
+	{{$fieldVar}} = v
+}

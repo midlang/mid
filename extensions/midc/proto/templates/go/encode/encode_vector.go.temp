@@ -7,6 +7,7 @@ category: vector
 {{- $fieldVar := valueAt . 0}}
 {{- $type := valueAt . 1}}
 {{- $dep := valueAt . 2}}
+
 {{- $length := newString}}
 {{- $forVar := newString}}
 {{- include_template (joinPath (pwd) "../for_var.go.temp") (slice $dep $forVar)}}
@@ -18,9 +19,15 @@ category: vector
 	{{- $length.Set (join "" "length" $dep.String)}}
 	{{$length}} := len({{$fieldVar}})
 {{- end}}
+{{- if context.Config.BoolEnv "use_fixed_encode"}}
+if _, err := proto.Enc.EncodeUint32f(w, uint32({{$length}})); err != nil {
+	return err
+}
+{{- else}}
 if _, err := proto.Enc.EncodeUint32v(w, uint32({{$length}})); err != nil {
 	return err
 }
+{{- end}}
 {{- $newDep := newInt}}
 {{- $newDep.Set ($dep.Add 1)}}
 for {{$i}} := 0; {{$i}} < {{$length}}; {{$i}}++ {

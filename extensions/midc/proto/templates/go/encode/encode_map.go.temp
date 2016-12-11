@@ -6,10 +6,16 @@ category: map
 
 {{- $fieldVar := valueAt . 0}}
 {{- $type := valueAt . 1}}
-{{- $dep := valueAt . 2 -}}
+{{- $dep := valueAt . 2}}
+{{- if context.Config.BoolEnv "use_fixed_encode"}}
+if _, err := proto.Enc.EncodeUint32f(w, uint32(len({{$fieldVar}}))); err != nil {
+	return err
+}
+{{- else}}
 if _, err := proto.Enc.EncodeUint32v(w, uint32(len({{$fieldVar}}))); err != nil {
 	return err
 }
+{{- end}}
 {{- $key := newString}}
 {{- $value := newString}}
 {{- if eq ($dep.Get) 0}}

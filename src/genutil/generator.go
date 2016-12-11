@@ -139,6 +139,25 @@ func Init(
 		"newBool":   func() *Bool { b := Bool(false); return &b },
 		"newString": func() *String { s := String(""); return &s },
 		"newInt":    func() *Int { i := Int(0); return &i },
+		// logic
+		"OR": func(bools ...bool) bool {
+			for _, b := range bools {
+				if b {
+					return true
+				}
+			}
+			return false
+		},
+		"AND": func(bools ...bool) bool {
+			for _, b := range bools {
+				if !b {
+					return false
+				}
+			}
+			return true
+		},
+		"NOT": func(b bool) bool { return !b },
+		"XOR": func(b1, b2 bool) bool { return (b1 && !b2) || (!b1 && b2) },
 	}
 
 }
