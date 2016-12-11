@@ -9,9 +9,8 @@ import (
 )
 
 type Config struct {
-	Suffix           string `json:"suffix" cli:"suffix" usage:"source file suffix" dft:".mid" name:"SUFFIX"`
-	MidRoot          string `json:"midroot" cli:"midroot" dft:"$MIDROOT" usage:"mid root directory"`
-	TemplatesRootDir string `json:"temp-rootdir" cli:"temp-rootdir" usage:"templates root directory" dft:"$MID_TEMP_DIR"`
+	Suffix  string `json:"suffix" cli:"suffix" usage:"source file suffix" dft:".mid" name:"SUFFIX"`
+	MidRoot string `json:"midroot" cli:"midroot" dft:"$MIDROOT" usage:"mid root directory"`
 
 	Plugins       *build.PluginSet `json:"-" cli:"-"`
 	LoadedPlugins []build.Plugin   `json:"plugins" cli:"-"`

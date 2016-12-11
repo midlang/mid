@@ -27,7 +27,7 @@ function mid_release_with_os_cpu() {
 	mkdir -p $_target_dir/bin
 	mkdir -p $_target_midroot
 	local _suffix=
-	if [[ "_os" == "windows" ]]; then
+	if [[ "$_os" == "windows" ]]; then
 		_suffix=.exe
 	fi
 
@@ -48,6 +48,9 @@ function mid_release_with_os_cpu() {
 	cp ./README.md $_target_dir/
 	cp -r ./templates $_target_midroot/
 	cp -r ./extensions $_target_midroot/
+	if [[ "$_os" != "windows" ]]; then
+		cp ./install.sh $_target_dir/
+	fi
 
 	# Targz or zip( for windows )
 	if [[ "$_os" == "windows" ]]; then

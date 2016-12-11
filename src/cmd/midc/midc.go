@@ -19,13 +19,13 @@ type argT struct {
 	Config
 	Version      bool              `cli:"!v,version" usage:"display version information"`
 	ConfigFile   string            `cli:"c,config" usage:"config filename"`
-	LogLevel     logger.Level      `cli:"log,loglevel" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
+	LogLevel     logger.Level      `cli:"log" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
 	Inputs       []string          `cli:"I,input" usage:"input directories or files which has suffix SUFFIX"`
 	Outdirs      map[string]string `cli:"O,outdir" usage:"output directories for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
 	Extentions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql -Xrpc"`
 	Envvars      map[string]string `cli:"E,env" usage:"custom defined environment variables"`
 	ImportPaths  []string          `cli:"P,importpath" usage:"import paths for lookuping imports"`
-	TemplateKind string            `cli:"K,tk,template-kind" usage:"template kind, a directory name" dft:"default"`
+	TemplateKind string            `cli:"K,tempkind" usage:"template kind, a directory name" dft:"default"`
 	TemplatesDir map[string]string `cli:"T,template" usage:"templates directories for each language, e.g. -Tgo=dir1 -Tjava=dir2"`
 }
 
@@ -170,14 +170,8 @@ var root = &cli.Command{
 			}
 			if plugin.TemplatesDir == "" {
 				// if templatesDir is empty
-				var pendingDir string
-				if argv.Config.TemplatesRootDir != "" {
-					pendingDir = argv.Config.TemplatesRootDir
-				} else {
-					pendingDir = filepath.Join(argv.MidRoot, "templates")
-				}
-				fullpath := filepath.Join(pendingDir, argv.TemplateKind, plugin.Lang)
-				log.Trace("try lookup templates dir for plugin %s in directory %s, fullpath=%s", plugin.Lang, pendingDir, fullpath)
+				templatesRootDir := filepath.Join(argv.MidRoot, "templates")
+				fullpath := filepath.Join(templatesRootDir, argv.TemplateKind, plugin.Lang)
 				plugin.TemplatesDir, err = filepath.Abs(fullpath)
 				if err != nil {
 					log.Error("get abs of path `%s` error: %v", fullpath, err)
