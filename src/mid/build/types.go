@@ -97,6 +97,11 @@ func (tag Tag) Clone() *Tag {
 }
 func (tag Tag) String() string { return string(tag) }
 
+func (tag Tag) HasKey(key string) bool {
+	_, ok := tag.Lookup(key)
+	return ok
+}
+
 func (tag Tag) Get(key string) string {
 	value, _ := tag.Lookup(key)
 	return value
