@@ -91,12 +91,23 @@ func BuildIdentList(idents []*ast.Ident) []string {
 
 type Tag string
 
+func (tag Tag) Clone() *Tag {
+	x := Tag(string(tag))
+	return &x
+}
+func (tag Tag) String() string { return string(tag) }
+
+func (tag Tag) HasKey(key string) bool {
+	_, ok := tag.Lookup(key)
+	return ok
+}
+
 func (tag Tag) Get(key string) string {
 	value, _ := tag.Lookup(key)
 	return value
 }
 
-func (tag *Tag) Set(key, value string) {
+func (tag *Tag) Set(key, value string) string {
 	pairs, _, index := tag.parse(key)
 	if index >= 0 {
 		pairs[index][1] = value
@@ -104,6 +115,16 @@ func (tag *Tag) Set(key, value string) {
 		pairs = append(pairs, tagpair{key, value})
 	}
 	*tag = Tag(tag.format(pairs))
+	return ""
+}
+
+func (tag *Tag) Del(key string) string {
+	pairs, _, index := tag.parse(key)
+	if index >= 0 {
+		pairs = append(pairs[:index], pairs[index+1:]...)
+	}
+	*tag = Tag(tag.format(pairs))
+	return ""
 }
 
 func (tag Tag) Lookup(key string) (value string, ok bool) {
