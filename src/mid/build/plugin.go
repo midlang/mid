@@ -13,7 +13,7 @@ type PluginRuntimeConfig struct {
 	Verbose       string
 	Outdir        string
 	ExtentionsDir string
-	Extentions    []Extention
+	Extensions    []Extension
 	Envvars       map[string]string
 }
 

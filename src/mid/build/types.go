@@ -254,6 +254,16 @@ type Expr interface {
 	ExprNode()
 }
 
+func IntFromExpr(expr Expr) (string, bool) {
+	switch e := expr.(type) {
+	case *BasicLit:
+		if e.Kind == lexer.INT {
+			return e.Value, true
+		}
+	}
+	return "", false
+}
+
 type ExprBase struct{}
 
 func (ExprBase) ExprNode() {}
@@ -406,6 +416,13 @@ func BuildStruct(t *ast.StructType) *StructType {
 	}
 }
 
+func (t StructType) String(sep string) string {
+	if t.Package == "" {
+		return t.Name
+	}
+	return t.Package + sep + t.Name
+}
+
 type FuncType struct {
 	TypeBase
 	Params []*Field
@@ -423,6 +440,7 @@ type Bean struct {
 	Kind    string
 	Doc     string
 	Name    string
+	Tag     Tag
 	Fields  []*Field
 	Comment string
 }
@@ -435,6 +453,7 @@ func BuildBean(bean *ast.BeanDecl) *Bean {
 		Kind:   bean.Kind,
 		Doc:    BuildDoc(bean.Doc),
 		Name:   BuildIdent(bean.Name),
+		Tag:    BuildTag(bean.Tag),
 		Fields: BuildFieldList(bean.Fields),
 	}
 	log.Trace("BuildBean: %v", bean)

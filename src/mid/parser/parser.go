@@ -162,10 +162,17 @@ func (p *parser) parseDecl(sync func(*parser)) ast.Decl {
 }
 
 func (p *parser) parseBeanDecl(parentScope *ast.Scope) ast.Decl {
-	doc := p.leadComment
-	tok := p.tok
-	pos := p.expectOneOf(lexer.PROTOCOL, lexer.STRUCT, lexer.SERVICE, lexer.ENUM)
-	ident := p.parseIdent()
+	var (
+		tag   *ast.BasicLit
+		doc   = p.leadComment
+		tok   = p.tok
+		pos   = p.expectOneOf(lexer.PROTOCOL, lexer.STRUCT, lexer.SERVICE, lexer.ENUM)
+		ident = p.parseIdent()
+	)
+	if p.tok == lexer.STRING {
+		tag = &ast.BasicLit{TokPos: p.pos, Tok: p.tok, Value: p.lit}
+		p.next()
+	}
 	scope := ast.NewScope(parentScope)
 	lbrace := p.expect(lexer.LBRACE)
 	var list []*ast.Field
@@ -189,6 +196,7 @@ func (p *parser) parseBeanDecl(parentScope *ast.Scope) ast.Decl {
 		Pos:  pos,
 		Doc:  doc,
 		Name: ident,
+		Tag:  tag,
 		Fields: &ast.FieldList{
 			Opening: lbrace,
 			List:    list,

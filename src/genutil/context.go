@@ -89,7 +89,7 @@ func (ctx *Context) AutoGenDeclaration() string {
 // Extension inserts code for extensions at specific position
 func (ctx *Context) Extension(at string, data interface{}) (string, error) {
 	var buf bytes.Buffer
-	for _, ext := range ctx.Config.Extentions {
+	for _, ext := range ctx.Config.Extensions {
 		extdir := filepath.Join(ctx.Config.ExtentionsDir, ext.Path, "templates")
 		values := ext.Find(ctx.Plugin.Lang, ctx.Kind, at)
 		log.WithJSON(log.M{
@@ -136,4 +136,34 @@ func (ctx *Context) Extension(at string, data interface{}) (string, error) {
 		}
 	}
 	return buf.String(), nil
+}
+
+// JSInitValue returns init value of javascript by Type
+func (ctx *Context) JSInitValue(typ build.Type) string {
+	switch {
+	case typ.IsInt():
+		return "0"
+	case typ.IsBool():
+		return "false"
+	case typ.IsString():
+		return `""`
+	case typ.IsArray():
+		t, ok := typ.(*build.ArrayType)
+		if ok {
+			size, ok := build.IntFromExpr(t.Size)
+			if ok {
+				return "new Array(" + size + ")"
+			}
+		}
+	case typ.IsVector():
+		return "new Array()"
+	case typ.IsMap():
+		return "new Map()"
+	case typ.IsStruct():
+		t, ok := typ.(*build.StructType)
+		if ok {
+			return "new " + t.String(".") + "()"
+		}
+	}
+	return "null"
 }

@@ -1,6 +1,10 @@
 Change log
 ==========
 
+## Head
+
+* Add `js` generator
+
 ## v0.1.2 (2016-12-12)
 
 * Add extension `meta` and `proto`

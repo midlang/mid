@@ -1,0 +1,11 @@
+{
+    "dep_dirs": [
+        "../"
+    ],
+    "include_dirs": [
+        "../include"
+    ],
+    "libs": [
+        "gtest"
+    ]
+}

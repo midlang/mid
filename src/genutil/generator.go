@@ -157,7 +157,7 @@ func Init(
 			return true
 		},
 		"NOT": func(b bool) bool { return !b },
-		"XOR": func(b1, b2 bool) bool { return (b1 && !b2) || (!b1 && b2) },
+		"XOR": func(b1, b2 bool) bool { return b1 != b2 },
 	}
 
 }

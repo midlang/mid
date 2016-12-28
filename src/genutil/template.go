@@ -181,7 +181,7 @@ func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName stri
 	return file, err
 }
 
-// ParseTemplateFilename parses template filename: <kind>[.suffix][.flags].temp
+// ParseTemplateFilename parses template filename: <kind>[.suffix[.flags]].temp
 // `kind` maybe `package`,`file`,`const` and other bean kinds like `struct`,`protocol`,`service` etc.
 // Examples:
 //	struct.go.temp    -> (struct, go)

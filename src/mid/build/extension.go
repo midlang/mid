@@ -42,7 +42,7 @@ const (
 	ServiceBack    = "service_back"
 	AfterService   = "after_service"
 
-	// Extention config filename
+	// Extension config filename
 	ExtConfigFilename = "ext.json"
 )
 
@@ -125,7 +125,7 @@ func (v EmbeddedValue) MatchKind(kind string) bool {
 	return false
 }
 
-type Extention struct {
+type Extension struct {
 	Name    string   `json:"name"`
 	Author  string   `json:"author"`
 	URL     string   `json:"url"`
@@ -137,7 +137,7 @@ type Extention struct {
 	Path string `json:"path"`
 }
 
-func (e Extention) Find(lang, kind, at string) []EmbeddedValue {
+func (e Extension) Find(lang, kind, at string) []EmbeddedValue {
 	if e.EmbeddedAt == nil {
 		return nil
 	}
@@ -158,13 +158,13 @@ func (e Extention) Find(lang, kind, at string) []EmbeddedValue {
 	return values
 }
 
-type ExtentionKey struct {
+type ExtensionKey struct {
 	Author string
 	Name   string
 }
 
-func GetExtentionKey(name string) (ExtentionKey, error) {
-	key := ExtentionKey{}
+func GetExtensionKey(name string) (ExtensionKey, error) {
+	key := ExtensionKey{}
 	strs := strings.SplitN(name, "/", 2)
 	if len(strs) == 0 {
 		return key, ErrExtensionName
@@ -179,19 +179,19 @@ func GetExtentionKey(name string) (ExtentionKey, error) {
 	return key, nil
 }
 
-func (key ExtentionKey) Path(rootdir string) string {
+func (key ExtensionKey) Path(rootdir string) string {
 	return filepath.Join(rootdir, key.Subdir())
 }
 
-func (key ExtentionKey) Subdir() string {
+func (key ExtensionKey) Subdir() string {
 	return filepath.Join(key.Author, key.Name)
 }
 
-func LoadExtensions(rootdir string, names []string) ([]Extention, error) {
-	seen := map[ExtentionKey]bool{}
-	exts := make([]Extention, 0, len(names))
+func LoadExtensions(rootdir string, names []string) ([]Extension, error) {
+	seen := map[ExtensionKey]bool{}
+	exts := make([]Extension, 0, len(names))
 	for _, name := range names {
-		key, err := GetExtentionKey(name)
+		key, err := GetExtensionKey(name)
 		if err != nil {
 			return nil, err
 		}
@@ -203,7 +203,7 @@ func LoadExtensions(rootdir string, names []string) ([]Extention, error) {
 		if err != nil {
 			return nil, err
 		}
-		ext := Extention{}
+		ext := Extension{}
 		if err := json.Unmarshal(data, &ext); err != nil {
 			return nil, err
 		}

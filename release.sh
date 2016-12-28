@@ -2,10 +2,6 @@
 
 set -e
 
-function verbose() {
-	echo "$@"
-}
-
 Go=go
 released_dir=targets
 languages=`cat languages.txt`
@@ -17,7 +13,7 @@ cd ./hack
 source ./genmeta.sh $version
 cd ..
 
-function mid_release_with_os_cpu() {
+function mid_release_for() {
 	local _version=$1
 	local _os=$2
 	local _cpu=$3
@@ -68,10 +64,10 @@ if [[ -d "$released_dir/$_version" ]]; then
 fi
 mkdir -p $released_dir/$version
 
-mid_release_with_os_cpu $version windows 386
-mid_release_with_os_cpu $version windows amd64
-mid_release_with_os_cpu $version linux 386
-mid_release_with_os_cpu $version linux amd64
-mid_release_with_os_cpu $version darwin 386
-mid_release_with_os_cpu $version darwin amd64
+mid_release_for $version windows 386
+mid_release_for $version windows amd64
+mid_release_for $version linux 386
+mid_release_for $version linux amd64
+mid_release_for $version darwin 386
+mid_release_for $version darwin amd64
 

@@ -20,13 +20,14 @@ type argT struct {
 	Version      bool              `cli:"!v,version" usage:"display version information"`
 	ConfigFile   string            `cli:"c,config" usage:"config filename"`
 	LogLevel     logger.Level      `cli:"log" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
-	Inputs       []string          `cli:"I,input" usage:"input directories or files which has suffix SUFFIX"`
 	Outdirs      map[string]string `cli:"O,outdir" usage:"output directories for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
-	Extentions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql -Xrpc"`
+	Extensions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql -Xrpc"`
 	Envvars      map[string]string `cli:"E,env" usage:"custom defined environment variables"`
-	ImportPaths  []string          `cli:"P,importpath" usage:"import paths for lookuping imports"`
+	ImportPaths  []string          `cli:"I,importpath" usage:"import paths for lookuping imports"`
 	TemplateKind string            `cli:"K,tempkind" usage:"template kind, a directory name" dft:"default"`
 	TemplatesDir map[string]string `cli:"T,template" usage:"templates directories for each language, e.g. -Tgo=dir1 -Tjava=dir2"`
+
+	Inputs []string `cli:"-"`
 }
 
 func newArgT() *argT {
@@ -41,10 +42,10 @@ func newArgT() *argT {
 }
 
 var root = &cli.Command{
-	Name:      "midc",
-	Argv:      func() interface{} { return newArgT() },
-	Desc:      "midlang compiler - compile source files and generate other languages code or documents",
-	NumOption: cli.AtLeast(1),
+	Name:        "midc",
+	Argv:        func() interface{} { return newArgT() },
+	Desc:        "midlang compiler - compile source files and generate other languages code or documents",
+	CanSubRoute: true,
 
 	Fn: func(ctx *cli.Context) error {
 		argv := ctx.Argv().(*argT)
@@ -52,6 +53,7 @@ var root = &cli.Command{
 			ctx.String("v%v\n", mid.Meta["version"])
 			return nil
 		}
+		argv.Inputs = ctx.Args()
 		log.SetLevel(argv.LogLevel)
 		if !argv.LogLevel.MoreVerboseThan(log.LvINFO) {
 			log.NoHeader()
@@ -161,7 +163,7 @@ var root = &cli.Command{
 			// initialize RuntimeConfig for plugin
 			plugin.RuntimeConfig.Outdir = outdir
 			plugin.RuntimeConfig.ExtentionsDir = extensionsDir
-			plugin.RuntimeConfig.Extentions = extensions
+			plugin.RuntimeConfig.Extensions = extensions
 			plugin.RuntimeConfig.Envvars = argv.Envvars
 			plugin.RuntimeConfig.Verbose = argv.LogLevel.String()
 			if templatesDir, ok := argv.TemplatesDir[plugin.Lang]; ok {
@@ -246,13 +248,13 @@ func filesInDir(dir string, filter func(os.FileInfo) bool) ([]string, error) {
 	return files, nil
 }
 
-func loadExtensions(extensionsDir string, argv *argT) (extensions []build.Extention, err error) {
+func loadExtensions(extensionsDir string, argv *argT) (extensions []build.Extension, err error) {
 	loaded := map[string]bool{}
 	deps := map[string]bool{}
-	shouldLoadExts := make([]string, len(argv.Extentions))
-	copy(shouldLoadExts, argv.Extentions)
+	shouldLoadExts := make([]string, len(argv.Extensions))
+	copy(shouldLoadExts, argv.Extensions)
 	for len(shouldLoadExts) > 0 {
-		var exts []build.Extention
+		var exts []build.Extension
 		exts, err = build.LoadExtensions(extensionsDir, shouldLoadExts)
 		if err != nil {
 			log.Error("load extensions error: %v", err)

@@ -11,6 +11,11 @@
 			"lang": "cpp",
 			"name": "std",
 			"bin": "gencpp"
+		},
+		{
+			"lang": "js",
+			"name": "std",
+			"bin": "genjs"
 		}
 	]
 }

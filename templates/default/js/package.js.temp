@@ -1,0 +1,94 @@
+{{context.AutoGenDeclaration}}
+
+{{- context.Extension "file_head" .}}
+
+{{- context.Extension "before_import" .}}
+
+{{- context.Extension "after_import" .}}
+
+{{- define "T_const"}}
+{{range $decl := .}}
+{{- context.Extension "before_const" $decl}}
+{{$decl.Doc}}
+{{- context.Extension "const_front" $decl}}
+{{range $field := $decl.Consts}}const {{$field.Name}} = {{$field.ValueString}};{{$field.Comment}}
+{{end}}
+{{- context.Extension "const_back" $decl}}
+{{- context.Extension "after_const" $decl}}
+{{end}}
+{{end}}
+
+{{- define "T_enum"}}
+{{- context.Extension "before_enum" .}}
+{{- $type := .Name}}
+{{.Doc}}
+{{- context.Extension "enum_front" .}}
+{{range $field := .Fields}}const {{$type}}_{{$field.Name}} = {{$field.Value}};{{$field.Comment}}
+{{end}}
+{{- context.Extension "enum_back" .}}
+{{- context.Extension "after_enum" .}}
+{{end}}
+
+{{- define "T_struct"}}
+{{- $type := .Name}}
+{{- $extends := .Extends context}}
+{{- $extendsString := newString}}
+{{- if eq (len $extends) 1}}{{$extendsString.Set (join " " " extends" (stringAt $extends 0))}}{{end}}
+{{.Doc}}class {{$type}}{{$extendsString.Get}} {
+	{{- context.Extension "before_struct" .}}
+	constructor() {
+		{{- context.Extension "struct_front" .}}
+		{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}this.{{$field.Name}} = {{context.JSInitValue $field.Type}};{{$field.Comment}}
+		{{- else}}super();
+		{{- end}}
+		{{end}}
+		{{- context.Extension "struct_back" .}}
+	}
+	{{- context.Extension "after_struct" .}}
+}
+{{end}}
+
+{{- define "T_protocol"}}
+{{- $type := .Name}}
+{{- $extends := .Extends context}}
+{{- $extendsString := newString}}
+{{- if eq (len $extends) 1}}{{$extendsString.Set (join " " " extends" (stringAt $extends 0))}}{{end}}
+{{.Doc}}class {{$type}}{{$extendsString.Get}} {
+	{{- context.Extension "before_protocol" .}}
+	constructor() {
+		{{- context.Extension "protocol_front" .}}
+		{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}this.{{$field.Name}} = {{context.JSInitValue $field.Type}};{{$field.Comment}}
+		{{- else}}super();
+		{{- end}}
+		{{end}}
+		{{- context.Extension "protocol_back" .}}
+	}
+	{{- context.Extension "after_protocol" .}}
+}
+{{end}}
+
+{{- define "T_service"}}
+{{- $type := .Name}}
+{{- $extends := .Extends context}}
+{{- $extendsString := newString}}
+{{- if eq (len $extends) 1}}{{$extendsString.Set (join " " " extends" (stringAt $extends 0))}}{{end}}
+{{.Doc}}class {{$type}}{{$extendsString.Get}} {
+	{{- context.Extension "before_service" .}}
+	constructor() {
+		{{- context.Extension "service_front" .}}
+		{{range $field := .Fields}}
+		{{- if ne $field.Name ""}}this.{{$field.Name}} = function() {};{{$field.Comment}}
+		{{- else}}super();
+		{{- end}}
+		{{end}}
+		{{- context.Extension "service_back" .}}
+	}
+	{{- context.Extension "after_service" .}}
+}
+{{end}}
+
+{{.GenerateDeclsBySubTemplates}}
+
+{{context.Extension "file_end" .}}

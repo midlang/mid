@@ -221,6 +221,7 @@ type BeanDecl struct {
 	Pos    lexer.Pos
 	Doc    *CommentGroup
 	Name   *Ident
+	Tag    *BasicLit
 	Fields *FieldList
 }
 
