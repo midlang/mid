@@ -229,10 +229,6 @@ func (field Field) Value() string {
 	panic("unsupported expr")
 }
 
-func (field Field) IsExtended() bool {
-	return len(field.Names) == 0
-}
-
 func (field Field) GetTag(key string) string {
 	return field.Tag.Get(key)
 }
@@ -461,6 +457,7 @@ type Bean struct {
 	Kind    string
 	Doc     string
 	Name    string
+	Extends []Type
 	Tag     Tag
 	Fields  []*Field
 	Comment string
@@ -469,7 +466,6 @@ type Bean struct {
 func (bean *Bean) IsNil() bool { return bean == nil }
 
 func BuildBean(bean *ast.BeanDecl) *Bean {
-	log.Trace("BuildBean: kind=%s, name=%s, len(fields)=%d", bean.Kind, bean.Name.Name, len(bean.Fields.List))
 	b := &Bean{
 		Kind:   bean.Kind,
 		Doc:    BuildDoc(bean.Doc),
@@ -477,18 +473,13 @@ func BuildBean(bean *ast.BeanDecl) *Bean {
 		Tag:    BuildTag(bean.Tag),
 		Fields: BuildFieldList(bean.Fields),
 	}
-	log.Trace("BuildBean: %v", bean)
-	return b
-}
-
-func (bean Bean) Extends() []Type {
-	var extends []Type
-	for _, f := range bean.Fields {
-		if len(f.Names) == 0 {
-			extends = append(extends, f.Type)
+	if len(bean.Extends) > 0 {
+		b.Extends = make([]Type, 0, len(bean.Extends))
+		for _, e := range bean.Extends {
+			b.Extends = append(b.Extends, BuildType(e))
 		}
 	}
-	return extends
+	return b
 }
 
 func (bean Bean) Field(i int) *Field {

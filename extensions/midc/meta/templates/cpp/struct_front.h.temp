@@ -4,13 +4,9 @@ author: mkideal
 ---
 
 	struct Meta {
-		{{range $field := .Fields}}
-		{{- if ne $field.Name ""}}
-			{{- if true}}const static std::string F_{{$field.Name}};{{end}}
-		{{- else}}
-			{{- $fieldType := context.BuildType $field.Type}}
-			{{- if true}}const static std::string F_{{$fieldType}};{{end}}
-		{{- end}}
+		{{range $field := .Extends}}const static std::string F_{{context.BuildType $field}};
+		{{end}}
+		{{range $field := .Fields}}const static std::string F_{{$field.Name}};
 		{{end}}
 		static std::string name();
 		static int numField();

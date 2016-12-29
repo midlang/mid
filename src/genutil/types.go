@@ -97,8 +97,8 @@ func NewBean(file *build.File, b *build.Bean) *Bean {
 }
 
 // Extends gets extends of bean as a string slice
-func (bean *Bean) Extends(ctx *Context) []string {
-	extends := bean.Bean.Extends()
+func (bean *Bean) BuildExtends(ctx *Context) []string {
+	extends := bean.Bean.Extends
 	if len(extends) == 0 {
 		return nil
 	}

@@ -217,12 +217,13 @@ func (gd *GenDecl) Begin() lexer.Pos { return gd.TokPos }
 
 // bean declaration node: struct or protocol
 type BeanDecl struct {
-	Kind   string // struct or protocol
-	Pos    lexer.Pos
-	Doc    *CommentGroup
-	Name   *Ident
-	Tag    *BasicLit
-	Fields *FieldList
+	Kind    string // struct or protocol
+	Pos     lexer.Pos
+	Doc     *CommentGroup
+	Name    *Ident
+	Extends []Type
+	Tag     *BasicLit
+	Fields  *FieldList
 }
 
 func (bd *BeanDecl) Begin() lexer.Pos { return bd.Pos }

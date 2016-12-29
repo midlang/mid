@@ -14,6 +14,8 @@ package {{context.Pkg.Name}}
 {{context.Extension "before_service" .}}
 {{.Doc}}type {{$type}} interface {
 	{{context.Extension "service_front" .}}
+	{{range $field := .Extends}}{{context.BuildType $field}}
+	{{end}}
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 	{{context.Extension "service_back" .}}

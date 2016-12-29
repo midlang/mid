@@ -15,15 +15,15 @@ func (x *{{.Name}}) Decode(r proto.Reader) error {
 			{{- end}}
 		{{- end}}
 	{{- end}}
-	{{- range $field := .Fields}}
-		{{- $varName := newString}}
-		{{- if ne $field.Name ""}}
-			{{- $varName.Set (join "" "x." (title $field.Name))}}
-		{{- else}}
-			{{- $varName.Set (join "" "x." (context.BuildType $field.Type))}}
-		{{- end}}
+	{{- range $field := .Extends}}
+		{{- $varName := join "" "x." (context.BuildType $field)}}
 		{{- $dep := newInt}}
-		{{- include_template (joinPath (pwd) "decode/decode_type.go.temp") (slice ($varName.Get) $field.Type $dep)}}
+		{{- include_template (joinPath (pwd) "decode/decode_type.go.temp") (slice $varName $field $dep)}}
+	{{- end}}
+	{{- range $field := .Fields}}
+		{{- $varName := join "" "x." (title $field.Name)}}
+		{{- $dep := newInt}}
+		{{- include_template (joinPath (pwd) "decode/decode_type.go.temp") (slice $varName $field.Type $dep)}}
 	{{- end}}
 	return nil
 }

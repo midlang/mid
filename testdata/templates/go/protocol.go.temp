@@ -1,7 +1,0 @@
-{{$type := .Name}}
-package {{context.Pkg.Name}}
-
-{{.Doc}}type {{$type}} struct {
-	{{range $field := .Fields}} {{if ne $field.Name "_"}} {{$field.Name | title}} {{end}} {{context.BuildType $field.Type}}{{$field.Comment}}
-	{{end}}
-}

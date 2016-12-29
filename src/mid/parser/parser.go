@@ -163,12 +163,21 @@ func (p *parser) parseDecl(sync func(*parser)) ast.Decl {
 
 func (p *parser) parseBeanDecl(parentScope *ast.Scope) ast.Decl {
 	var (
-		tag   *ast.BasicLit
-		doc   = p.leadComment
-		tok   = p.tok
-		pos   = p.expectOneOf(lexer.PROTOCOL, lexer.STRUCT, lexer.SERVICE, lexer.ENUM)
-		ident = p.parseIdent()
+		tag     *ast.BasicLit
+		doc     = p.leadComment
+		tok     = p.tok
+		pos     = p.expectOneOf(lexer.PROTOCOL, lexer.STRUCT, lexer.SERVICE, lexer.ENUM)
+		ident   = p.parseIdent()
+		extends []ast.Type
 	)
+	if p.tok == lexer.EXTENDS {
+		p.next()
+		extends = append(extends, p.parseTypeName())
+		for p.tok == lexer.COMMA {
+			p.next()
+			extends = append(extends, p.parseTypeName())
+		}
+	}
 	if p.tok == lexer.STRING {
 		tag = &ast.BasicLit{TokPos: p.pos, Tok: p.tok, Value: p.lit}
 		p.next()
@@ -186,17 +195,18 @@ func (p *parser) parseBeanDecl(parentScope *ast.Scope) ast.Decl {
 			list = append(list, p.parseEnumSpec(scope))
 		}
 	default:
-		for p.tok == lexer.IDENT || p.tok == lexer.EXTEND || p.tok == lexer.LPAREN {
+		for p.tok == lexer.IDENT || p.tok == lexer.LPAREN {
 			list = append(list, p.parseFieldDecl(scope))
 		}
 	}
 	rbrace := p.expect(lexer.RBRACE)
 	spec := &ast.BeanDecl{
-		Kind: tok.String(),
-		Pos:  pos,
-		Doc:  doc,
-		Name: ident,
-		Tag:  tag,
+		Kind:    tok.String(),
+		Pos:     pos,
+		Doc:     doc,
+		Name:    ident,
+		Extends: extends,
+		Tag:     tag,
 		Fields: &ast.FieldList{
 			Opening: lbrace,
 			List:    list,
@@ -215,13 +225,8 @@ func (p *parser) parseFieldDecl(scope *ast.Scope) *ast.Field {
 		idents  []*ast.Ident
 		tag     *ast.BasicLit
 	)
-	if p.tok == lexer.EXTEND {
-		p.next()
-		typ = p.parseTypeName()
-	} else {
-		typ = p.parseTypeName()
-		idents = p.parseIdentList()
-	}
+	typ = p.parseTypeName()
+	idents = p.parseIdentList()
 	if p.tok == lexer.STRING {
 		tag = &ast.BasicLit{TokPos: p.pos, Tok: p.tok, Value: p.lit}
 		p.next()

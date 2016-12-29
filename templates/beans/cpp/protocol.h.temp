@@ -17,13 +17,11 @@ author: mkideal
 namespace {{context.Pkg.Name}} {
 {{- $type := .Name}}
 {{- context.Extension "before_protocol" .}}
-{{- $extends := .Extends context}}
+{{- $extends := .BuildExtends context}}
 {{.Doc}}struct {{$type}}{{if ne (len $extends) 0}}: public {{$extends | join " "}}{{end}} {
 	{{- context.Extension "protocol_front" .}}
 	{{range $field := .Fields}}
-		{{- if ne $field.Name ""}} 
-			{{- context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}}
-		{{- end}}
+		{{- context.BuildType $field.Type}} {{$field.Name}};{{$field.Comment}}
 	{{end}}
 	{{- context.Extension "protocol_back" .}}
 };

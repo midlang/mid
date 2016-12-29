@@ -1,4 +1,0 @@
----
-file: ignored
----
-included template text: {{.}}

@@ -37,6 +37,8 @@ type {{$type}} int
 {{context.Extension "before_struct" .}}
 {{.Doc}}type {{$type}} struct {
 	{{context.Extension "struct_front" .}}
+	{{range $field := .Extends}}{{context.BuildType $field}}
+	{{end}}
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 	{{context.Extension "struct_back" .}}
@@ -49,6 +51,8 @@ type {{$type}} int
 {{context.Extension "before_protocol" .}}
 {{.Doc}}type {{$type}} struct {
 	{{context.Extension "protocol_front" .}}
+	{{range $field := .Extends}}{{context.BuildType $field}}
+	{{end}}
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 	{{context.Extension "protocol_back" .}}
@@ -61,6 +65,8 @@ type {{$type}} int
 {{context.Extension "before_service" .}}
 {{.Doc}}type {{$type}} interface {
 	{{context.Extension "service_front" .}}
+	{{range $field := .Extends}}{{context.BuildType $field}}
+	{{end}}
 	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}{{$field.Comment}}
 	{{end}}
 	{{context.Extension "service_back" .}}

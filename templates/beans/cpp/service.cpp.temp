@@ -4,21 +4,19 @@ author: mkideal
 ---
 {{context.AutoGenDeclaration}}
 
-{{- context.Extension "file_head" .}}
-
-{{- context.Extension "before_import" .}}
+{{context.Extension "file_head" .}}
+{{context.Extension "before_import" .}}
 #include <string>
 #include <vector>
 #include <array>
 #include <map>
 #include <unordered_map>
-{{- context.Extension "after_import" .}}
+{{context.Extension "after_import" .}}
 
 namespace {{context.Pkg.Name}} {
-{{- context.Extension "before_service" .}}
-{{- context.Extension "service_front" .}}
-{{- context.Extension "service_back" .}}
-{{- context.Extension "after_service" .}}
-
-{{- context.Extension "file_end" .}}
+{{context.Extension "before_service" .}}
+{{context.Extension "service_front" .}}
+{{context.Extension "service_back" .}}
+{{context.Extension "after_service" .}}
+{{context.Extension "file_end" .}}
 }

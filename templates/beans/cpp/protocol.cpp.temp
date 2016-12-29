@@ -3,22 +3,18 @@ date: 2016-12-04 23:33
 author: mkideal
 ---
 {{context.AutoGenDeclaration}}
-
-{{- context.Extension "file_head" .}}
-
-{{- context.Extension "before_import" .}}
+{{context.Extension "file_head" .}}
+{{context.Extension "before_import" .}}
 #include <string>
 #include <vector>
 #include <array>
 #include <map>
 #include <unordered_map>
-{{- context.Extension "after_import" .}}
-
+{{context.Extension "after_import" .}}
 namespace {{context.Pkg.Name}} {
-{{- context.Extension "before_protocol" .}}
-{{- context.Extension "protocol_front" .}}
-{{- context.Extension "protocol_back" .}}
-{{- context.Extension "after_protocol" .}}
-
-{{- context.Extension "file_end" .}}
+{{context.Extension "before_protocol" .}}
+{{context.Extension "protocol_front" .}}
+{{context.Extension "protocol_back" .}}
+{{context.Extension "after_protocol" .}}
+{{context.Extension "file_end" .}}
 }

@@ -1,6 +1,0 @@
----
-file: include.txt
----
-{{include "text.txt"}}
-
-{{include_template "temp.temp" .Name}}

@@ -4,13 +4,10 @@ author: mkideal
 ---
 
 type {{.Name}}Meta struct {
-	{{range $field := .Fields}}
-		{{- if ne $field.Name ""}}
-			{{- if true}}F_{{$field.Name}} string{{end}}
-		{{- else}}
-			{{- $fieldType := context.BuildType $field.Type}}
-			{{- if true}}F_{{$fieldType}} string{{end}}
-		{{- end}}
+	{{range $field := .Extends}}
+		{{- $fieldType := context.BuildType $field}}F_{{$fieldType}} string
+	{{end}}
+	{{range $field := .Fields}}F_{{$field.Name}} string
 	{{end}}
 }
 
@@ -23,27 +20,23 @@ func ({{.Name}}Meta) NumField() int {
 }
 
 func ({{.Name}}Meta) Field(i int, v {{.Name}}) (string, interface{}) {
+	{{- $idx := newInt}}
 	switch i {
-	{{range $index, $field := .Fields}}
-		{{- if true}}case {{$index}}:{{end}}
-		{{- if ne $field.Name ""}}
-		return "{{$field.Name}}", v.{{$field.Name | title}}
-		{{- else}}
-		{{- $fieldType := context.BuildType $field.Type}}
+	{{range $field := .Extends}}case {{$idx.Get}}:{{$idx.Set ($idx.Add 1)}}
+		{{- $fieldType := context.BuildType $field}}
 		return "{{$fieldType}}", v.{{$fieldType}}
-		{{- end}}
+	{{end}}
+	{{range $field := .Fields}}case {{$idx.Get}}:{{$idx.Set ($idx.Add 1)}}
+		return "{{$field.Name}}", v.{{$field.Name | title}}
 	{{end}}
 	}
 	return "", nil
 }
 
 var {{.Name}}MetaVar = {{.Name}}Meta{
-	{{range $field := .Fields}}
-		{{- if ne $field.Name ""}}
-			{{- if true}}F_{{$field.Name}}: "{{$field.Name}}",{{end}}
-		{{- else}}
-			{{- $fieldType := context.BuildType $field.Type}}
-			{{- if true}}F_{{$fieldType}}: "{{$fieldType}}",{{end}}
-		{{- end}}
+	{{range $field := .Extends}}
+		{{- $fieldType := context.BuildType $field}}F_{{$fieldType}}: "{{$fieldType}}",
+	{{end}}
+	{{range $field := .Fields}}F_{{$field.Name}}: "{{$field.Name}}",
 	{{end}}
 }

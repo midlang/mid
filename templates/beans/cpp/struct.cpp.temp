@@ -4,21 +4,19 @@ author: mkideal
 ---
 {{context.AutoGenDeclaration}}
 
-{{- context.Extension "file_head" .}}
-
-{{- context.Extension "before_import" .}}
+{{context.Extension "file_head" .}}
+{{context.Extension "before_import" .}}
 #include <string>
 #include <vector>
 #include <array>
 #include <map>
 #include <unordered_map>
-{{- context.Extension "after_import" .}}
+{{context.Extension "after_import" .}}
 
 namespace {{context.Pkg.Name}} {
-{{- context.Extension "before_struct" .}}
-{{- context.Extension "struct_front" .}}
-{{- context.Extension "struct_back" .}}
-{{- context.Extension "after_struct" .}}
-
-{{- context.Extension "file_end" .}}
+{{context.Extension "before_struct" .}}
+{{context.Extension "struct_front" .}}
+{{context.Extension "struct_back" .}}
+{{context.Extension "after_struct" .}}
+{{context.Extension "file_end" .}}
 }

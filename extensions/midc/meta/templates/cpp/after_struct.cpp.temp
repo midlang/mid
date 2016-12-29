@@ -3,14 +3,13 @@ date: 2016-12-04 19:05
 author: mkideal
 ---
 
-{{$beanName := .Name}}
-{{- range $field := .Fields}}
-{{- if ne $field.Name ""}}
-	{{- if true}}const std::string {{$beanName}}::Meta::F_{{$field.Name}} = "{{$field.Name}}";{{end}}
-{{- else}}
-	{{- $fieldType := context.BuildType $field.Type}}
+{{- $beanName := .Name}}
+{{- range $field := .Extends}}
+	{{- $fieldType := context.BuildType $field}}
 	{{- if true}}const std::string {{$beanName}}::Meta::F_{{$fieldType}} = "{{$fieldType}}";{{end}}
-{{- end}}
+{{end}}
+{{- range $field := .Fields}}
+	{{- if true}}const std::string {{$beanName}}::Meta::F_{{$field.Name}} = "{{$field.Name}}";{{end}}
 {{ end}}
 
 std::string {{.Name}}::Meta::name() {
@@ -18,19 +17,18 @@ std::string {{.Name}}::Meta::name() {
 }
 
 int {{.Name}}::Meta::numField() {
-	return {{len .Fields}};
+	return {{len .Fields}} + {{len .Extends}};
 }
 
 std::string {{.Name}}::Meta::field(int i) {
+	{{- $idx := newInt}}
 	switch (i) {
-	{{range $index, $field := .Fields}}
-		{{- if true}}case {{$index}}:{{end}}
-		{{- if ne $field.Name ""}}
-		return "{{$field.Name}}";
-		{{- else}}
-		{{- $fieldType := context.BuildType $field.Type}}
+	{{range $field := .Extends}}case {{$idx.Get}}:{{$idx.Set ($idx.Add 1)}}
+		{{- $fieldType := context.BuildType $field}}
 		return "{{$fieldType}}";
-		{{- end}}
+	{{end}}
+	{{- range $field := .Fields}}case {{$idx.Get}}:{{$idx.Set ($idx.Add 1)}}
+		return "{{$field.Name}}";
 	{{end}}
 	}
 	return "";
