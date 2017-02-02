@@ -16,6 +16,12 @@
             "after_protocol": [
                 {
                     "template": "go/after_protocol.go.temp"
+                },
+                {
+                    "template": "go/encode.go.temp"
+                },
+                {
+                    "template": "go/decode.go.temp"
                 }
             ],
             "after_struct": [

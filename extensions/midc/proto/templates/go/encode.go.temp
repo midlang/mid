@@ -8,7 +8,7 @@ func (x {{.Name}}) Encode(w proto.Writer) error {
 	{{- $flag := newBool}}
 	{{- range $field := .Fields}}
 	{{$type := $field.Type}}
-		{{- if ($type.IsArray) or ($type.IsVector)}}
+		{{- if OR ($type.IsArray) ($type.IsVector)}}
 			{{- if not $flag.Get}}
 				var length int
 				{{- $flag.Set true}}

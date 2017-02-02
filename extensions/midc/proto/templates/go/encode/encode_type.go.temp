@@ -5,7 +5,7 @@ author: mkideal
 	{{- $fieldVar := valueAt . 0}}
 	{{- $type := valueAt . 1}}
 	{{- $dep := valueAt . 2}}
-	{{- $fieldType := context.BuildType $type}}
+	{{- $fieldType := context.BuildType $type | lastOf "."}}
 	{{- $tempDir := "."}}
 	{{- if eq $fieldType "int"}}{{         include_template (joinPath (pwd) $tempDir "encode_int.go.temp")    $fieldVar }}
 	{{- else if eq $fieldType "int8"}}{{   include_template (joinPath (pwd) $tempDir "encode_int8.go.temp")   $fieldVar }}

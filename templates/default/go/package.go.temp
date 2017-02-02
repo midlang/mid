@@ -25,7 +25,7 @@ type {{$type}} int
 {{context.Extension "before_enum" .}}
 {{.Doc}}const (
 	{{context.Extension "enum_front" .}}
-	{{range $field := .Fields}}{{$type}}_{{$field.Name}} = {{$field.Value}}{{$field.Comment}}
+	{{range $field := .Fields}}{{$type}}_{{$field.Name}} {{$type}} = {{$field.Value}}{{$field.Comment}}
 	{{end}}
 	{{context.Extension "enum_back" .}}
 )

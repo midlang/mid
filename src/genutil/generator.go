@@ -25,6 +25,23 @@ var (
 	context *Context
 )
 
+func firstOf(sep, s string) string {
+	return nthOf(sep, s, 0)
+}
+
+func lastOf(sep, s string) string {
+	return nthOf(sep, s, -1)
+}
+
+func nthOf(sep, s string, n int) string {
+	values := strings.Split(s, sep)
+	l := len(values)
+	if l == 0 {
+		return ""
+	}
+	return values[(n%l+l)%l]
+}
+
 // Init initializes generator
 // NOTE: You MUST initialize generator before using generator
 //
@@ -109,6 +126,9 @@ func Init(
 		"hasSuffix":   func(suffix string, s string) bool { return strings.HasSuffix(s, suffix) },
 		"trimPrefix":  func(prefix string, s string) string { return strings.TrimPrefix(s, prefix) },
 		"trimSuffix":  func(suffix string, s string) string { return strings.TrimSuffix(s, suffix) },
+		"firstOf":     func(sep, s string) string { return firstOf(sep, s) },
+		"lastOf":      func(sep, s string) string { return lastOf(sep, s) },
+		"nthOf":       func(sep, s string, n int) string { return nthOf(sep, s, n) },
 		"trimSpace":   func(s string) string { return strings.TrimSpace(s) },
 		"append":      func(appended string, s string) string { return s + appended },
 		"substr": func(startIndex, endIndex int, s string) string {

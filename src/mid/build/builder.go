@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
-	"path/filepath"
+	"fmt"
 	"strings"
 
 	"github.com/midlang/mid/src/mid/ast"
@@ -54,19 +54,20 @@ func NewBuilder() *Builder {
 	}
 }
 
-func Build(pkgs map[string]*ast.Package, importPaths []string) (*Builder, error) {
+func Build(pkgs map[string]*ast.Package) (*Builder, error) {
 	builder := NewBuilder()
+	log.Debug("pkgs: %v", pkgs)
 	for _, pkg := range pkgs {
 		for _, file := range pkg.Files {
 			for _, imp := range file.Imports {
-				id := packageId(imp)
-				importedPkg, err := lookupPackage(pkgs, imp)
-				if err != nil {
-					return nil, err
+				_, pkgId := imp.Package.IsString()
+				importedPkg, ok := pkgs[pkgId]
+				if !ok {
+					return nil, fmt.Errorf("package `%s` not found", pkgId)
 				}
 				obj := ast.NewObj(ast.Pkg, importedPkg.Name)
 				obj.Decl = importedPkg
-				pkg.Imports[id] = obj
+				pkg.Imports[pkgId] = obj
 			}
 		}
 	}
@@ -74,19 +75,6 @@ func Build(pkgs map[string]*ast.Package, importPaths []string) (*Builder, error)
 		builder.Packages[pkg.Name] = BuildPackage(pkg)
 	}
 	return builder, nil
-}
-
-func packageId(imp *ast.ImportSpec) string {
-	if imp.Name != nil {
-		return imp.Name.Name
-	}
-	_, name := filepath.Split(imp.Package.Value)
-	return name
-}
-
-func lookupPackage(pkgs map[string]*ast.Package, imp *ast.ImportSpec) (*ast.Package, error) {
-	// TODO
-	return nil, nil
 }
 
 func (builder *Builder) Encode() string {

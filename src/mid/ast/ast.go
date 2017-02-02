@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 
 	"github.com/midlang/mid/src/mid/lexer"
 )
@@ -64,6 +65,14 @@ type BasicLit struct {
 }
 
 func (bl *BasicLit) Begin() lexer.Pos { return bl.TokPos }
+
+func (bl *BasicLit) IsString() (bool, string) {
+	if bl.Tok != lexer.STRING {
+		return false, ""
+	}
+	s, _ := strconv.Unquote(bl.Value)
+	return true, s
+}
 
 //-----------
 // Type node

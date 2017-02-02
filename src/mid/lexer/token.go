@@ -35,6 +35,7 @@ const (
 	ASSIGN    // =
 	AT        // @ @function(args)
 	DOLLAR    // $ env variable
+	SHARP     // #
 	operator_end
 
 	keyword_beg
@@ -78,6 +79,7 @@ var tokens = [...]string{
 	ASSIGN:    "=",
 	AT:        "@",
 	DOLLAR:    "$",
+	SHARP:     "#",
 
 	PACKAGE:  "package",
 	IMPORT:   "import",

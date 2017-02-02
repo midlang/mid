@@ -36,7 +36,9 @@ func newArgT() *argT {
 		TemplatesDir: map[string]string{},
 		Envvars:      map[string]string{},
 		Config:       *newConfig(),
-		ImportPaths:  strings.Split(os.Getenv("MID_IMPORT_PATH"), ":"),
+	}
+	if s := os.Getenv("MID_IMPORT_PATH"); s != "" {
+		argv.ImportPaths = strings.Split(s, string(filepath.ListSeparator))
 	}
 	return argv
 }
@@ -193,12 +195,12 @@ var root = &cli.Command{
 
 		// build source
 		fset := lexer.NewFileSet()
-		pkgs, err := parser.ParseFiles(fset, inputs)
+		pkgs, err := parser.ParseFiles(fset, argv.ImportPaths, inputs)
 		if err != nil {
 			log.Error("parse error:\n%v", red(err))
 			return nil
 		}
-		builder, err := build.Build(pkgs, argv.ImportPaths)
+		builder, err := build.Build(pkgs)
 		if err != nil {
 			log.Error("build error: %v", red(err))
 			return nil

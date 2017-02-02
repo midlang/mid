@@ -232,6 +232,10 @@ func (p *parser) parseFieldDecl(scope *ast.Scope) *ast.Field {
 		p.next()
 	}
 	p.expectSemi()
+	if tag == nil && p.tok == lexer.STRING {
+		tag = &ast.BasicLit{TokPos: p.pos, Tok: p.tok, Value: p.lit}
+		p.next()
+	}
 	field := &ast.Field{
 		Doc:     doc,
 		Options: options,
@@ -540,23 +544,96 @@ func ParseFile(fset *lexer.FileSet, filename string, src []byte) (f *ast.File, e
 	return
 }
 
-func ParseFiles(fset *lexer.FileSet, files []string) (map[string]*ast.Package, error) {
+func getSourceFilesFromDir(dir string, suffix string, filter func(os.FileInfo) bool) ([]string, error) {
+	fd, err := os.Open(dir)
+	if err != nil {
+		return nil, err
+	}
+	defer fd.Close()
+
+	list, err := fd.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+	var files []string
+	for _, d := range list {
+		if !strings.HasSuffix(d.Name(), suffix) || (filter != nil && !filter(d)) {
+			continue
+		}
+		filename := filepath.Join(dir, d.Name())
+		filename, _ = filepath.Abs(filename)
+		files = append(files, filename)
+	}
+	return files, nil
+}
+
+func lookupImportedFiles(importPaths []string, importPkg, suffix string) []string {
+	for _, root := range importPaths {
+		dir := filepath.Join(root, importPkg)
+		files, err := getSourceFilesFromDir(dir, suffix, nil)
+		if err == nil {
+			return files
+		}
+	}
+	return nil
+}
+
+func ParseFiles(fset *lexer.FileSet, importPaths, files []string) (map[string]*ast.Package, error) {
+	if len(files) == 0 {
+		return nil, nil
+	}
+	suffix := ""
+	if list := strings.Split(files[0], "."); len(list) > 0 {
+		suffix = list[len(list)-1]
+	}
 	pkgs := make(map[string]*ast.Package)
-	var firstErr error
-	for _, filename := range files {
+	var (
+		firstErr     error
+		err          error
+		parsed       = make(map[string]bool)
+		importedPkgs = make(map[string]bool)
+		pkgFiles     = make([][2]string, 0, len(files))
+	)
+	for _, f := range files {
+		pkgFiles = append(pkgFiles, [2]string{".", f})
+	}
+	for i := 0; i < len(pkgFiles); i++ {
+		pkgId := pkgFiles[i][0]
+		filename := pkgFiles[i][1]
+		if !filepath.IsAbs(filename) {
+			filename, err = filepath.Abs(filename)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if parsed[filename] {
+			continue
+		}
+		parsed[filename] = true
 		if f, err := ParseFile(fset, filename, nil); err == nil {
-			name := f.Name.Name
-			pkg, found := pkgs[name]
+			pkg, found := pkgs[pkgId]
 			if !found {
 				pkg = &ast.Package{
-					Name:    name,
+					Name:    f.Name.Name,
 					Scope:   ast.NewScope(nil),
 					Imports: make(map[string]*ast.Object),
 					Files:   make(map[string]*ast.File),
 				}
-				pkgs[name] = pkg
+				pkgs[pkgId] = pkg
+			} else if f.Name.Name != pkg.Name {
+				return nil, fmt.Errorf("found packages %s and %s in %s", f.Name.Name, pkg.Name, pkgId)
 			}
-			pkg.Files[name] = f
+			pkg.Files[filename] = f
+			for _, p := range f.Imports {
+				_, importedPkgId := p.Package.IsString()
+				if importedPkgs[importedPkgId] {
+					continue
+				}
+				importedPkgs[importedPkgId] = true
+				for _, tmp := range lookupImportedFiles(importPaths, importedPkgId, suffix) {
+					pkgFiles = append(pkgFiles, [2]string{importedPkgId, tmp})
+				}
+			}
 			if f.Scope != nil && f.Scope.Objects != nil {
 				errors := &errors.ErrorList{}
 				for _, obj := range f.Scope.Objects {
@@ -584,24 +661,9 @@ func ParseFiles(fset *lexer.FileSet, files []string) (map[string]*ast.Package, e
 }
 
 func ParseDir(fset *lexer.FileSet, dir string, suffix string, filter func(os.FileInfo) bool) (map[string]*ast.Package, error) {
-	fd, err := os.Open(dir)
+	files, err := getSourceFilesFromDir(dir, suffix, filter)
 	if err != nil {
 		return nil, err
 	}
-	defer fd.Close()
-
-	list, err := fd.Readdir(-1)
-	if err != nil {
-		return nil, err
-	}
-	var files []string
-	for _, d := range list {
-		if !strings.HasSuffix(d.Name(), suffix) || (filter != nil && !filter(d)) {
-			continue
-		}
-		filename := filepath.Join(dir, d.Name())
-		files = append(files, filename)
-	}
-
-	return ParseFiles(fset, files)
+	return ParseFiles(fset, nil, files)
 }

@@ -160,8 +160,8 @@ service UserService {
 	delUser(int64) Status
 }
 
-struct Info {
-	extend User; // extend extends another structure
+// extends another structure
+struct Info extends User {
 	string desc;
 	map<int64,vector<map<int,array<bool,5>>>> xxx;
 }

@@ -5,7 +5,7 @@ author: mkideal
 
 type {{.Name}}Meta struct {
 	{{range $field := .Extends}}
-		{{- $fieldType := context.BuildType $field}}F_{{$fieldType}} string
+		{{- $fieldType := context.BuildType $field | lastOf "."}}F_{{$fieldType}} string
 	{{end}}
 	{{range $field := .Fields}}F_{{$field.Name}} string
 	{{end}}
@@ -23,7 +23,7 @@ func ({{.Name}}Meta) Field(i int, v {{.Name}}) (string, interface{}) {
 	{{- $idx := newInt}}
 	switch i {
 	{{range $field := .Extends}}case {{$idx.Get}}:{{$idx.Set ($idx.Add 1)}}
-		{{- $fieldType := context.BuildType $field}}
+		{{- $fieldType := context.BuildType $field | lastOf "."}}
 		return "{{$fieldType}}", v.{{$fieldType}}
 	{{end}}
 	{{range $field := .Fields}}case {{$idx.Get}}:{{$idx.Set ($idx.Add 1)}}
@@ -33,9 +33,23 @@ func ({{.Name}}Meta) Field(i int, v {{.Name}}) (string, interface{}) {
 	return "", nil
 }
 
+func ({{.Name}}Meta) FieldPtr(i int, v *{{.Name}}) (string, interface{}) {
+	{{- $idx := newInt}}
+	switch i {
+	{{range $field := .Extends}}case {{$idx.Get}}:{{$idx.Set ($idx.Add 1)}}
+		{{- $fieldType := context.BuildType $field | lastOf "."}}
+		return "{{$fieldType}}", &v.{{$fieldType}}
+	{{end}}
+	{{range $field := .Fields}}case {{$idx.Get}}:{{$idx.Set ($idx.Add 1)}}
+		return "{{$field.Name}}", &v.{{$field.Name | title}}
+	{{end}}
+	}
+	return "", nil
+}
+
 var {{.Name}}MetaVar = {{.Name}}Meta{
 	{{range $field := .Extends}}
-		{{- $fieldType := context.BuildType $field}}F_{{$fieldType}}: "{{$fieldType}}",
+		{{- $fieldType := context.BuildType $field | lastOf "."}}F_{{$fieldType}}: "{{$fieldType}}",
 	{{end}}
 	{{range $field := .Fields}}F_{{$field.Name}}: "{{$field.Name}}",
 	{{end}}

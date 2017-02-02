@@ -169,6 +169,12 @@ func (p *parser) next() {
 	prev := p.pos
 	p.next0()
 
+	// ignore token '#'
+	if p.tok == lexer.SHARP {
+		p.next()
+		return
+	}
+
 	if p.tok == lexer.COMMENT {
 		var comment *ast.CommentGroup
 		var endline int
