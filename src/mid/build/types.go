@@ -491,6 +491,19 @@ func (bean Bean) Field(i int) *Field {
 
 func (bean Bean) NumField() int { return len(bean.Fields) }
 
+func (bean Bean) GetTag(key string) string {
+	return bean.Tag.Get(key)
+}
+
+func (bean Bean) HasTag(key string) bool {
+	_, ok := bean.Tag.Lookup(key)
+	return ok
+}
+
+func (bean *Bean) AddTag(key, value string) {
+	bean.Tag.Set(key, value)
+}
+
 type ImportSpec struct {
 	Doc     string
 	Name    string

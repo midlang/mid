@@ -3,6 +3,7 @@ package genutil
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -107,6 +108,7 @@ func Init(
 		// os
 		"osenv": func(key string) string { return os.Getenv(key) },
 		// string operations
+		"string":      func(v interface{}) string { return fmt.Sprintf("%v", v) },
 		"title":       func(s string) string { return strings.Title(s) },
 		"toLower":     func(s string) string { return strings.ToLower(s) },
 		"toUpper":     func(s string) string { return strings.ToUpper(s) },
@@ -213,7 +215,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 		}
 		oldMetaFile := meta.File
 
-		var file *os.File
+		var file io.WriteCloser
 		kind, suffix := ParseTemplateFilename(info.Name())
 		log.Debug("kind=%s, suffix=%s", kind, suffix)
 

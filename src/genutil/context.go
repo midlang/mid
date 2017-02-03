@@ -25,11 +25,11 @@ type Context struct {
 	Suffix string
 	// Pwd holds current template file directory
 	Pwd string
+	// Beans holds all beans in current package
+	Beans map[string]*build.Bean
 
 	// BuildType functions for current language
 	buildType BuildTypeFunc
-	// beans holds all beans in current package
-	beans map[string]*build.Bean
 }
 
 // NewContext creates a context by buildType,plugin,plugin_config
@@ -42,17 +42,17 @@ func NewContext(
 		buildType: buildType,
 		Plugin:    plugin,
 		Config:    config,
-		beans:     make(map[string]*build.Bean),
+		Beans:     make(map[string]*build.Bean),
 	}
 	return ctx
 }
 
 func (ctx *Context) initWithPkg(pkg *build.Package) {
 	ctx.Pkg = pkg
-	ctx.beans = make(map[string]*build.Bean)
+	ctx.Beans = make(map[string]*build.Bean)
 	for _, file := range ctx.Pkg.Files {
 		for _, bean := range file.Beans {
-			ctx.beans[bean.Name] = bean
+			ctx.Beans[bean.Name] = bean
 		}
 	}
 }
@@ -72,7 +72,7 @@ func (ctx *Context) Getenv(key string) string {
 
 // FindBean finds bean by name in current package
 func (ctx *Context) FindBean(name string) *build.Bean {
-	return ctx.beans[name]
+	return ctx.Beans[name]
 }
 
 // AutoGenDeclaration returns a declaration which would be written to each generated file header

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -70,14 +71,15 @@ func OpenTemplatesDir(lang, dir string) ([]os.FileInfo, error) {
 
 // TemplateMeta represents meta information of a template file
 type TemplateMeta struct {
-	File   string
-	Values map[string]string
+	File                 string
+	nativeValues, Values map[string]string
 }
 
 // ParseTemplateFile parses template file
 func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
 	meta := &TemplateMeta{
-		Values: make(map[string]string),
+		Values:       make(map[string]string),
+		nativeValues: make(map[string]string),
 	}
 	// parse template file meta header
 	// e.g.
@@ -112,7 +114,7 @@ func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
 				return nil, nil, err
 			}
 			kv[0] = strings.TrimSpace(kv[0])
-			meta.Values[kv[0]] = kv[1]
+			meta.nativeValues[kv[0]] = kv[1]
 			log.Debug("%s:%d: key value pair: <%s:%s>", filename, line, kv[0], kv[1])
 		}
 		if !ended {
@@ -132,10 +134,10 @@ func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
 }
 
 // ApplyMeta creates a target file by the template meta
-func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName string) (*os.File, error) {
+func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName string) (io.WriteCloser, error) {
 	// execute template for meta
 	values := make(map[string]string)
-	for k, v := range meta.Values {
+	for k, v := range meta.nativeValues {
 		temp := template.New(k)
 		temp = temp.Funcs(funcs)
 		temp, err := temp.Parse(v)
@@ -166,20 +168,32 @@ func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName stri
 	if !filepath.IsAbs(meta.File) {
 		meta.File = filepath.Join(outdir, meta.File)
 	}
-	dir, _ := filepath.Split(meta.File)
-	if dir != "" && dir != "." {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Error("mkdir %s error: %v", dir, err)
+
+	_, err := os.Stat(meta.File)
+	if meta.Values["cond"] != "false" && (err != nil || meta.Values["notexist"] != "true") {
+		dir, _ := filepath.Split(meta.File)
+		if dir != "" && dir != "." {
+			if err := os.MkdirAll(dir, 0755); err != nil {
+				log.Error("mkdir %s error: %v", dir, err)
+				return nil, err
+			}
+		}
+		file, err := os.OpenFile(meta.File, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+		if err != nil {
+			log.Error("open file %s error: %v", meta.File, err)
 			return nil, err
 		}
+		return file, err
 	}
-	file, err := os.OpenFile(meta.File, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
-	if err != nil {
-		log.Error("open file %s error: %v", meta.File, err)
-		return nil, err
-	}
-	return file, err
+	return discard, nil
 }
+
+type discardWriter struct{}
+
+var discard = discardWriter{}
+
+func (w discardWriter) Write(p []byte) (int, error) { return len(p), nil }
+func (w discardWriter) Close() error                { return nil }
 
 // ParseTemplateFilename parses template filename: <kind>[.suffix[.flags]].temp
 // `kind` maybe `package`,`file`,`const` and other bean kinds like `struct`,`protocol`,`service` etc.
