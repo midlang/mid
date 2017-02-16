@@ -60,6 +60,8 @@ func Init(
 	funcs = template.FuncMap{
 		// context returns context
 		"context": func() *Context { return context },
+		// outdir returns output directory
+		"outdir": func() string { return context.Config.Outdir },
 		// error print error log and returns an error
 		"error": func(format string, args ...interface{}) error {
 			err := fmt.Errorf(format, args...)

@@ -1,0 +1,12 @@
+import (
+	"fmt"
+
+	"github.com/midlang/mid/x/go/storage"
+	"github.com/mkideal/pkg/typeconv"
+)
+
+var (
+	_ = fmt.Printf
+	_ = storage.Unused
+	_ = typeconv.Unused
+)

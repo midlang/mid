@@ -1,0 +1,13 @@
+---
+desc: 获取 table 的关键字段和关键字段类型
+---
+
+{{- $bean := valueAt . 0}}
+{{- $key := valueAt . 1}}
+{{- $keyType := valueAt . 2}}
+{{- range $index, $field := $bean.Fields}}
+	{{- if (eq ($field.GetTag "key") "true") and (eq ($key.Get) "")}}
+		{{- $key.Set (title $field.Name)}}
+		{{- $keyType.Set (context.BuildType $field.Type)}}
+	{{- end}}
+{{- end}}

@@ -1,0 +1,25 @@
+{{include_template (joinPath (pwd) "../../_common/go/head.go.temp") .}}
+
+{{include_template (joinPath (pwd) "../../_common/go/import.go.temp") .}}
+
+{{define "T_const"}}
+{{include_template (joinPath (pwd) "../../_common/go/const.go.temp") .}}
+{{end}}
+
+{{define "T_enum"}}
+{{include_template (joinPath (pwd) "../../_common/go/enum.go.temp") .}}
+{{end}}
+
+{{define "T_struct"}}
+{{include_template (joinPath (pwd) "../../_common/go/struct.go.temp") .}}
+{{end}}
+
+{{define "T_service"}}
+{{include_template (joinPath (pwd) "../../_common/go/service.go.temp") .}}
+{{end}}
+
+{{define "T_protocol"}}
+{{include_template (joinPath (pwd) "../../_common/go/protocol.go.temp") .}}
+{{end}}
+
+{{.GenerateDeclsBySubTemplates}}

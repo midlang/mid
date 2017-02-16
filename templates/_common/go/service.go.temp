@@ -1,0 +1,6 @@
+---
+date: 2016-12-07 11:00
+desc: 暂不支持 service 类型定义
+---
+
+{{error "unsupport service"}}

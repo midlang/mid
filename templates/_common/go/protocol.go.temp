@@ -1,0 +1,325 @@
+---
+date: 2016-12-07 10:44
+desc: protocol 的代码生成规则
+---
+
+// Table
+{{$type := .Name}}
+{{if le (len .Fields) 1}}
+	{{error "%s: count of fields must be greater than 1, but got %d" $type (len .Fields)}}
+{{end}}
+
+{{- /* 获取关键字段及其类型 */}}
+{{- $key := newString}}
+{{- $keyType := newString}}
+{{- include_template (joinPath (pwd) "./fn_table_key.temp") (slice . $key $keyType)}}
+{{.Doc}}type {{$type}} struct {
+	{{range $field := .Fields}}
+	{{- /* 检查字段名合法性 */}}
+	{{- if eq (title $field.Name) "Key"}}{{error "%s: field name must not be `key` or `Key`" $type}}{{end}}
+	{{- if eq (title $field.Name) "Meta"}}{{error "%s: field name must not be `meta` or `Meta`" $type}}{{end}}
+	{{- if eq (title $field.Name) "GetField"}}{{error "%s: field name must not be `getField` or `GetField`" $type}}{{end}}
+	{{- if eq (title $field.Name) "SetField"}}{{error "%s: field name must not be `setField` or `SetField`" $type}}{{end}}
+
+	{{- $type    := newString}}
+	{{- $option  := newString}}
+	{{- $default := newString}}
+	{{- $comment := newString}}
+	{{- $tag     := $field.Tag.Clone}}
+
+    {{- /* 执行 fn_xorm 函数取得 mysql 需要的属性 */}}
+    {{- include_template (joinPath (pwd) "./fn_xorm.temp") (slice $field $type $option $default $comment)}}
+
+    {{- /* 修正default */}}
+	{{- if $field.Type.IsBool}}
+		{{- if OR (eq ($default.Get) "true") (eq ($default.Get) "1") }}
+			{{- $default.Set "DEFAULT 1"}}
+		{{- else}}
+			{{- $default.Set "DEFAULT 0"}}
+		{{- end}}
+    {{- end}}
+	{{- if ne ($default.Get) ""}}{{$option.Set (join " " ($option.Get) $default.Get)}}
+	{{- end}}
+
+    {{- /* 修正option */}}
+	{{- if ne ($option.Get) ""}}{{$option.Set (join " " ($type.Get) $option.Get)}}
+	{{- else}}{{$option.Set $type.Get}}
+	{{- end}}
+    {{- if eq ($key.Get) (title $field.Name)}}{{$option.Set (join " " "pk" $option.Get)}}
+    {{- end}}
+	{{- if ne ($option.Get) ""}}{{$tag.Set "xorm" $option.Get}}
+	{{- end}}
+
+	{{- /* 删除一些生成的go代码中不需要的Tag的Key */}}
+	{{- $tag.Del "dft"}}
+	{{- $tag.Del "bits"}}
+	{{- $tag.Del "opt"}}
+	{{- $tag.Del "ref"}}
+	{{- $tag.Del "index"}}
+	{{- $tag.Del "key"}}
+
+	{{- /* 根据 json 环境参数设置 json 的 Tag */}}
+	{{- $jsonTagMethod := context.Getenv "json"}}
+	{{- if eq $jsonTagMethod "title"}}{{$tag.Set "json" (title $field.Name)}}
+	{{- else if eq $jsonTagMethod "underScore"}}{{$tag.Set "json" (underScore $field.Name)}}
+	{{- else if eq $jsonTagMethod "lowerCamel"}}{{$tag.Set "json" (lowerCamel $field.Name)}}
+	{{- else if eq $jsonTagMethod "upperCamel"}}{{$tag.Set "json" (upperCamel $field.Name)}}
+	{{- else if eq $jsonTagMethod "native"}}{{$tag.Set "json" $field.Namex}}
+	{{- end}}
+
+	{{- $tagStr := newString}}
+	{{- $tagStr.Set (join "" "`" ($tag.String) "`")}}
+	{{- $field.Name | title}} {{context.BuildType $field.Type}}{{$tagStr.Get}}{{$field.Comment}}
+	{{end}}
+}
+
+func New{{$type}}() *{{$type}} {
+	return &{{$type}}{
+		{{- range $field := .Fields}}
+		{{- $dft := $field.GetTag "dft"}}
+		{{- if ne $dft ""}}
+			{{- if $field.Type.IsString}}
+				{{- $value := newString}}
+				{{- $value.Set (trimPrefix "'" $dft)}}
+				{{- $value.Set (trimSuffix "'" $value.Get)}}
+				{{- if ne ($value.Get) ""}}{{title $field.Name}}: "{{$value.Get}}",
+				{{- end}}
+			{{- else}}{{title $field.Name}}: {{$dft}},
+			{{- end}}
+		{{- end}}
+		{{- end -}}
+	}
+}
+
+{{$key := newString}}
+{{$keyType := newString}}
+{{range $index, $field := .Fields}}
+	{{if (eq ($field.GetTag "key") "true") and (eq ($key.Get) "")}}
+		{{$key.Set (title $field.Name)}}
+		{{$keyType.Set (context.BuildType $field.Type)}}
+	{{end}}
+{{end}}
+
+{{if (eq ($key.Get) "")}}
+		{{error "key not found in %s" $type}}
+{{end}}
+{{if not (isInt ($keyType.Get))}}
+	{{if ne ($keyType.Get) "string"}}
+		{{error "%s: type of key field must be an integer or a string, but got `%s`" $type ($keyType.Get)}}
+	{{end}}
+{{end}}
+
+func ({{$type}}) Meta() storage.TableMeta { return {{$type}}MetaVar }
+func (x {{$type}}) Key() interface{} { return x.{{$key.Get}} }
+func (x *{{$type}}) SetKey(value string) error {
+	{{- if eq ($keyType.Get) "string"}}x.{{$key.Get | title}} = value
+	return nil
+	{{- else}}return typeconv.String2{{title $keyType.Get}}(&x.{{$key.Get | title}}, value)
+	{{- end}}
+}
+
+func (x {{$type}}) GetField(field string) (interface{}, bool) {
+	switch field {
+		{{- range $field := .Fields}}
+		{{- if ne (title $field.Name) ($key.Get)}}case {{$type}}MetaVar.F_{{$field.Name | underScore}}:
+				return x.{{$field.Name | title}}, true
+		{{- end}}
+		{{end -}}
+	}
+	return nil, false
+}
+
+func (x *{{$type}}) SetField(field, value string) error {
+	switch field {
+		{{- range $field := .Fields}}
+		{{- if ne (title $field.Name) ($key.Get)}}case {{$type}}MetaVar.F_{{$field.Name | underScore}}:
+		{{- $fieldType := context.BuildType $field.Type}}
+		{{- if eq $fieldType "string"}}x.{{$field.Name | title}} = value
+		{{- else if (OR $field.Type.IsInt $field.Type.IsBool)}}return typeconv.String2{{title $fieldType}}(&x.{{$field.Name | title}}, value)
+		{{- else if $field.Type.IsStruct}}var tmp int
+		if err := typeconv.String2Int(&tmp, value); err != nil {
+			return err
+		}
+		x.{{$field.Name | title}} = {{$fieldType}}(tmp)
+		{{- else}}{{error "unsupported type: %s" $fieldType}}
+		{{- end}}
+		{{- end}}
+		{{end -}}
+	}
+	return nil
+}
+
+// Meta
+type {{$type}}Meta struct {
+	{{range $field := .Fields}}
+			{{- if ne (title $field.Name) ($key.Get)}}F_{{$field.Name | underScore}} string{{end}}
+	{{end}}
+}
+
+func ({{$type}}Meta) Name() string { return "{{$type | underScore}}" }
+func ({{$type}}Meta) Fields() []string { return _{{$type | underScore}}_fields }
+
+var {{$type}}MetaVar = &{{$type}}Meta{
+	{{- range $field := .Fields}}
+		{{- if ne (title $field.Name) ($key.Get)}}F_{{$field.Name | underScore}}: "{{$field.Name | underScore}}",{{end}}
+	{{end}}
+}
+
+var _{{$type | underScore}}_fields = []string{
+	{{- range $field := .Fields}}
+		{{- if ne (title $field.Name) ($key.Get)}}{{$type}}MetaVar.F_{{$field.Name | underScore}},{{end}}
+	{{end}}
+}
+
+// Slice
+type {{$type}}Slice []{{$type}}
+
+func New{{$type}}Slice(cap int) *{{$type}}Slice {
+	s := {{$type}}Slice(make([]{{$type}},0 , cap))
+	return &s
+}
+
+func (s {{$type}}Slice) Len() int { return len(s) }
+func (s {{$type}}Slice) ReadonlyTable(i int) storage.ReadonlyTable { return s[i] }
+func (s *{{$type}}Slice) Slice() []{{$type}} { return []{{$type}}(*s) }
+
+func (s *{{$type}}Slice) New(table string, index int, key string) (storage.FieldSetter, error) {
+	for len(*s) <= index {
+		*s = append(*s, {{$type}}{})
+	}
+	x := &((*s)[index])
+	err := x.SetKey(key)
+	return x, err
+}
+
+// View
+type {{$type}}View struct{
+	{{$type}}
+	{{- range $field := .Fields}}
+		{{- $ref := $field.GetTag "ref"}}
+		{{- if ne $ref ""}}
+			{{$ref}} {{$ref}}View
+		{{- end}}
+	{{- end}}
+}
+
+type {{$type}}ViewSlice []{{$type}}View
+
+func New{{$type}}ViewSlice(cap int) *{{$type}}ViewSlice {
+	s := {{$type}}ViewSlice(make([]{{$type}}View,0 , cap))
+	return &s
+}
+
+func (s *{{$type}}ViewSlice) Slice() []{{$type}}View {
+	return []{{$type}}View(*s)
+}
+
+func (s *{{$type}}ViewSlice) New(table string, index int, key string) (storage.FieldSetter, error) {
+	if table == "{{underScore $type}}" {
+		for len(*s) <= index {
+			x := {{$type}}{}
+			*s = append(*s, {{$type}}View{ {{$type}}: x })
+		}
+		x := &((*s)[index].{{$type}})
+		err := x.SetKey(key)
+		return x, err
+	}
+	v := &((*s)[index])
+	for t, x := range v.tables() {
+		if t == table {
+			err := x.SetKey(key)
+			return x, err
+		}
+	}
+	return nil, storage.ErrTableNotFoundInView
+}
+
+var (
+	{{$type}}ViewVar = {{$type}}View{}
+	{{lowerCamel $type}}ViewRefs = map[string]storage.View{
+	{{- range $field := .Fields}}
+		{{- $ref := $field.GetTag "ref"}}
+		{{- if ne $ref ""}}
+			{{- $bean := context.FindBean $ref}}
+			{{- if not $bean.IsNil}}
+				{{- $fieldType := context.BuildType $field.Type}}
+				{{- $refKeyType := newString}}
+				{{- range $refField := $bean.Fields}}
+					{{- if (eq ($refField.GetTag "key") "true") and (eq ($refKeyType.Get) "")}}
+						{{- $refKeyType.Set (context.BuildType $refField.Type)}}
+					{{- end}}
+				{{- end}}
+				{{- if eq $fieldType ($refKeyType.Get)}}
+					{{- $type}}MetaVar.F_{{underScore $field.Name}}: {{$ref}}ViewVar,
+				{{- else}}
+					{{- error "type of ref table `%s` field is not same as key type of `%s`, want `%s`, but got `%s`" $ref $ref ($refKeyType.Get) $fieldType}}
+				{{- end}}
+			{{- else}}
+				{{- error "%s: ref table %s not found" $type $ref}}
+			{{- end}}
+		{{- end}}
+	{{end -}}
+	}
+)
+
+func ({{$type}}View) Table() string             { return {{$type}}MetaVar.Name() }
+func ({{$type}}View) Fields() storage.FieldList     { return storage.FieldSlice({{$type}}MetaVar.Fields()) }
+func ({{$type}}View) Refs() map[string]storage.View { return {{lowerCamel $type}}ViewRefs }
+func (view *{{title $type}}View) tables() map[string]storage.WriteonlyTable {
+	m := make(map[string]storage.WriteonlyTable)
+	{{- range $index, $field := .Fields}}
+		{{- $ref := $field.GetTag "ref"}}
+		{{- if ne $ref ""}}
+			{{- $bean := context.FindBean $ref}}
+			{{- if not $bean.IsNil}}
+			v{{$index}} := &view.{{$ref}}
+			for t, x := range v{{$index}}.tables() {
+				m[t] = x
+			}
+			{{- end}}
+		{{- end}}
+	{{- end}}
+	m["{{underScore $type}}"] = &view.{{title $type}}
+	return m
+}
+
+{{range $field := .Fields}}
+	{{- $index := $field.GetTag "index"}}
+	{{- if ne $index ""}}
+		{{- $indexStructName := upperCamel $index}}
+		{{- $indexField := join "" (title $type) "MetaVar.F_" (underScore $field.Name)}}
+		// Index
+		type {{$indexStructName}} struct {}
+
+		var {{$indexStructName}}Var = {{$indexStructName}}{}
+
+		func ({{$indexStructName}}) Table() string { return "{{underScore $type}}" }
+		func ({{$indexStructName}}) Name() string { return "{{$index}}" }
+
+		func (index {{$indexStructName}}) Update(eng *storage.Engine, table storage.ReadonlyTable, key interface{}, updatedFields []string) error {
+			if !storage.ContainsField(updatedFields, {{$indexField}}) {
+				return nil
+			}
+			value, found := table.GetField({{$indexField}})
+			if !found {
+				return fmt.Errorf("field `%s` not found in table `%s`", {{$indexField}}, table.Meta().Name())
+			}
+			{{- $fieldType := context.BuildType $field.Type}}
+			{{- if not (isInt $fieldType)}}
+				{{- error "%s.%s: index type must an integer, but got `%s`" $type $field.Name $fieldType}}
+			{{- end}}
+			_{{underScore $field.Name}}, ok := value.({{$fieldType}})
+			if !ok {
+				return fmt.Errorf("type of field `%s` must be `{{$fieldType}}`, but got `%T`", {{$indexField}}, value)
+			}
+			_, err := eng.RedisClient().ZaddMultiScore(eng.IndexKey(index), key, int64(_{{underScore $field.Name}}))
+			return err
+		}
+
+		func (index {{$indexStructName}}) Remove(eng *storage.Engine, keys ...interface{}) error {
+			args := append([]interface{}{eng.IndexKey(index)}, keys...)
+			return eng.RedisClient().ZremMulti(args...)
+		}
+	{{- end}}
+{{end}}
+

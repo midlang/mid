@@ -1,0 +1,11 @@
+---
+date: 2016-12-07 10:59
+desc: 常量声明的生成
+---
+
+{{range $decl := .}}
+{{$decl.Doc}}const (
+	{{range $field := $decl.Consts}}{{$field.Name}} = {{$field.ValueString}}{{$field.Comment}}
+	{{end}}
+)
+{{end}}

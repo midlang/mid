@@ -1,0 +1,7 @@
+---
+date: 2016-12-07 11:00
+desc: 暂不支持 struct 类型定义
+---
+
+{{error "unsupport struct"}}
+

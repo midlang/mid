@@ -322,6 +322,7 @@ type Type interface {
 	IsVector() bool
 	IsMap() bool
 	IsStruct() bool
+	IsEnum() bool
 	IsString() bool
 	IsInt() bool
 	IsBool() bool
@@ -335,6 +336,7 @@ func (TypeBase) TypeNode()      {}
 func (TypeBase) IsArray() bool  { return false }
 func (TypeBase) IsVector() bool { return false }
 func (TypeBase) IsMap() bool    { return false }
+func (TypeBase) IsEnum() bool   { return false }
 func (TypeBase) IsStruct() bool { return false }
 func (TypeBase) IsString() bool { return false }
 func (TypeBase) IsInt() bool    { return false }

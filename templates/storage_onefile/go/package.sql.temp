@@ -1,0 +1,1 @@
+{{include_template (joinPath (pwd) "../../_common/go/package.sql.temp") .}}

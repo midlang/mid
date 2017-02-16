@@ -1,0 +1,4 @@
+{{include_template (joinPath (pwd) "../../_common/go/head.go.temp") .}}
+
+{{include_template (joinPath (pwd) "../../_common/go/enum.go.temp") .}}
+

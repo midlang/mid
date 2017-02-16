@@ -1,0 +1,50 @@
+---
+desc: 计算一个字段的sql属性，包括类型，选项，默认值，注释
+---
+{{- $field   := valueAt . 0}}
+{{- $type    := valueAt . 1}}
+{{- $option  := valueAt . 2}}
+{{- $default := valueAt . 3}}
+{{- $comment := valueAt . 4}}
+
+{{- $bits := $field.GetTag "bits"}}
+{{- $fieldType := context.BuildType $field.Type}}
+
+{{- if eq $fieldType "string"}}
+	{{- if eq $bits ""}}{{- $type.Set "TEXT"}}
+	{{- else}}{{- $type.Set (join "" "VARCHAR(" $bits ")")}}
+	{{- end}}
+{{- else if eq $fieldType "int"}}{{$type.Set "BIGINT(20)"}}
+{{- else if eq $fieldType "int8"}}{{$type.Set "INT(4)"}}
+{{- else if eq $fieldType "int16"}}{{$type.Set "INT(6)"}}
+{{- else if eq $fieldType "int32"}}{{$type.Set "INT(10)"}}
+{{- else if eq $fieldType "int64"}}{{$type.Set "BIGINT(20)"}}
+{{- else if eq $fieldType "uint"}}{{$type.Set "BIGINT(20)"}}
+{{- else if eq $fieldType "uint8"}}{{$type.Set "INT(4)"}}
+{{- else if eq $fieldType "uint16"}}{{$type.Set "INT(6)"}}
+{{- else if eq $fieldType "uint32"}}{{$type.Set "INT(10)"}}
+{{- else if eq $fieldType "uint64"}}{{$type.Set "BIGINT(20)"}}
+{{- else if eq $fieldType "bool"}}{{$type.Set "TINYINT(1)"}}
+{{- else if $field.Type.IsStruct}}{{$type.Set "BIGINT(20)"}}
+{{- else}}{{error "unsupported type: %s" $fieldType}}
+{{- end -}}
+
+{{- $option.Set ($field.GetTag "opt")}}
+
+{{- $dft := $field.GetTag "dft"}}
+{{- if $field.Type.IsString }}
+	{{- if ne $dft ""}}
+	{{- $default.Set (join ""  "DEFAULT '" $dft "'")}}
+	{{- else if $field.Tag.HasKey "dft"}}
+	{{- $default.Set "DEFAULT ''"}}
+	{{- end}}
+{{- else if ne $dft ""}}
+	{{- $default.Set (join " "  "DEFAULT" $dft)}}
+{{- end}}
+
+{{- $c := newString}}
+{{- $c.Set (trimPrefix "//" $field.Comment)}}
+{{- $c.Set (trimSpace $c.Get)}}
+{{- if ne ($c.Get) ""}}
+	{{- $comment.Set (join "" "COMMENT '" ($c.Get) "'")}}
+{{- end -}}
