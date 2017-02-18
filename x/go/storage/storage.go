@@ -108,6 +108,7 @@ type FieldSetter interface {
 // TableMeta holds table meta information
 type TableMeta interface {
 	Name() string
+	Key() string
 	Fields() []string
 }
 
@@ -127,6 +128,13 @@ type ReadonlyTable interface {
 
 type WriteonlyTable interface {
 	TableInfo
+	FieldSetter
+	SetKey(string) error
+}
+
+type Table interface {
+	TableInfo
+	FieldGetter
 	FieldSetter
 	SetKey(string) error
 }

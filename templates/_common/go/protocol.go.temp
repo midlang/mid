@@ -157,6 +157,7 @@ type {{$type}}Meta struct {
 }
 
 func ({{$type}}Meta) Name() string { return "{{$type | underScore}}" }
+func ({{$type}}Meta) Key() string { return "{{$key.Get | underScore}}" }
 func ({{$type}}Meta) Fields() []string { return _{{$type | underScore}}_fields }
 
 var {{$type}}MetaVar = &{{$type}}Meta{
