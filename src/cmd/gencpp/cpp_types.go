@@ -72,6 +72,10 @@ func buildType(typ build.Type) string {
 			return "uint32_t"
 		case lexer.Uint64:
 			return "uint64_t"
+		case lexer.Float32:
+			return "float"
+		case lexer.Float64:
+			return "double"
 		default:
 			panic("unknown builtin type `" + t.Name + "`")
 		}

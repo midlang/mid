@@ -242,7 +242,9 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 			}
 		case "file":
 			for _, f := range pkg.Files {
-				dftName := f.Filename + "." + suffix
+				_, filename := filepath.Split(f.Filename)
+				filename = firstOf(".", filename)
+				dftName := filename + "." + suffix
 				meta.File = oldMetaFile
 				if file, err = ApplyMeta(outdir, meta, f, dftName); err == nil {
 					files[meta.File] = true
@@ -276,6 +278,23 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 					}
 				} else {
 					return files, err
+				}
+			}
+		case "group":
+			for _, f := range pkg.Files {
+				for _, g := range f.Groups {
+					dftName := g.Name + "." + suffix
+					meta.File = oldMetaFile
+					if file, err = ApplyMeta(outdir, meta, g, dftName); err == nil {
+						files[meta.File] = true
+						err = temp.Execute(file, NewGroup(f, g))
+						file.Close()
+						if err != nil {
+							return files, err
+						}
+					} else {
+						return files, err
+					}
 				}
 			}
 		// beans: enum,struct,protocol,service

@@ -68,7 +68,7 @@ func (p *parser) parseFile() *ast.File {
 
 	// parse body
 	for p.tok != lexer.EOF {
-		decls = append(decls, p.parseDecl(syncDecl))
+		decls = append(decls, p.parseDecl(p.topScope, syncDecl))
 	}
 
 	p.closeScope()
@@ -145,20 +145,49 @@ func (p *parser) parseGenDecl(keyword lexer.Token, specFunc parseSpecFunction) *
 	}
 }
 
-func (p *parser) parseDecl(sync func(*parser)) ast.Decl {
+func (p *parser) parseDecl(parentScope *ast.Scope, sync func(*parser)) ast.Decl {
 	var specFunc parseSpecFunction
 	switch p.tok {
 	case lexer.CONST:
 		specFunc = p.parseValueSpec
 	case lexer.STRUCT, lexer.PROTOCOL, lexer.SERVICE, lexer.ENUM:
-		return p.parseBeanDecl(p.topScope)
+		return p.parseBeanDecl(parentScope)
 	default:
+		if p.tok == lexer.IDENT && p.lit == lexer.Group {
+			return p.parseGroupDecl(parentScope)
+		}
 		pos := p.pos
 		p.errorExpected(pos, "declaration")
 		sync(p)
 		return &ast.BadDecl{From: pos, To: p.pos}
 	}
 	return p.parseGenDecl(p.tok, specFunc)
+}
+
+func (p *parser) parseGroupDecl(parentScope *ast.Scope) ast.Decl {
+	var (
+		tag   *ast.BasicLit
+		doc   = p.leadComment
+		pos   = p.expect(lexer.IDENT)
+		ident = p.parseIdent()
+		decls []ast.Decl
+	)
+	if p.tok == lexer.STRING {
+		tag = &ast.BasicLit{TokPos: p.pos, Tok: p.tok, Value: p.lit}
+		p.next()
+	}
+	p.expect(lexer.LBRACE)
+	for p.tok != lexer.RBRACE {
+		decls = append(decls, p.parseDecl(parentScope, syncDecl))
+	}
+	p.expect(lexer.RBRACE)
+	return &ast.GroupDecl{
+		Pos:   pos,
+		Doc:   doc,
+		Name:  ident,
+		Tag:   tag,
+		Decls: decls,
+	}
 }
 
 func (p *parser) parseBeanDecl(parentScope *ast.Scope) ast.Decl {
@@ -195,7 +224,7 @@ func (p *parser) parseBeanDecl(parentScope *ast.Scope) ast.Decl {
 			list = append(list, p.parseEnumSpec(scope))
 		}
 	default:
-		for p.tok == lexer.IDENT || p.tok == lexer.LPAREN {
+		for p.tok == lexer.IDENT || p.tok == lexer.REQUIRED || p.tok == lexer.OPTIONAL || p.tok == lexer.LPAREN {
 			list = append(list, p.parseFieldDecl(scope))
 		}
 	}
@@ -357,8 +386,15 @@ func (p *parser) parseParameterList(scope *ast.Scope) []*ast.Field {
 }
 
 func (p *parser) parseFieldOptions() []*ast.Ident {
-	// TODO
-	return nil
+	var idents []*ast.Ident
+	if p.tok == lexer.REQUIRED || p.tok == lexer.OPTIONAL {
+		idents = append(idents, &ast.Ident{
+			Pos:  p.pos,
+			Name: p.tok.String(),
+		})
+		p.next()
+	}
+	return idents
 }
 
 func (p *parser) parseTypeName() ast.Type {
@@ -540,6 +576,9 @@ func ParseFile(fset *lexer.FileSet, filename string, src []byte) (f *ast.File, e
 	}()
 	p.init(fset, filename, src)
 	f = p.parseFile()
+	if f != nil {
+		f.Filename = filename
+	}
 	err = p.errors.Err()
 	return
 }

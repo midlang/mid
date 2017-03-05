@@ -325,6 +325,7 @@ type Type interface {
 	IsEnum() bool
 	IsString() bool
 	IsInt() bool
+	IsFloat() bool
 	IsBool() bool
 }
 
@@ -340,6 +341,7 @@ func (TypeBase) IsEnum() bool   { return false }
 func (TypeBase) IsStruct() bool { return false }
 func (TypeBase) IsString() bool { return false }
 func (TypeBase) IsInt() bool    { return false }
+func (TypeBase) IsFloat() bool  { return false }
 func (TypeBase) IsBool() bool   { return false }
 
 func BuildType(typ ast.Type) Type {
@@ -375,6 +377,13 @@ func (t BasicType) IsInt() bool {
 		return false
 	}
 	return bt.IsInt()
+}
+func (t BasicType) IsFloat() bool {
+	bt, ok := lexer.LookupType(t.Name)
+	if !ok {
+		return false
+	}
+	return bt.IsFloat()
 }
 
 type ArrayType struct {
@@ -463,6 +472,7 @@ type Bean struct {
 	Tag     Tag
 	Fields  []*Field
 	Comment string
+	Group   string
 }
 
 func (bean *Bean) IsNil() bool { return bean == nil }
@@ -550,6 +560,7 @@ type GenDecl struct {
 	Doc     string
 	Imports []*ImportSpec
 	Consts  []*ConstSpec
+	Group   string
 }
 
 func BuildGenDecl(decl *ast.GenDecl) *GenDecl {
@@ -569,12 +580,66 @@ func BuildGenDecl(decl *ast.GenDecl) *GenDecl {
 	return d
 }
 
+type Group struct {
+	Doc    string
+	Name   string
+	Tag    Tag
+	Beans  []*Bean
+	Decls  []*GenDecl
+	Groups []*Group
+	Parent string
+}
+
+func (group *Group) IsNil() bool { return group == nil }
+
+func BuildGroup(group *ast.GroupDecl) *Group {
+	g := &Group{
+		Doc:  BuildDoc(group.Doc),
+		Name: BuildIdent(group.Name),
+		Tag:  BuildTag(group.Tag),
+	}
+	for _, decl := range group.Decls {
+		switch d := decl.(type) {
+		case *ast.BeanDecl:
+			b := BuildBean(d)
+			b.Group = g.Name
+			g.Beans = append(g.Beans, b)
+		case *ast.GenDecl:
+			gd := BuildGenDecl(d)
+			gd.Group = g.Name
+			g.Decls = append(g.Decls, gd)
+		case *ast.GroupDecl:
+			child := BuildGroup(d)
+			child.Parent = g.Name
+			g.Groups = append(g.Groups, child)
+		}
+	}
+	return g
+}
+
+func (group *Group) allBeans(beans []*Bean) []*Bean {
+	beans = append(beans, group.Beans...)
+	for _, g := range group.Groups {
+		beans = g.allBeans(beans)
+	}
+	return beans
+}
+
+func (group *Group) allGenDecls(decls []*GenDecl) []*GenDecl {
+	decls = append(decls, group.Decls...)
+	for _, g := range group.Groups {
+		decls = g.allGenDecls(decls)
+	}
+	return decls
+}
+
 type File struct {
 	Filename   string
 	Doc        string
 	Package    string
 	Beans      []*Bean
 	Decls      []*GenDecl
+	Groups     []*Group
 	Unresolved []string
 }
 
@@ -591,6 +656,11 @@ func BuildFile(file *ast.File) *File {
 			f.Beans = append(f.Beans, BuildBean(d))
 		case *ast.GenDecl:
 			f.Decls = append(f.Decls, BuildGenDecl(d))
+		case *ast.GroupDecl:
+			group := BuildGroup(d)
+			f.Groups = append(f.Groups, group)
+			f.Beans = group.allBeans(f.Beans)
+			f.Decls = group.allGenDecls(f.Decls)
 		}
 	}
 	return f

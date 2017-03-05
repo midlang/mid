@@ -132,16 +132,25 @@ func (x {{$type}}) GetField(field string) (interface{}, bool) {
 func (x *{{$type}}) SetField(field, value string) error {
 	switch field {
 		{{- range $field := .Fields}}
-		{{- if ne (title $field.Name) ($key.Get)}}case {{$type}}MetaVar.F_{{$field.Name | underScore}}:
+		{{- $fieldName := title $field.Name}}
+		{{- if ne ($fieldName) ($key.Get)}}case {{$type}}MetaVar.F_{{$field.Name | underScore}}:
 		{{- $fieldType := context.BuildType $field.Type}}
-		{{- if eq $fieldType "string"}}x.{{$field.Name | title}} = value
-		{{- else if (OR $field.Type.IsInt $field.Type.IsBool)}}return typeconv.String2{{title $fieldType}}(&x.{{$field.Name | title}}, value)
+		{{- if eq $fieldType "string"}}x.{{$fieldName}} = value
+		{{- else if (OR $field.Type.IsInt $field.Type.IsBool)}}return typeconv.String2{{title $fieldType}}(&x.{{$fieldName}}, value)
 		{{- else if $field.Type.IsStruct}}var tmp int
 		if err := typeconv.String2Int(&tmp, value); err != nil {
 			return err
 		}
-		x.{{$field.Name | title}} = {{$fieldType}}(tmp)
-		{{- else}}{{error "unsupported type: %s" $fieldType}}
+		x.{{$fieldName}} = {{$fieldType}}(tmp)
+		{{- else if (OR $field.Type.IsVector)}}
+		if x.{{$fieldName}} == nil {
+			x.{{$fieldName}} = make([]{{context.BuildType $field.Type.T}}, 0)
+		}
+		if err := typeconv.String2Object(&x.{{$fieldName}}, value); err != nil {
+			return err
+		}
+		{{- else if eq $fieldType "float32"}}return typeconv.String2Float32(&x.{{$fieldName}}, value)
+		{{else}}{{error "unsupported type: %s" $fieldType}}
 		{{- end}}
 		{{- end}}
 		{{end -}}

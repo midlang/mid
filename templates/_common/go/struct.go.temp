@@ -1,7 +1,8 @@
 ---
 date: 2016-12-07 11:00
-desc: 暂不支持 struct 类型定义
 ---
 
-{{error "unsupport struct"}}
-
+{{.Doc}}type {{.Name}} struct {
+	{{- range $field := .Fields}}
+	{{title $field.Name}} {{context.BuildType $field.Type}}{{end}}
+}

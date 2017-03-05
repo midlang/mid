@@ -16,6 +16,11 @@
 			"lang": "js",
 			"name": "std",
 			"bin": "genjs"
+		},
+		{
+			"lang": "protobuf",
+			"name": "std",
+			"bin": "genprotobuf"
 		}
 	]
 }

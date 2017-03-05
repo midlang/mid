@@ -201,9 +201,10 @@ type Decl interface {
 	declNode()
 }
 
-func (*BadDecl) declNode()  {}
-func (*GenDecl) declNode()  {}
-func (*BeanDecl) declNode() {}
+func (*BadDecl) declNode()   {}
+func (*GenDecl) declNode()   {}
+func (*BeanDecl) declNode()  {}
+func (*GroupDecl) declNode() {}
 
 type BadDecl struct {
 	From lexer.Pos
@@ -236,6 +237,16 @@ type BeanDecl struct {
 }
 
 func (bd *BeanDecl) Begin() lexer.Pos { return bd.Pos }
+
+type GroupDecl struct {
+	Pos   lexer.Pos
+	Doc   *CommentGroup
+	Name  *Ident
+	Tag   *BasicLit
+	Decls []Decl
+}
+
+func (gd *GroupDecl) Begin() lexer.Pos { return gd.Pos }
 
 //-----------
 // spec node

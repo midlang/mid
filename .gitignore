@@ -2,6 +2,9 @@
 *.swo
 *.DS_Store
 src/cmd/midc/midc
-src/cmd/midc/go/
+src/cmd/gengo/gengo
+src/cmd/gencpp/gencpp
+src/cmd/genjs/genjs
+src/cmd/genprotobuf/genprotobuf
 testdata/generated/
 targets/

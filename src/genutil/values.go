@@ -22,4 +22,8 @@ func (i Int) Get() int           { return int(i) }
 func (i *Int) Set(v int) string  { *i = Int(v); return "" }
 func (i *Int) Add(delta int) int { return i.Get() + delta }
 func (i *Int) Sub(delta int) int { return i.Get() - delta }
-func (i Int) String() string     { return strconv.Itoa(int(i)) }
+func (i *Int) Incr(delta int) int {
+	i.Set(i.Get() + delta)
+	return i.Get()
+}
+func (i Int) String() string { return strconv.Itoa(int(i)) }

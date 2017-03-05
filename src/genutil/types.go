@@ -30,6 +30,16 @@ func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
 		}
 	}
 
+	if temp := context.Root.Lookup("T_group"); temp != nil {
+		for _, f := range pkg.Files {
+			for _, g := range f.Groups {
+				if err := temp.Execute(buf, NewGroup(f, g)); err != nil {
+					return "", err
+				}
+			}
+		}
+	}
+
 	for _, f := range pkg.Files {
 		for _, b := range f.Beans {
 			if temp := context.Root.Lookup("T_" + b.Kind); temp != nil {
@@ -45,6 +55,30 @@ func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
 // File wraps build.File
 type File struct {
 	*build.File
+	groups map[string]*build.Group
+}
+
+func (f *File) FindGroup(name string) *build.Group {
+	if f.groups == nil {
+		f.groups = make(map[string]*build.Group)
+		pendings := make(map[string]*build.Group)
+		for _, g := range f.Groups {
+			pendings[g.Name] = g
+		}
+		for len(pendings) > 0 {
+			var first *build.Group
+			for _, v := range pendings {
+				first = v
+				break
+			}
+			delete(pendings, first.Name)
+			f.groups[first.Name] = first
+			for _, g := range first.Groups {
+				pendings[g.Name] = g
+			}
+		}
+	}
+	return f.groups[name]
 }
 
 func (f File) GenerateDeclsBySubTemplates() (string, error) {
@@ -73,26 +107,26 @@ func (f File) GenerateDeclsBySubTemplates() (string, error) {
 // GenDecl wraps build.GenDecl
 type GenDecl struct {
 	*build.GenDecl
-	File *build.File
+	File *File
 }
 
 func NewGenDecl(file *build.File, c *build.GenDecl) *GenDecl {
 	return &GenDecl{
 		GenDecl: c,
-		File:    file,
+		File:    &File{File: file},
 	}
 }
 
 // Bean wraps build.Bean
 type Bean struct {
 	*build.Bean
-	File *build.File
+	File *File
 }
 
 func NewBean(file *build.File, b *build.Bean) *Bean {
 	return &Bean{
 		Bean: b,
-		File: file,
+		File: &File{File: file},
 	}
 }
 
@@ -124,4 +158,17 @@ func (bean *Bean) addTag(key, value string, field *build.Field, force bool) *bui
 		field.Tag.Set(key, value)
 	}
 	return field
+}
+
+// Group wraps build.Group
+type Group struct {
+	*build.Group
+	File *File
+}
+
+func NewGroup(file *build.File, g *build.Group) *Group {
+	return &Group{
+		Group: g,
+		File:  &File{File: file},
+	}
 }

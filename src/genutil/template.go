@@ -178,7 +178,13 @@ func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName stri
 				return nil, err
 			}
 		}
-		file, err := os.OpenFile(meta.File, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+		flags := os.O_CREATE | os.O_WRONLY
+		if meta.Values["append"] == "true" {
+			flags |= os.O_APPEND
+		} else {
+			flags |= os.O_TRUNC
+		}
+		file, err := os.OpenFile(meta.File, flags, 0666)
 		if err != nil {
 			log.Error("open file %s error: %v", meta.File, err)
 			return nil, err

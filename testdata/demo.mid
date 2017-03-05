@@ -18,8 +18,10 @@ enum Status {
 	Bad = 1, // bad
 }
 
+group Test {
+
 struct User {
-	int64 id;
+	optional int64 id;
 	string name;
 	vector<string> otherNames;
 	array<byte,6> code;
@@ -27,6 +29,8 @@ struct User {
 
 protocol UserList {
 	map<int64,User> users;
+}
+
 }
 
 service UserService {

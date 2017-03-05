@@ -52,6 +52,8 @@ const (
 	keyword_end
 )
 
+const Group = "group"
+
 var tokens = [...]string{
 	ILLEGAL: "ILLEGAL",
 
@@ -141,24 +143,26 @@ func (tok Token) IsKeyword() bool  { return keyword_beg < tok && tok < keyword_e
 type BuiltinType int
 
 const (
-	Void   BuiltinType = iota // void
-	Bool                      // bool
-	Byte                      // byte
-	Bytes                     // bytes
-	String                    // string
-	Int                       // int
-	Int8                      // int8
-	Int16                     // int16
-	Int32                     // int32
-	Int64                     // int64
-	Uint                      // uint
-	Uint8                     // uint8
-	Uint16                    // uint16
-	Uint32                    // uint32
-	Uint64                    // uint64
-	Map                       // map<K,V>
-	Vector                    // vector<T>
-	Array                     // array<T,Size>
+	Void    BuiltinType = iota // void
+	Bool                       // bool
+	Byte                       // byte
+	Bytes                      // bytes
+	String                     // string
+	Int                        // int
+	Int8                       // int8
+	Int16                      // int16
+	Int32                      // int32
+	Int64                      // int64
+	Uint                       // uint
+	Uint8                      // uint8
+	Uint16                     // uint16
+	Uint32                     // uint32
+	Uint64                     // uint64
+	Float32                    // float32
+	Float64                    // float64
+	Map                        // map<K,V>
+	Vector                     // vector<T>
+	Array                      // array<T,Size>
 )
 
 func LookupType(ident string) (BuiltinType, bool) {
@@ -193,6 +197,10 @@ func LookupType(ident string) (BuiltinType, bool) {
 		return Uint32, true
 	case "uint64":
 		return Uint64, true
+	case "float32":
+		return Float32, true
+	case "float64":
+		return Float64, true
 	case "map":
 		return Map, true
 	case "vector":
@@ -235,6 +243,10 @@ func (bt BuiltinType) String() string {
 		return "uint32"
 	case Uint64:
 		return "uint64"
+	case Float32:
+		return "float32"
+	case Float64:
+		return "float64"
 	case Map:
 		return "map"
 	case Vector:
@@ -261,4 +273,8 @@ func (bt BuiltinType) IsInt() bool {
 		return true
 	}
 	return false
+}
+
+func (bt BuiltinType) IsFloat() bool {
+	return bt == Float32 || bt == Float64
 }

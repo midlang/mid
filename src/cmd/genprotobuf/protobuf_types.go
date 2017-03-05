@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 
@@ -34,33 +33,33 @@ func buildType(typ build.Type) string {
 		case lexer.Byte:
 			return "byte"
 		case lexer.Bytes:
-			return "[]byte"
+			return "bytes"
 		case lexer.String:
 			return "string"
 		case lexer.Int:
-			return "int"
+			return "int64"
 		case lexer.Int8:
-			return "int8"
+			return "int32"
 		case lexer.Int16:
-			return "int16"
+			return "int32"
 		case lexer.Int32:
 			return "int32"
 		case lexer.Int64:
 			return "int64"
 		case lexer.Uint:
-			return "uint"
+			return "uint64"
 		case lexer.Uint8:
-			return "uint8"
+			return "uint32"
 		case lexer.Uint16:
-			return "uint16"
+			return "uint32"
 		case lexer.Uint32:
 			return "uint32"
 		case lexer.Uint64:
 			return "uint64"
 		case lexer.Float32:
-			return "float32"
+			return "float"
 		case lexer.Float64:
-			return "float64"
+			return "double"
 		default:
 			panic("unknown builtin type `" + t.Name + "`")
 		}
@@ -69,39 +68,16 @@ func buildType(typ build.Type) string {
 		if !ok {
 			panic("array.Size not a integer")
 		}
-		return fmt.Sprintf("[%s]%s", size, buildType(t.T))
+		return fmt.Sprintf("repeated %s", size, buildType(t.T))
 	case *build.VectorType:
-		return fmt.Sprintf("[]%s", buildType(t.T))
+		return fmt.Sprintf("repeated %s", buildType(t.T))
 	case *build.MapType:
-		return fmt.Sprintf("map[%s]%s", buildType(t.K), buildType(t.V))
+		return fmt.Sprintf("map<%s,%s>", buildType(t.K), buildType(t.V))
 	case *build.StructType:
 		if t.Package != "" {
 			return t.Package + "." + t.Name
 		}
 		return t.Name
-	case *build.FuncType:
-		var buf bytes.Buffer
-		buf.WriteByte('(')
-		if len(t.Params) > 0 {
-			allNoName := true
-			for _, field := range t.Params {
-				if len(field.Names) > 0 {
-					allNoName = false
-					break
-				}
-			}
-			for i, field := range t.Params {
-				if i > 0 {
-					buf.WriteByte(',')
-				}
-				buf.WriteString(goFieldDecl(field, allNoName))
-			}
-		}
-		buf.WriteByte(')')
-		if t.Result != nil {
-			buf.WriteString(buildType(t.Result))
-		}
-		return buf.String()
 	default:
 		return ""
 	}
