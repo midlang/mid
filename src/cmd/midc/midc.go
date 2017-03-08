@@ -162,6 +162,13 @@ var root = &cli.Command{
 				hasError = true
 				continue
 			}
+			oldOutdir := outdir
+			outdir, err = filepath.Abs(outdir)
+			if err != nil {
+				log.Error("get abs of outdir `%s` error: %v", oldOutdir, err)
+				hasError = true
+				continue
+			}
 			// initialize RuntimeConfig for plugin
 			plugin.RuntimeConfig.Outdir = outdir
 			plugin.RuntimeConfig.ExtentionsDir = extensionsDir

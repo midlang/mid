@@ -133,8 +133,16 @@ func Init(
 		"firstOf":     func(sep, s string) string { return firstOf(sep, s) },
 		"lastOf":      func(sep, s string) string { return lastOf(sep, s) },
 		"nthOf":       func(sep, s string, n int) string { return nthOf(sep, s, n) },
-		"trimSpace":   func(s string) string { return strings.TrimSpace(s) },
-		"append":      func(appended string, s string) string { return s + appended },
+		"oneof": func(s string, set ...string) bool {
+			for _, s2 := range set {
+				if s == s2 {
+					return true
+				}
+			}
+			return false
+		},
+		"trimSpace": func(s string) string { return strings.TrimSpace(s) },
+		"append":    func(appended string, s string) string { return s + appended },
 		"substr": func(startIndex, endIndex int, s string) string {
 			n := len(s)
 			if n == 0 {
@@ -205,7 +213,11 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 	context.initWithPkg(pkg)
 	context.Pwd = context.Plugin.TemplatesDir
 
-	outdir := filepath.Join(context.Config.Outdir, pkg.Name)
+	outdir := context.Config.Outdir
+	// NOTE: environment variable nopkgdir
+	if !context.Config.BoolEnv("nopkgdir") {
+		outdir = filepath.Join(outdir, pkg.Name)
+	}
 	constDecls := make([]*GenDecl, 0)
 	files = make(map[string]bool)
 	for _, info := range infos {
