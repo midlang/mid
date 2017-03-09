@@ -3,10 +3,12 @@ import (
 
 	"github.com/midlang/mid/x/go/storage"
 	"github.com/mkideal/pkg/typeconv"
+	"gopkg.in/redis.v5"
 )
 
 var (
 	_ = fmt.Printf
 	_ = storage.Unused
 	_ = typeconv.Unused
+	_ = redis.Nil
 )

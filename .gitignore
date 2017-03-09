@@ -8,3 +8,4 @@ src/cmd/genjs/genjs
 src/cmd/genprotobuf/genprotobuf
 testdata/generated/
 targets/
+x/go/storage/example/demo/

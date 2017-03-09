@@ -13,17 +13,6 @@ const (
 	InvalidScore = math.MinInt64
 )
 
-type RedisClient interface {
-	Delete(key string) error
-	HsetMulti(...interface{}) (string, error)
-	Hmgetstrings(...interface{}) (int, []*string, error)
-	HdelMulti(...interface{}) (string, error)
-	ZaddMultiScore(key string, member interface{}, score int64) (bool, error)
-	ZremMulti(key_members ...interface{}) error
-	Zrank(key string, member interface{}) int
-	Zscore64(key string, member interface{}) (int64, bool, error)
-}
-
 // KeyList holds n keys
 type KeyList interface {
 	Len() int
@@ -97,18 +86,23 @@ func (fs FieldSlice) Field(i int) string { return fs[i] }
 // Basic interface
 //-----------------
 
+// FieldGetter get value by field
 type FieldGetter interface {
 	GetField(field string) (interface{}, bool)
 }
 
+// FieldGetter set value by field
 type FieldSetter interface {
 	SetField(field, value string) error
 }
 
 // TableMeta holds table meta information
 type TableMeta interface {
+	// Name returns name of table
 	Name() string
+	// Key returns name of key field
 	Key() string
+	// Fields returns names of all fields except key field
 	Fields() []string
 }
 
@@ -116,27 +110,16 @@ type TableMeta interface {
 // Compose interface
 //-------------------
 
-type TableInfo interface {
+type ReadonlyTable interface {
 	Meta() TableMeta
 	Key() interface{}
-}
-
-type ReadonlyTable interface {
-	TableInfo
 	FieldGetter
-}
-
-type WriteonlyTable interface {
-	TableInfo
-	FieldSetter
-	SetKey(string) error
 }
 
 type Table interface {
-	TableInfo
-	FieldGetter
-	FieldSetter
+	ReadonlyTable
 	SetKey(string) error
+	FieldSetter
 }
 
 type FieldSetterList interface {
@@ -157,12 +140,12 @@ type View interface {
 type Index interface {
 	Name() string
 	Table() string
-	Update(eng *Engine, table ReadonlyTable, key interface{}, updatedFields []string) error
-	Remove(eng *Engine, keys ...interface{}) error
+	Update(s Session, table ReadonlyTable, key interface{}, updatedFields []string) error
+	Remove(s Session, keys ...interface{}) error
 }
 
 type IndexRank interface {
-	Rank(key interface{}) (int, error)
+	Rank(key interface{}) (int64, error)
 }
 
 type IndexScore interface {
@@ -170,19 +153,17 @@ type IndexScore interface {
 }
 
 type IndexRanger interface {
-	Range(eng *Engine, start, end int) (KeyList, error)
+	Range(eng Engine, start, end int) (KeyList, error)
 }
 
 type IndexScoreRanger interface {
-	RangeByScore(eng *Engine, min, max int64) (KeyList, error)
+	RangeByScore(eng Engine, min, max int64) (KeyList, error)
 }
 
 type IndexRevRanger interface {
-	RevRange(eng *Engine, start, end int) (KeyList, error)
+	RevRange(eng Engine, start, end int) (KeyList, error)
 }
 
 type IndexScoreRevRanger interface {
-	RevRangeByScore(eng *Engine, max, min int64) (KeyList, error)
+	RevRangeByScore(eng Engine, max, min int64) (KeyList, error)
 }
-
-type ErrorHandler func(action string, err error) error

@@ -275,8 +275,8 @@ var (
 func ({{$type}}View) Table() string             { return {{$type}}MetaVar.Name() }
 func ({{$type}}View) Fields() storage.FieldList     { return storage.FieldSlice({{$type}}MetaVar.Fields()) }
 func ({{$type}}View) Refs() map[string]storage.View { return {{lowerCamel $type}}ViewRefs }
-func (view *{{title $type}}View) tables() map[string]storage.WriteonlyTable {
-	m := make(map[string]storage.WriteonlyTable)
+func (view *{{title $type}}View) tables() map[string]storage.Table {
+	m := make(map[string]storage.Table)
 	{{- range $index, $field := .Fields}}
 		{{- $ref := $field.GetTag "ref"}}
 		{{- if ne $ref ""}}
@@ -296,6 +296,10 @@ func (view *{{title $type}}View) tables() map[string]storage.WriteonlyTable {
 {{range $field := .Fields}}
 	{{- $index := $field.GetTag "index"}}
 	{{- if ne $index ""}}
+		{{- $fieldType := context.BuildType $field.Type}}
+		{{- if not (isInt $fieldType)}}
+			{{- error "%s.%s: index type must an integer, but got `%s`" $type $field.Name $fieldType}}
+		{{- end}}
 		{{- $indexStructName := upperCamel $index}}
 		{{- $indexField := join "" (title $type) "MetaVar.F_" (underScore $field.Name)}}
 		// Index
@@ -306,7 +310,7 @@ func (view *{{title $type}}View) tables() map[string]storage.WriteonlyTable {
 		func ({{$indexStructName}}) Table() string { return "{{underScore $type}}" }
 		func ({{$indexStructName}}) Name() string { return "{{$index}}" }
 
-		func (index {{$indexStructName}}) Update(eng *storage.Engine, table storage.ReadonlyTable, key interface{}, updatedFields []string) error {
+		func (index {{$indexStructName}}) Update(session storage.Session, table storage.ReadonlyTable, key interface{}, updatedFields []string) error {
 			if !storage.ContainsField(updatedFields, {{$indexField}}) {
 				return nil
 			}
@@ -314,21 +318,19 @@ func (view *{{title $type}}View) tables() map[string]storage.WriteonlyTable {
 			if !found {
 				return fmt.Errorf("field `%s` not found in table `%s`", {{$indexField}}, table.Meta().Name())
 			}
-			{{- $fieldType := context.BuildType $field.Type}}
-			{{- if not (isInt $fieldType)}}
-				{{- error "%s.%s: index type must an integer, but got `%s`" $type $field.Name $fieldType}}
-			{{- end}}
 			_{{underScore $field.Name}}, ok := value.({{$fieldType}})
 			if !ok {
 				return fmt.Errorf("type of field `%s` must be `{{$fieldType}}`, but got `%T`", {{$indexField}}, value)
 			}
-			_, err := eng.RedisClient().ZaddMultiScore(eng.IndexKey(index), key, int64(_{{underScore $field.Name}}))
+			cache := session.Cache()
+			_, err := cache.ZAdd(cache.IndexKey(session.Name(), index), redis.Z{Member:key, Score:float64(_{{underScore $field.Name}})})
 			return err
 		}
 
-		func (index {{$indexStructName}}) Remove(eng *storage.Engine, keys ...interface{}) error {
-			args := append([]interface{}{eng.IndexKey(index)}, keys...)
-			return eng.RedisClient().ZremMulti(args...)
+		func (index {{$indexStructName}}) Remove(session storage.Session, keys ...interface{}) error {
+			cache := session.Cache()
+			_, err := cache.ZRem(cache.IndexKey(session.Name(), index), keys...)
+			return err
 		}
 	{{- end}}
 {{end}}
