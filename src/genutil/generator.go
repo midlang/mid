@@ -242,8 +242,9 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 		switch kind {
 		case "package":
 			dftName := pkg.Name + "." + suffix
-			if file, err = ApplyMeta(outdir, meta, pkg, dftName); err == nil {
-				err = temp.Execute(file, Package{Package: pkg})
+			ctxPkg := Package{Package: pkg}
+			if file, err = ApplyMeta(outdir, meta, ctxPkg, dftName); err == nil {
+				err = temp.Execute(file, ctxPkg)
 				files[meta.File] = true
 				file.Close()
 				if err != nil {
@@ -258,9 +259,10 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 				filename = firstOf(".", filename)
 				dftName := filename + "." + suffix
 				meta.File = oldMetaFile
-				if file, err = ApplyMeta(outdir, meta, f, dftName); err == nil {
+				ctxFile := File{File: f}
+				if file, err = ApplyMeta(outdir, meta, ctxFile, dftName); err == nil {
 					files[meta.File] = true
-					err = temp.Execute(file, File{File: f})
+					err = temp.Execute(file, ctxFile)
 					file.Close()
 					if err != nil {
 						return files, err
@@ -297,9 +299,10 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 				for _, g := range f.Groups {
 					dftName := g.Name + "." + suffix
 					meta.File = oldMetaFile
-					if file, err = ApplyMeta(outdir, meta, g, dftName); err == nil {
+					group := NewGroup(f, g)
+					if file, err = ApplyMeta(outdir, meta, group, dftName); err == nil {
 						files[meta.File] = true
-						err = temp.Execute(file, NewGroup(f, g))
+						err = temp.Execute(file, group)
 						file.Close()
 						if err != nil {
 							return files, err
@@ -316,9 +319,10 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 					if b.Kind == kind {
 						dftName := b.Name + "." + suffix
 						meta.File = oldMetaFile
-						if file, err = ApplyMeta(outdir, meta, b, dftName); err == nil {
+						bean := NewBean(f, b)
+						if file, err = ApplyMeta(outdir, meta, bean, dftName); err == nil {
 							files[meta.File] = true
-							err = temp.Execute(file, NewBean(f, b))
+							err = temp.Execute(file, bean)
 							file.Close()
 							if err != nil {
 								return files, err

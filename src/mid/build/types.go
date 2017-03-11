@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -669,14 +670,14 @@ func BuildFile(file *ast.File) *File {
 type Package struct {
 	Name    string
 	Imports map[string]string
-	Files   map[string]*File
+	Files   []*File
 }
 
 func BuildPackage(pkg *ast.Package) *Package {
 	p := &Package{
 		Name:    pkg.Name,
 		Imports: make(map[string]string),
-		Files:   make(map[string]*File),
+		Files:   make([]*File, 0),
 	}
 	if pkg.Imports != nil {
 		for id, name := range pkg.Imports {
@@ -684,9 +685,16 @@ func BuildPackage(pkg *ast.Package) *Package {
 		}
 	}
 	if pkg.Files != nil {
-		for name, file := range pkg.Files {
-			p.Files[name] = BuildFile(file)
+		for _, file := range pkg.Files {
+			p.Files = append(p.Files, BuildFile(file))
 		}
+		sort.Sort(byFilename(p.Files))
 	}
 	return p
 }
+
+type byFilename []*File
+
+func (by byFilename) Len() int           { return len(by) }
+func (by byFilename) Less(i, j int) bool { return by[i].Filename < by[j].Filename }
+func (by byFilename) Swap(i, j int)      { by[i], by[j] = by[j], by[i] }
