@@ -1,0 +1,16 @@
+
+func Init(eng storage.Engine) {
+{{- range $file := .Files}}
+{{- range $bean := $file.Beans}}
+{{- if eq "protocol" $bean.Kind}}
+{{- range $field := .Fields}}
+	{{- $index := $field.GetTag "index"}}
+	{{- if ne $index ""}}
+	{{- $indexStructName := upperCamel $index}}
+	eng.AddIndex({{$indexStructName}}Var)
+	{{- end}}
+{{- end}}
+{{- end}}
+{{- end}}
+{{- end}}
+}

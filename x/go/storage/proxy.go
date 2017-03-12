@@ -10,9 +10,6 @@ type CacheProxy interface {
 
 type CacheProxySession interface {
 	Tx
-	TableName(engineName, table string) string
-	FieldName(engineName, table string, key interface{}, field string) string
-	IndexKey(engineName string, index Index) string
 	HDel(table string, fields ...string) (int64, error)
 	HExists(table, field string) (bool, error)
 	HIncrBy(table, field string, incr int64) (int64, error)
@@ -23,6 +20,17 @@ type CacheProxySession interface {
 	ZRem(key string, members ...interface{}) (int64, error)
 	ZRank(key, member string) (int64, error)
 	ZScore(key, member string) (int64, error)
+	// ranks api
+	ZRange(key string, start, stop int64) (RangeResult, error)
+	ZRangeWithScores(key string, start, stop int64) (RangeResult, error)
+	ZRangeByScore(key string, opt redis.ZRangeBy) (RangeResult, error)
+	ZRangeByLex(key string, opt redis.ZRangeBy) (RangeLexResult, error)
+	ZRangeByScoreWithScores(key string, opt redis.ZRangeBy) (RangeResult, error)
+	ZRevRange(key string, start, stop int64) (RangeResult, error)
+	ZRevRangeWithScores(key string, start, stop int64) (RangeResult, error)
+	ZRevRangeByScore(key string, opt redis.ZRangeBy) (RangeResult, error)
+	ZRevRangeByLex(key string, opt redis.ZRangeBy) (RangeLexResult, error)
+	ZRevRangeByScoreWithScores(key string, opt redis.ZRangeBy) (RangeResult, error)
 }
 
 type DatabaseProxy interface {

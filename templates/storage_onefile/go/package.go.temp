@@ -2,6 +2,8 @@
 
 {{include_template (joinPath (pwd) "../../_common/go/import.go.temp") .}}
 
+{{include_template (joinPath (pwd) "../../_common/go/storage_init.go.temp") .}}
+
 {{define "T_const"}}
 {{include_template (joinPath (pwd) "../../_common/go/const.go.temp") .}}
 {{end}}

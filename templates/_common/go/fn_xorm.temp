@@ -41,7 +41,7 @@ desc: 计算一个字段的sql属性，包括类型，选项，默认值，注�
 	{{- $default.Set "DEFAULT ''"}}
 	{{- end}}
 {{- else if ne $dft ""}}
-	{{- $default.Set (join " "  "DEFAULT" $dft)}}
+	{{- $default.Set (join " " "DEFAULT" $dft)}}
 {{- end}}
 
 {{- $c := newString}}

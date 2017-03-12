@@ -29,6 +29,7 @@ desc: protocol 的代码生成规则
 
     {{- /* 执行 fn_xorm 函数取得 mysql 需要的属性 */}}
     {{- include_template (joinPath (pwd) "./fn_xorm.temp") (slice $field $type $option $default $comment)}}
+	{{- $option.Set (replace "AUTO_INCREMENT" "autoincr" -1 $option.Get)}}
 
     {{- /* 修正default */}}
 	{{- if $field.Type.IsBool}}
@@ -323,13 +324,13 @@ func (view *{{title $type}}View) tables() map[string]storage.Table {
 				return fmt.Errorf("type of field `%s` must be `{{$fieldType}}`, but got `%T`", {{$indexField}}, value)
 			}
 			cache := session.Cache()
-			_, err := cache.ZAdd(cache.IndexKey(session.Name(), index), redis.Z{Member:key, Score:float64(_{{underScore $field.Name}})})
+			_, err := cache.ZAdd(storage.JoinIndexKey(session.Name(), index), redis.Z{Member:key, Score:float64(_{{underScore $field.Name}})})
 			return err
 		}
 
 		func (index {{$indexStructName}}) Remove(session storage.Session, keys ...interface{}) error {
 			cache := session.Cache()
-			_, err := cache.ZRem(cache.IndexKey(session.Name(), index), keys...)
+			_, err := cache.ZRem(storage.JoinIndexKey(session.Name(), index), keys...)
 			return err
 		}
 	{{- end}}

@@ -4,7 +4,6 @@ import (
 	"gopkg.in/redis.v5"
 
 	"github.com/midlang/mid/x/go/storage"
-	"github.com/mkideal/pkg/typeconv"
 )
 
 // proxy implements storage.CacheProxy
@@ -35,18 +34,6 @@ func (p *proxySession) error(err error) error {
 		return storage.ErrNotFound
 	}
 	return err
-}
-
-func (p *proxySession) TableName(engineName, table string) string {
-	return engineName + "@" + table
-}
-
-func (p *proxySession) FieldName(engineName, table string, key interface{}, field string) string {
-	return typeconv.ToString(key) + ":" + field
-}
-
-func (p *proxySession) IndexKey(engineName string, index storage.Index) string {
-	return engineName + "@" + index.Table() + ":" + index.Name()
 }
 
 func (p *proxySession) HDel(table string, fields ...string) (int64, error) {
@@ -107,4 +94,66 @@ func (p *proxySession) ZScore(key, member string) (int64, error) {
 	x, err := p.client.ZScore(key, member).Result()
 	err = p.error(err)
 	return int64(x), err
+}
+
+type stringSliceResult []string
+
+func (ss stringSliceResult) Len() int              { return len(ss) }
+func (ss stringSliceResult) Key(i int) interface{} { return ss[i] }
+func (ss stringSliceResult) Score(i int) float64   { return 0 }
+
+type zsliceResult []redis.Z
+
+func (zs zsliceResult) Len() int              { return len(zs) }
+func (zs zsliceResult) Key(i int) interface{} { return zs[i].Member }
+func (zs zsliceResult) Score(i int) float64   { return zs[i].Score }
+
+func (p *proxySession) ZRange(key string, start, stop int64) (storage.RangeResult, error) {
+	res := p.client.ZRange(key, start, stop)
+	return stringSliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRangeWithScores(key string, start, stop int64) (storage.RangeResult, error) {
+	res := p.client.ZRangeWithScores(key, start, stop)
+	return zsliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRangeByScore(key string, opt redis.ZRangeBy) (storage.RangeResult, error) {
+	res := p.client.ZRangeByScore(key, opt)
+	return stringSliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRangeByLex(key string, opt redis.ZRangeBy) (storage.RangeLexResult, error) {
+	res := p.client.ZRangeByLex(key, opt)
+	return stringSliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRangeByScoreWithScores(key string, opt redis.ZRangeBy) (storage.RangeResult, error) {
+	res := p.client.ZRangeByScoreWithScores(key, opt)
+	return zsliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRevRange(key string, start, stop int64) (storage.RangeResult, error) {
+	res := p.client.ZRevRange(key, start, stop)
+	return stringSliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRevRangeWithScores(key string, start, stop int64) (storage.RangeResult, error) {
+	res := p.client.ZRevRangeWithScores(key, start, stop)
+	return zsliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRevRangeByScore(key string, opt redis.ZRangeBy) (storage.RangeResult, error) {
+	res := p.client.ZRevRangeByScore(key, opt)
+	return stringSliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRevRangeByLex(key string, opt redis.ZRangeBy) (storage.RangeLexResult, error) {
+	res := p.client.ZRevRangeByLex(key, opt)
+	return stringSliceResult(res.Val()), p.error(res.Err())
+}
+
+func (p *proxySession) ZRevRangeByScoreWithScores(key string, opt redis.ZRangeBy) (storage.RangeResult, error) {
+	res := p.client.ZRevRangeByScoreWithScores(key, opt)
+	return zsliceResult(res.Val()), p.error(res.Err())
 }

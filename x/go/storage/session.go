@@ -2,6 +2,8 @@ package storage
 
 import (
 	"github.com/mkideal/pkg/typeconv"
+	"gopkg.in/redis.v5"
+	"math"
 )
 
 type Tx interface {
@@ -11,7 +13,9 @@ type Tx interface {
 	Close()
 }
 
-type OpAPI interface {
+type Repository interface {
+	// Name returns database name
+	Name() string
 	// Insert inserts new records
 	Insert(tables ...Table) error
 	// Update updates specific fields of record
@@ -20,7 +24,7 @@ type OpAPI interface {
 	Find(meta TableMeta, keys KeyList, setters FieldSetterList, fields ...string) error
 	// Get gets one record all fields
 	Get(table Table, opts ...GetOption) (bool, error)
-	// Get gets one record specific fields
+	// GetFields gets one record specific fields
 	GetFields(table Table, fields ...string) (bool, error)
 	// Remove removes one record
 	Remove(table ReadonlyTable) error
@@ -34,16 +38,22 @@ type OpAPI interface {
 	IndexRank(index Index, key interface{}) (int64, error)
 	// IndexScore gets score of table key in index, returns InvalidScore if key not found
 	IndexScore(index Index, key interface{}) (int64, error)
+	// IndexRange range index by rank
+	IndexRange(index Index, start, stop int64, opts ...RangeOption) (RangeResult, error)
+	// IndexRange range index by score
+	IndexRangeByScore(index Index, min, max float64, opts ...RangeOption) (RangeResult, error)
+	// IndexRange range index by lexicographical
+	IndexRangeByLex(index Index, min, max string, opts ...RangeOption) (RangeLexResult, error)
 }
 
 type Session interface {
-	Name() string
+	Repository
 	Cache() CacheProxySession
 	Database() DatabaseProxySession
 	Tx
-	OpAPI
 }
 
+// session implements Session interface
 type session struct {
 	eng      *engine
 	cache    CacheProxySession
@@ -198,6 +208,33 @@ func (s *session) IndexScore(index Index, key interface{}) (int64, error) {
 	return score, nil
 }
 
+// IndexRange range index by rank
+func (s *session) IndexRange(index Index, start, stop int64, opts ...RangeOption) (RangeResult, error) {
+	action, result, err := s.indexRange(index, start, stop, s.applyRangeOption(opts))
+	if err != nil {
+		return nil, s.catch("IndexRange: "+action, err)
+	}
+	return result, nil
+}
+
+// IndexRange range index by score
+func (s *session) IndexRangeByScore(index Index, min, max float64, opts ...RangeOption) (RangeResult, error) {
+	action, result, err := s.indexRangeByScore(index, min, max, s.applyRangeOption(opts))
+	if err != nil {
+		return nil, s.catch("IndexRangeByScore: "+action, err)
+	}
+	return result, nil
+}
+
+// IndexRange range index by lexicographical order
+func (s *session) IndexRangeByLex(index Index, min, max string, opts ...RangeOption) (RangeLexResult, error) {
+	action, result, err := s.indexRangeByLex(index, min, max, s.applyRangeOption(opts))
+	if err != nil {
+		return nil, s.catch("IndexRangeByLex: "+action, err)
+	}
+	return result, nil
+}
+
 //----------------
 // implementation
 //----------------
@@ -238,7 +275,7 @@ func (s *session) updateCache(table Table, fields ...string) (string, error) {
 	args := make(map[string]string)
 	fieldKey := typeconv.ToString(key)
 	for _, field := range fields {
-		key := s.cache.FieldName(s.eng.name, meta.Name(), fieldKey, field)
+		key := JoinField(fieldKey, field)
 		value, ok := table.GetField(field)
 		if !ok {
 			return action_get_field(meta.Name(), field), ErrFieldNotFound
@@ -249,7 +286,7 @@ func (s *session) updateCache(table Table, fields ...string) (string, error) {
 	if err != nil {
 		return action, err
 	}
-	_, err = s.cache.HMSet(s.cache.TableName(s.eng.name, meta.Name()), args)
+	_, err = s.cache.HMSet(JoinKey(s.eng.name, meta.Name()), args)
 	return action_cache_hmset, err
 }
 
@@ -268,13 +305,13 @@ func (s *session) remove(meta TableMeta, keys ...interface{}) (string, error) {
 	for _, key := range keys {
 		fieldKey := typeconv.ToString(key)
 		for _, field := range fields {
-			args = append(args, s.cache.FieldName(s.eng.name, meta.Name(), fieldKey, field))
+			args = append(args, JoinField(fieldKey, field))
 		}
 	}
 	if action, err := s.removeIndex(meta.Name(), keys...); err != nil {
 		return action, err
 	}
-	_, err := s.cache.HDel(s.cache.TableName(s.eng.name, meta.Name()), args...)
+	_, err := s.cache.HDel(JoinKey(s.eng.name, meta.Name()), args...)
 	return action_cache_hdel, err
 }
 
@@ -286,7 +323,7 @@ func (s *session) get(table Table, opt getOptions, fields ...string) (string, bo
 	if err != nil {
 		return action, found, err
 	}
-	if !found && opt.SyncFromDatabase {
+	if !found && opt.syncFromDatabase {
 		action, found, err = s.getFromDatabase(table, fields...)
 		if err != nil {
 			return action, found, err
@@ -309,9 +346,9 @@ func (s *session) getFromCache(table Table, fields ...string) (string, bool, err
 	fieldSize := len(fields)
 	args := make([]string, 0, fieldSize)
 	for _, field := range fields {
-		args = append(args, s.cache.FieldName(s.eng.name, meta.Name(), tableKey, field))
+		args = append(args, JoinField(tableKey, field))
 	}
-	values, err := s.cache.HMGet(s.cache.TableName(s.eng.name, meta.Name()), args...)
+	values, err := s.cache.HMGet(JoinKey(s.eng.name, meta.Name()), args...)
 	if err != nil {
 		return action_cache_hmget, false, err
 	}
@@ -349,13 +386,13 @@ func (s *session) find(meta TableMeta, keys KeyList, setters FieldSetterList, fi
 func (s *session) clear(table string) (string, error) {
 	if indexes, ok := s.eng.indexes[table]; ok {
 		for _, index := range indexes {
-			indexKey := s.cache.IndexKey(s.eng.name, index)
+			indexKey := JoinIndexKey(s.eng.name, index)
 			if _, err := s.cache.Delete(indexKey); err != nil {
 				return action_cache_del + ": delete index `" + indexKey + "`", err
 			}
 		}
 	}
-	key := s.cache.TableName(s.eng.name, table)
+	key := JoinKey(s.eng.name, table)
 	if _, err := s.cache.Delete(key); err != nil {
 		return action_cache_del, err
 	}
@@ -372,10 +409,10 @@ func (s *session) findByFields(table string, keys KeyList, setters FieldSetterLi
 	for i := 0; i < keySize; i++ {
 		key := typeconv.ToString(keys.Key(i))
 		for i := 0; i < fieldSize; i++ {
-			args = append(args, s.cache.FieldName(s.eng.name, table, key, fields.Field(i)))
+			args = append(args, JoinField(key, fields.Field(i)))
 		}
 	}
-	values, err := s.cache.HMGet(s.cache.TableName(s.eng.name, table), args...)
+	values, err := s.cache.HMGet(JoinKey(s.eng.name, table), args...)
 	if err != nil {
 		return nil, action_null, err
 	}
@@ -394,7 +431,7 @@ func (s *session) findByFields(table string, keys KeyList, setters FieldSetterLi
 		index := i / fieldSize
 		setter, err := setters.New(table, index, typeconv.ToString(keys.Key(index)))
 		if err != nil {
-			// NOTE: the error should be ignored
+			// NOTE: this error should be ignored
 			continue
 		}
 		for j := 0; j < fieldSize; j++ {
@@ -446,7 +483,7 @@ func (s *session) updateIndex(table ReadonlyTable, key interface{}, updatedField
 	if indexes, ok := s.eng.indexes[table.Meta().Name()]; ok {
 		for _, index := range indexes {
 			if err = index.Update(s, table, key, updatedFields); err != nil {
-				action = "update index `" + s.cache.IndexKey(s.eng.name, index) + "`"
+				action = "update index `" + JoinIndexKey(s.eng.name, index) + "`"
 				return
 			}
 		}
@@ -458,7 +495,7 @@ func (s *session) removeIndex(tableName string, keys ...interface{}) (action str
 	if indexes, ok := s.eng.indexes[tableName]; ok {
 		for _, index := range indexes {
 			if err = index.Remove(s, keys...); err != nil {
-				action = "remove index `" + s.cache.IndexKey(s.eng.name, index) + "`"
+				action = "remove index `" + JoinIndexKey(s.eng.name, index) + "`"
 				return
 			}
 		}
@@ -471,7 +508,7 @@ func (s *session) indexRank(index Index, key interface{}) (string, int64, error)
 		rank, err := indexRank.Rank(key)
 		return action_null, rank, err
 	}
-	rank, err := s.cache.ZRank(s.cache.IndexKey(s.eng.name, index), typeconv.ToString(key))
+	rank, err := s.cache.ZRank(JoinIndexKey(s.eng.name, index), typeconv.ToString(key))
 	if err != nil {
 		if err == ErrNotFound {
 			return action_null, InvalidRank, nil
@@ -489,7 +526,7 @@ func (s *session) indexScore(index Index, key interface{}) (string, int64, error
 		score, err := indexScore.Score(key)
 		return action_null, score, err
 	}
-	score, err := s.cache.ZScore(s.cache.IndexKey(s.eng.name, index), typeconv.ToString(key))
+	score, err := s.cache.ZScore(JoinIndexKey(s.eng.name, index), typeconv.ToString(key))
 	if err != nil {
 		if err == ErrNotFound {
 			return action_null, InvalidScore, nil
@@ -497,4 +534,88 @@ func (s *session) indexScore(index Index, key interface{}) (string, int64, error
 		return action_cache_zscore, score, err
 	}
 	return action_null, score, nil
+}
+
+func (s *session) applyRangeOption(opts []RangeOption) rangeOptions {
+	opt := rangeOptions{}
+	for _, o := range opts {
+		o(&opt)
+	}
+	return opt
+}
+
+func (s *session) indexRange(index Index, start, stop int64, opt rangeOptions) (action string, result RangeResult, err error) {
+	key := JoinIndexKey(s.eng.name, index)
+	if opt.rev {
+		if opt.withScores {
+			action = action_cache_zrevrangewithscores
+			result, err = s.cache.ZRevRangeWithScores(key, start, stop)
+		} else {
+			action = action_cache_zrevrange
+			result, err = s.cache.ZRevRange(key, start, stop)
+		}
+	} else {
+		if opt.withScores {
+			action = action_cache_zrangewithscores
+			result, err = s.cache.ZRangeWithScores(key, start, stop)
+		} else {
+			action = action_cache_zrange
+			result, err = s.cache.ZRange(key, start, stop)
+		}
+	}
+	return
+}
+
+func (s *session) indexRangeByScore(index Index, min, max float64, opt rangeOptions) (action string, result RangeResult, err error) {
+	key := JoinIndexKey(s.eng.name, index)
+	byOpt := redis.ZRangeBy{
+		Offset: opt.offset,
+		Count:  opt.count,
+	}
+	if min == -math.MaxFloat64 {
+		byOpt.Min = "-MIN"
+	} else {
+		byOpt.Min = typeconv.ToString(min)
+	}
+	if min == -math.MaxFloat64 {
+		byOpt.Max = "+MAX"
+	} else {
+		byOpt.Max = typeconv.ToString(max)
+	}
+	if opt.rev {
+		if opt.withScores {
+			action = action_cache_zrevrangebyscorewithscores
+			result, err = s.cache.ZRevRangeByScoreWithScores(key, byOpt)
+		} else {
+			action = action_cache_zrevrangebyscore
+			result, err = s.cache.ZRevRangeByScore(key, byOpt)
+		}
+	} else {
+		if opt.withScores {
+			action = action_cache_zrangebyscorewithscores
+			result, err = s.cache.ZRangeByScoreWithScores(key, byOpt)
+		} else {
+			action = action_cache_zrangebyscore
+			result, err = s.cache.ZRangeByScore(key, byOpt)
+		}
+	}
+	return
+}
+
+func (s *session) indexRangeByLex(index Index, min, max string, opt rangeOptions) (action string, result RangeLexResult, err error) {
+	key := JoinIndexKey(s.eng.name, index)
+	byOpt := redis.ZRangeBy{
+		Min:    min,
+		Max:    max,
+		Offset: opt.offset,
+		Count:  opt.count,
+	}
+	if opt.rev {
+		action = action_cache_zrevrangebylex
+		result, err = s.cache.ZRevRangeByLex(key, byOpt)
+	} else {
+		action = action_cache_zrangebylex
+		result, err = s.cache.ZRangeByLex(key, byOpt)
+	}
+	return
 }
