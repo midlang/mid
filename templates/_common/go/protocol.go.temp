@@ -138,11 +138,10 @@ func (x *{{$type}}) SetField(field, value string) error {
 		{{- $fieldType := context.BuildType $field.Type}}
 		{{- if eq $fieldType "string"}}x.{{$fieldName}} = value
 		{{- else if (OR $field.Type.IsInt $field.Type.IsBool)}}return typeconv.String2{{title $fieldType}}(&x.{{$fieldName}}, value)
-		{{- else if $field.Type.IsStruct}}var tmp int
-		if err := typeconv.String2Int(&tmp, value); err != nil {
+		{{- else if $field.Type.IsStruct}}
+		if err := typeconv.String2Object(&x.{{$fieldName}}, value); err != nil {
 			return err
 		}
-		x.{{$fieldName}} = {{$fieldType}}(tmp)
 		{{- else if (OR $field.Type.IsVector)}}
 		if x.{{$fieldName}} == nil {
 			x.{{$fieldName}} = make([]{{context.BuildType $field.Type.T}}, 0)
