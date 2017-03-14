@@ -3,7 +3,6 @@ package storage
 import (
 	"github.com/mkideal/pkg/typeconv"
 	"gopkg.in/redis.v5"
-	"math"
 )
 
 type Tx interface {
@@ -13,44 +12,11 @@ type Tx interface {
 	Close()
 }
 
-type Repository interface {
-	// Name returns database name
-	Name() string
-	// Insert inserts new records
-	Insert(tables ...Table) error
-	// Update updates specific fields of record
-	Update(table Table, fields ...string) error
-	// Find gets records by keys
-	Find(meta TableMeta, keys KeyList, setters FieldSetterList, fields ...string) error
-	// Get gets one record all fields
-	Get(table Table, opts ...GetOption) (bool, error)
-	// GetFields gets one record specific fields
-	GetFields(table Table, fields ...string) (bool, error)
-	// Remove removes one record
-	Remove(table ReadonlyTable) error
-	// RemoveRecords removes records by keys
-	RemoveRecords(meta TableMeta, keys ...interface{}) error
-	// Clear removes all records of table
-	Clear(table string) error
-	// FindView loads view by keys and store loaded data to setters
-	FindView(view View, keys KeyList, setters FieldSetterList) error
-	// IndexRank gets rank of table key in index, returns InvalidRank if key not found
-	IndexRank(index Index, key interface{}) (int64, error)
-	// IndexScore gets score of table key in index, returns InvalidScore if key not found
-	IndexScore(index Index, key interface{}) (int64, error)
-	// IndexRange range index by rank
-	IndexRange(index Index, start, stop int64, opts ...RangeOption) (RangeResult, error)
-	// IndexRange range index by score
-	IndexRangeByScore(index Index, min, max float64, opts ...RangeOption) (RangeResult, error)
-	// IndexRange range index by lexicographical
-	IndexRangeByLex(index Index, min, max string, opts ...RangeOption) (RangeLexResult, error)
-}
-
 type Session interface {
+	Tx
 	Repository
 	Cache() CacheProxySession
 	Database() DatabaseProxySession
-	Tx
 }
 
 // session implements Session interface
@@ -122,9 +88,18 @@ func (s *session) Update(table Table, fields ...string) error {
 	return nil
 }
 
-// Find gets many records
-func (s *session) Find(meta TableMeta, keys KeyList, setters FieldSetterList, fields ...string) error {
-	action, err := s.find(meta, keys, setters, fields)
+// FindFields gets records all fields by keys and stores loaded data to container
+func (s *session) Find(meta TableMeta, keys KeyList, container TableListContainer, opts ...GetOption) error {
+	action, err := s.find(meta, keys, container, s.applyGetOption(opts), meta.Fields())
+	if err != nil {
+		return s.catch("Find: "+action, err)
+	}
+	return nil
+}
+
+// FindFields gets records specific fields by keys and stores loaded data to container
+func (s *session) FindFields(meta TableMeta, keys KeyList, container TableListContainer, fields ...string) error {
+	action, err := s.find(meta, keys, container, getOptions{}, fields)
 	if err != nil {
 		return s.catch("Find: "+action, err)
 	}
@@ -181,16 +156,16 @@ func (s *session) Clear(table string) error {
 	return nil
 }
 
-// FindView loads view by keys and store loaded data to setters
-func (s *session) FindView(view View, keys KeyList, setters FieldSetterList) error {
-	action, err := s.recursivelyLoadView(view, keys, setters)
+// FindView loads view by keys and stores loaded data to container
+func (s *session) FindView(view View, keys KeyList, container TableListContainer, opts ...GetOption) error {
+	action, err := s.recursivelyLoadView(view, keys, container, s.applyGetOption(opts))
 	if err != nil {
 		return s.catch("FindView: "+action, err)
 	}
 	return nil
 }
 
-// IndexRank gets rank of table key in index, returns InvalidRank if key not found
+// IndexRank gets rank of table key in index, InvalidRank returned if key not found
 func (s *session) IndexRank(index Index, key interface{}) (int64, error) {
 	action, rank, err := s.indexRank(index, key)
 	if err != nil {
@@ -199,7 +174,7 @@ func (s *session) IndexRank(index Index, key interface{}) (int64, error) {
 	return rank, nil
 }
 
-// IndexScore gets score of table key in index, returns InvalidScore if key not found
+// IndexScore gets score of table key in index, InvalidScore returned if key not found
 func (s *session) IndexScore(index Index, key interface{}) (int64, error) {
 	action, score, err := s.indexScore(index, key)
 	if err != nil {
@@ -217,8 +192,8 @@ func (s *session) IndexRange(index Index, start, stop int64, opts ...RangeOption
 	return result, nil
 }
 
-// IndexRange range index by score
-func (s *session) IndexRangeByScore(index Index, min, max float64, opts ...RangeOption) (RangeResult, error) {
+// IndexRangeByScore range index by score
+func (s *session) IndexRangeByScore(index Index, min, max int64, opts ...RangeOption) (RangeResult, error) {
 	action, result, err := s.indexRangeByScore(index, min, max, s.applyRangeOption(opts))
 	if err != nil {
 		return nil, s.catch("IndexRangeByScore: "+action, err)
@@ -226,7 +201,7 @@ func (s *session) IndexRangeByScore(index Index, min, max float64, opts ...Range
 	return result, nil
 }
 
-// IndexRange range index by lexicographical order
+// IndexRangeByLex range index by lexicographical order
 func (s *session) IndexRangeByLex(index Index, min, max string, opts ...RangeOption) (RangeLexResult, error) {
 	action, result, err := s.indexRangeByLex(index, min, max, s.applyRangeOption(opts))
 	if err != nil {
@@ -240,7 +215,6 @@ func (s *session) IndexRangeByLex(index Index, min, max string, opts ...RangeOpt
 //----------------
 
 func (s *session) update(table Table, insert bool, fields ...string) (string, error) {
-
 	// database op
 	if insert {
 		_, err := s.database.Insert(table)
@@ -315,6 +289,14 @@ func (s *session) remove(meta TableMeta, keys ...interface{}) (string, error) {
 	return action_cache_hdel, err
 }
 
+func (s *session) applyGetOption(opts []GetOption) getOptions {
+	opt := getOptions{}
+	for _, o := range opts {
+		o(&opt)
+	}
+	return opt
+}
+
 func (s *session) get(table Table, opt getOptions, fields ...string) (string, bool, error) {
 	if s.cache == nil {
 		return s.getFromDatabase(table, fields...)
@@ -375,16 +357,16 @@ func (s *session) getFromDatabase(table Table, fields ...string) (string, bool, 
 	return action_null, found, nil
 }
 
-func (s *session) find(meta TableMeta, keys KeyList, setters FieldSetterList, fields []string) (string, error) {
+func (s *session) find(meta TableMeta, keys KeyList, container TableListContainer, opt getOptions, fields []string) (string, error) {
 	if len(fields) == 0 {
 		fields = meta.Fields()
 	}
-	_, action, err := s.findByFields(meta.Name(), keys, setters, FieldSlice(fields), nil)
+	_, action, err := s.findByFields(meta.Name(), keys, container, opt, FieldSlice(fields), nil)
 	return action, err
 }
 
-func (s *session) clear(table string) (string, error) {
-	if indexes, ok := s.eng.indexes[table]; ok {
+func (s *session) clear(tableName string) (string, error) {
+	if indexes, ok := s.eng.indexes[tableName]; ok {
 		for _, index := range indexes {
 			indexKey := JoinIndexKey(s.eng.name, index)
 			if _, err := s.cache.Delete(indexKey); err != nil {
@@ -392,14 +374,14 @@ func (s *session) clear(table string) (string, error) {
 			}
 		}
 	}
-	key := JoinKey(s.eng.name, table)
+	key := JoinKey(s.eng.name, tableName)
 	if _, err := s.cache.Delete(key); err != nil {
 		return action_cache_del, err
 	}
 	return action_null, nil
 }
 
-func (s *session) findByFields(table string, keys KeyList, setters FieldSetterList, fields FieldList, refs map[string]View) (map[string]StringKeys, string, error) {
+func (s *session) findByFields(tableName string, keys KeyList, container TableListContainer, opt getOptions, fields FieldList, refs map[string]View) (map[string]StringKeys, string, error) {
 	keySize := keys.Len()
 	if keySize == 0 {
 		return nil, action_null, nil
@@ -412,7 +394,7 @@ func (s *session) findByFields(table string, keys KeyList, setters FieldSetterLi
 			args = append(args, JoinField(key, fields.Field(i)))
 		}
 	}
-	values, err := s.cache.HMGet(JoinKey(s.eng.name, table), args...)
+	values, err := s.cache.HMGet(JoinKey(s.eng.name, tableName), args...)
 	if err != nil {
 		return nil, action_null, err
 	}
@@ -429,22 +411,38 @@ func (s *session) findByFields(table string, keys KeyList, setters FieldSetterLi
 	}
 	for i := 0; i+fieldSize <= length; i += fieldSize {
 		index := i / fieldSize
-		setter, err := setters.New(table, index, typeconv.ToString(keys.Key(index)))
+		table, err := container.New(tableName, index, typeconv.ToString(keys.Key(index)))
 		if err != nil {
 			// NOTE: this error should be ignored
 			continue
 		}
+		found := false
 		for j := 0; j < fieldSize; j++ {
 			field := fields.Field(j)
 			value := values[i+j]
 			if value != nil {
-				if err := setter.SetField(field, typeconv.ToString(value)); err != nil {
-					return nil, action_set_field(table, field), err
+				found = true
+				if err := table.SetField(field, typeconv.ToString(value)); err != nil {
+					return nil, action_set_field(tableName, field), err
 				}
 			}
+		}
+		// get table data from database if not found in cache
+		// and update to cache
+		if !found && opt.syncFromDatabase {
+			if action, _, err := s.getFromDatabase(table); err != nil {
+				return keysGroup, action, err
+			} else if action, err = s.updateCache(table); err != nil {
+				return keysGroup, action, err
+			}
+		}
+		// set keysGroup by table data
+		for j := 0; j < fieldSize; j++ {
+			field := fields.Field(j)
 			if ks, ok := keysGroup[field]; ok {
-				if value == nil {
-					ks[index] = ""
+				value, existedField := table.GetField(field)
+				if !existedField {
+					return keysGroup, action_get_field(table.Meta().Name(), field), ErrFieldNotFound
 				} else {
 					ks[index] = typeconv.ToString(value)
 				}
@@ -455,8 +453,8 @@ func (s *session) findByFields(table string, keys KeyList, setters FieldSetterLi
 	return keysGroup, action_null, nil
 }
 
-func (s *session) recursivelyLoadView(view View, keys KeyList, setters FieldSetterList) (string, error) {
-	keysGroup, action, err := s.findByFields(view.Table(), keys, setters, view.Fields(), view.Refs())
+func (s *session) recursivelyLoadView(view View, keys KeyList, container TableListContainer, opt getOptions) (string, error) {
+	keysGroup, action, err := s.findByFields(view.Table(), keys, container, opt, view.Fields(), view.Refs())
 	if err != nil {
 		return action, err
 	}
@@ -469,7 +467,7 @@ func (s *session) recursivelyLoadView(view View, keys KeyList, setters FieldSett
 	}
 	for field, ref := range refs {
 		if tmpKeys, ok := keysGroup[field]; ok {
-			if action, err := s.recursivelyLoadView(ref, tmpKeys, setters); err != nil {
+			if action, err := s.recursivelyLoadView(ref, tmpKeys, container, opt); err != nil {
 				return action, err
 			}
 		} else {
@@ -504,10 +502,6 @@ func (s *session) removeIndex(tableName string, keys ...interface{}) (action str
 }
 
 func (s *session) indexRank(index Index, key interface{}) (string, int64, error) {
-	if indexRank, ok := index.(IndexRank); ok {
-		rank, err := indexRank.Rank(key)
-		return action_null, rank, err
-	}
 	rank, err := s.cache.ZRank(JoinIndexKey(s.eng.name, index), typeconv.ToString(key))
 	if err != nil {
 		if err == ErrNotFound {
@@ -522,10 +516,6 @@ func (s *session) indexRank(index Index, key interface{}) (string, int64, error)
 }
 
 func (s *session) indexScore(index Index, key interface{}) (string, int64, error) {
-	if indexScore, ok := index.(IndexScore); ok {
-		score, err := indexScore.Score(key)
-		return action_null, score, err
-	}
 	score, err := s.cache.ZScore(JoinIndexKey(s.eng.name, index), typeconv.ToString(key))
 	if err != nil {
 		if err == ErrNotFound {
@@ -566,19 +556,19 @@ func (s *session) indexRange(index Index, start, stop int64, opt rangeOptions) (
 	return
 }
 
-func (s *session) indexRangeByScore(index Index, min, max float64, opt rangeOptions) (action string, result RangeResult, err error) {
+func (s *session) indexRangeByScore(index Index, min, max int64, opt rangeOptions) (action string, result RangeResult, err error) {
 	key := JoinIndexKey(s.eng.name, index)
 	byOpt := redis.ZRangeBy{
 		Offset: opt.offset,
 		Count:  opt.count,
 	}
-	if min == -math.MaxFloat64 {
-		byOpt.Min = "-MIN"
+	if min == MinScore {
+		byOpt.Min = "-inf"
 	} else {
 		byOpt.Min = typeconv.ToString(min)
 	}
-	if min == -math.MaxFloat64 {
-		byOpt.Max = "+MAX"
+	if min == MaxScore {
+		byOpt.Max = "+inf"
 	} else {
 		byOpt.Max = typeconv.ToString(max)
 	}

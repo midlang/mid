@@ -20,7 +20,7 @@ type CacheProxySession interface {
 	ZRem(key string, members ...interface{}) (int64, error)
 	ZRank(key, member string) (int64, error)
 	ZScore(key, member string) (int64, error)
-	// ranks api
+	// range APIs
 	ZRange(key string, start, stop int64) (RangeResult, error)
 	ZRangeWithScores(key string, start, stop int64) (RangeResult, error)
 	ZRangeByScore(key string, opt redis.ZRangeBy) (RangeResult, error)

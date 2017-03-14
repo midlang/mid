@@ -100,13 +100,13 @@ type stringSliceResult []string
 
 func (ss stringSliceResult) Len() int              { return len(ss) }
 func (ss stringSliceResult) Key(i int) interface{} { return ss[i] }
-func (ss stringSliceResult) Score(i int) float64   { return 0 }
+func (ss stringSliceResult) Score(i int) int64     { return 0 }
 
 type zsliceResult []redis.Z
 
 func (zs zsliceResult) Len() int              { return len(zs) }
 func (zs zsliceResult) Key(i int) interface{} { return zs[i].Member }
-func (zs zsliceResult) Score(i int) float64   { return zs[i].Score }
+func (zs zsliceResult) Score(i int) int64     { return int64(zs[i].Score) }
 
 func (p *proxySession) ZRange(key string, start, stop int64) (storage.RangeResult, error) {
 	res := p.client.ZRange(key, start, stop)

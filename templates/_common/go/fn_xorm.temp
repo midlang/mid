@@ -25,8 +25,9 @@ desc: 计算一个字段的sql属性，包括类型，选项，默认值，注�
 {{- else if eq $fieldType "uint32"}}{{$type.Set "INT(10)"}}
 {{- else if eq $fieldType "uint64"}}{{$type.Set "BIGINT(20)"}}
 {{- else if eq $fieldType "bool"}}{{$type.Set "TINYINT(1)"}}
-{{- else if eq $fieldType "float32"}}{{$type.Set "FLOAT"}}
-{{- else if $field.Type.IsStruct}}{{$type.Set "BIGINT(20)"}}
+{{- else if eq $fieldType "float32"}}{{$type.Set "DOUBLE"}}
+{{- else if eq $fieldType "float64"}}{{$type.Set "DOUBLE"}}
+{{- else if $field.Type.IsStruct}}{{$type.Set "TEXT"}}
 {{- else if $field.Type.IsVector}}{{$type.Set "TEXT"}}
 {{- else}}{{error "unsupported type: %s" $fieldType}}
 {{- end -}}

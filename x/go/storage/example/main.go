@@ -103,8 +103,8 @@ func main() {
 	// 除了 Remove,还有 RemoveKeys 和 DropTable 方法可以用于删除数据
 	// RemoveKeys 根据一组 key 删除一个表的一组记录, DropTable 删除整个表
 	api.Remove(inserted) // 等同于 api.RemoveRecords(inserted.Meta(), inserted.Key())
-	//found, err = api.Get(&demo.User{Id: inserted.Id})
-	//log.Info("Remove: found=%v, error=%v", found, err)
+	found, err = api.Get(&demo.User{Id: inserted.Id})
+	log.Info("Remove: found=%v, error=%v", found, err)
 
 	users := []demo.User{
 		{Id: 1, Name: "test1", Age: 10, AddrId: 1000, ProductId: 100},

@@ -150,6 +150,7 @@ func (x *{{$type}}) SetField(field, value string) error {
 			return err
 		}
 		{{- else if eq $fieldType "float32"}}return typeconv.String2Float32(&x.{{$fieldName}}, value)
+		{{- else if eq $fieldType "float64"}}return typeconv.String2Float64(&x.{{$fieldName}}, value)
 		{{else}}{{error "unsupported type: %s" $fieldType}}
 		{{- end}}
 		{{- end}}
@@ -190,10 +191,10 @@ func New{{$type}}Slice(cap int) *{{$type}}Slice {
 }
 
 func (s {{$type}}Slice) Len() int { return len(s) }
-func (s {{$type}}Slice) ReadonlyTable(i int) storage.ReadonlyTable { return s[i] }
+func (s {{$type}}Slice) Table(i int) storage.Table { return &s[i] }
 func (s *{{$type}}Slice) Slice() []{{$type}} { return []{{$type}}(*s) }
 
-func (s *{{$type}}Slice) New(table string, index int, key string) (storage.FieldSetter, error) {
+func (s *{{$type}}Slice) New(table string, index int, key string) (storage.Table, error) {
 	for len(*s) <= index {
 		*s = append(*s, {{$type}}{})
 	}
@@ -220,11 +221,10 @@ func New{{$type}}ViewSlice(cap int) *{{$type}}ViewSlice {
 	return &s
 }
 
-func (s *{{$type}}ViewSlice) Slice() []{{$type}}View {
-	return []{{$type}}View(*s)
-}
+func (s {{$type}}ViewSlice) Len() int { return len(s) }
+func (s *{{$type}}ViewSlice) Slice() []{{$type}}View { return []{{$type}}View(*s) }
 
-func (s *{{$type}}ViewSlice) New(table string, index int, key string) (storage.FieldSetter, error) {
+func (s *{{$type}}ViewSlice) New(table string, index int, key string) (storage.Table, error) {
 	if table == "{{underScore $type}}" {
 		for len(*s) <= index {
 			x := {{$type}}{}

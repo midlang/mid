@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"math"
 )
 
@@ -11,159 +12,134 @@ const (
 
 	InvalidRank  = -1
 	InvalidScore = math.MinInt64
+
+	MinScore = math.MinInt64
+	MaxScore = math.MaxInt64
 )
 
-// KeyList holds n keys
-type KeyList interface {
-	Len() int
-	Key(int) interface{}
+var (
+	ErrNotFound            = errors.New("not found")
+	ErrFieldNotFound       = errors.New("field not found")
+	ErrUnexpectedLength    = errors.New("unexpected length")
+	ErrViewRefFieldMissing = errors.New("view ref field missing")
+	ErrTableNotFoundInView = errors.New("table not found in view")
+	ErrTypeAssert          = errors.New("type assert failed")
+)
+
+const (
+	action_null                             = ""
+	action_cache_hmget                      = "cache.HMGet"
+	action_cache_hmset                      = "cache.HMSet"
+	action_cache_hdel                       = "cache.HDel"
+	action_cache_del                        = "cache.Del"
+	action_cache_zscore                     = "cache.ZScore"
+	action_cache_zrank                      = "cache.ZRank"
+	action_cache_zrange                     = "cache.ZRange"
+	action_cache_zrevrange                  = "cache.ZRevRange"
+	action_cache_zrangebyscore              = "cache.ZRangeByScore"
+	action_cache_zrevrangebyscore           = "cache.ZRevRangeByScore"
+	action_cache_zrangebylex                = "cache.ZRangeByLex"
+	action_cache_zrevrangebylex             = "cache.ZRevRangeByLex"
+	action_cache_zrangewithscores           = "cache.ZRangeWithScores"
+	action_cache_zrevrangewithscores        = "cache.ZRevRangeWithScores"
+	action_cache_zrangebyscorewithscores    = "cache.ZRangeByScoreWithScores"
+	action_cache_zrevrangebyscorewithscores = "cache.ZRevRangeByScoreWithScores"
+	action_db_insert                        = "db.Insert"
+	action_db_update                        = "db.Update"
+	action_db_remove                        = "db.Remove"
+	action_db_get                           = "db.Get"
+)
+
+func action_get_field(table, field string) string {
+	return "table `" + table + "` GetField `" + field + "`"
+}
+func action_set_field(table, field string) string {
+	return "table `" + table + "` SetField `" + field + "`"
 }
 
-type IntKeys []int
-type Int8Keys []int8
-type Int16Keys []int16
-type Int32Keys []int32
-type Int64Keys []int64
-type UintKeys []uint
-type Uint8Keys []uint8
-type Uint16Keys []uint16
-type Uint32Keys []uint32
-type Uint64Keys []uint64
-type StringKeys []string
-type InterfaceKeys []interface{}
-
-func (keys IntKeys) Len() int       { return len(keys) }
-func (keys Int8Keys) Len() int      { return len(keys) }
-func (keys Int16Keys) Len() int     { return len(keys) }
-func (keys Int32Keys) Len() int     { return len(keys) }
-func (keys Int64Keys) Len() int     { return len(keys) }
-func (keys UintKeys) Len() int      { return len(keys) }
-func (keys Uint8Keys) Len() int     { return len(keys) }
-func (keys Uint16Keys) Len() int    { return len(keys) }
-func (keys Uint32Keys) Len() int    { return len(keys) }
-func (keys Uint64Keys) Len() int    { return len(keys) }
-func (keys StringKeys) Len() int    { return len(keys) }
-func (keys InterfaceKeys) Len() int { return len(keys) }
-
-func (keys IntKeys) Key(i int) interface{}       { return keys[i] }
-func (keys Int8Keys) Key(i int) interface{}      { return keys[i] }
-func (keys Int16Keys) Key(i int) interface{}     { return keys[i] }
-func (keys Int32Keys) Key(i int) interface{}     { return keys[i] }
-func (keys Int64Keys) Key(i int) interface{}     { return keys[i] }
-func (keys UintKeys) Key(i int) interface{}      { return keys[i] }
-func (keys Uint8Keys) Key(i int) interface{}     { return keys[i] }
-func (keys Uint16Keys) Key(i int) interface{}    { return keys[i] }
-func (keys Uint32Keys) Key(i int) interface{}    { return keys[i] }
-func (keys Uint64Keys) Key(i int) interface{}    { return keys[i] }
-func (keys StringKeys) Key(i int) interface{}    { return keys[i] }
-func (keys InterfaceKeys) Key(i int) interface{} { return keys[i] }
-
-// FieldList holds n fields
-type FieldList interface {
-	Len() int
-	Field(int) string
+func JoinKey(engineName, originKey string) string {
+	return engineName + "@" + originKey
 }
 
-// Field implements FieldList which atmost contains one value
-type Field string
+func JoinField(key, originField string) string {
+	return key + ":" + originField
+}
 
-func (f Field) Len() int {
-	if f == "" {
-		return 0
+func JoinIndexKey(engineName string, index Index) string {
+	return engineName + "@" + index.Table() + ":" + index.Name()
+}
+
+// GetOption represents options for Get/Find/FindView operations
+type GetOption func(*getOptions)
+
+type getOptions struct {
+	syncFromDatabase bool
+}
+
+// WithSyncFromDatabase returns a GetOption which would get data from database if data not found in cache
+func WithSyncFromDatabase() GetOption {
+	return syncFromDatabase
+}
+
+func syncFromDatabase(opt *getOptions) {
+	opt.syncFromDatabase = true
+}
+
+// RangeOption represents options for IndexRange operations
+type RangeOption func(*rangeOptions)
+
+type rangeOptions struct {
+	withScores bool
+	rev        bool
+	offset     int64
+	count      int64
+}
+
+const (
+	rangeByScore = 0
+	rangeByLex   = 1
+)
+
+func RangeRev() RangeOption {
+	return func(opts *rangeOptions) {
+		opts.rev = true
 	}
-	return 1
 }
 
-func (f Field) Field(i int) string { return string(f) }
-
-// FieldSlice implements FieldList
-type FieldSlice []string
-
-func (fs FieldSlice) Len() int           { return len(fs) }
-func (fs FieldSlice) Field(i int) string { return fs[i] }
-
-//-----------------
-// Basic interface
-//-----------------
-
-// FieldGetter get value by field
-type FieldGetter interface {
-	GetField(field string) (interface{}, bool)
+func RangeWithScores() RangeOption {
+	return func(opts *rangeOptions) {
+		opts.withScores = true
+	}
 }
 
-// FieldGetter set value by field
-type FieldSetter interface {
-	SetField(field, value string) error
+func RangeOffset(offset int64) RangeOption {
+	return func(opts *rangeOptions) {
+		opts.offset = offset
+	}
 }
 
-// TableMeta holds table meta information
-type TableMeta interface {
-	// Name returns name of table
-	Name() string
-	// Key returns name of key field
-	Key() string
-	// Fields returns names of all fields except key field
-	Fields() []string
+func RangeCount(count int64) RangeOption {
+	return func(opts *rangeOptions) {
+		opts.count = count
+	}
 }
 
-//-------------------
-// Compose interface
-//-------------------
-
-type ReadonlyTable interface {
-	Meta() TableMeta
-	Key() interface{}
-	FieldGetter
+// RangeLexResult represents result of range by lex
+type RangeLexResult interface {
+	KeyList
 }
 
-type Table interface {
-	ReadonlyTable
-	SetKey(string) error
-	FieldSetter
+// RangeLexResult represents result of range by rank,score etc.
+type RangeResult interface {
+	KeyList
+	Score(i int) int64
 }
 
-type FieldSetterList interface {
-	New(table string, index int, key string) (FieldSetter, error)
-}
-
-type ReadonlyTableList interface {
-	Len() int
-	ReadonlyTable(i int) ReadonlyTable
-}
-
-type View interface {
-	Table() string
-	Fields() FieldList
-	Refs() map[string]View
-}
-
-type Index interface {
-	Name() string
-	Table() string
-	Update(s Session, table ReadonlyTable, key interface{}, updatedFields []string) error
-	Remove(s Session, keys ...interface{}) error
-}
-
-type IndexRank interface {
-	Rank(key interface{}) (int64, error)
-}
-
-type IndexScore interface {
-	Score(key interface{}) (int64, error)
-}
-
-type IndexRanger interface {
-	Range(eng Engine, start, end int) (KeyList, error)
-}
-
-type IndexScoreRanger interface {
-	RangeByScore(eng Engine, min, max int64) (KeyList, error)
-}
-
-type IndexRevRanger interface {
-	RevRange(eng Engine, start, end int) (KeyList, error)
-}
-
-type IndexScoreRevRanger interface {
-	RevRangeByScore(eng Engine, max, min int64) (KeyList, error)
+func ContainsField(fields []string, field string) bool {
+	for _, f := range fields {
+		if f == field {
+			return true
+		}
+	}
+	return false
 }
