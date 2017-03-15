@@ -95,11 +95,6 @@ type rangeOptions struct {
 	count      int64
 }
 
-const (
-	rangeByScore = 0
-	rangeByLex   = 1
-)
-
 func RangeRev() RangeOption {
 	return func(opts *rangeOptions) {
 		opts.rev = true
