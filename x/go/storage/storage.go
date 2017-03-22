@@ -66,7 +66,7 @@ func JoinField(key, originField string) string {
 }
 
 func JoinIndexKey(engineName string, index Index) string {
-	return engineName + "@" + index.Table() + ":" + index.Name()
+	return engineName + "@" + index.TableMeta().Name() + ":" + index.Name()
 }
 
 // GetOption represents options for Get/Find/FindView operations

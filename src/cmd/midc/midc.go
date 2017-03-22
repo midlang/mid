@@ -26,6 +26,8 @@ type argT struct {
 	ImportPaths  []string          `cli:"I,importpath" usage:"import paths for lookuping imports"`
 	TemplateKind string            `cli:"K,tempkind" usage:"template kind, a directory name" dft:"default"`
 	TemplatesDir map[string]string `cli:"T,template" usage:"templates directories for each language, e.g. -Tgo=dir1 -Tjava=dir2"`
+	IdAllocator  string            `cli:"id-allocator" usage:"id allocator name and options,supported allocators: file"`
+	IdFor        string            `cli:"id-for" usage:"specific bean kinds which should be allocated a id"`
 
 	Inputs []string `cli:"-"`
 }
@@ -216,6 +218,39 @@ var root = &cli.Command{
 		log.Debug("len(pkgs): %d", len(pkgs))
 		for name, _ := range pkgs {
 			log.Debug("package %s", cyan(name))
+		}
+
+		// allocate ids
+		allocatorInfos := strings.SplitN(argv.IdAllocator, "=", 2)
+		if argv.IdAllocator != "" && len(allocatorInfos) != 0 {
+			allocatorName := allocatorInfos[0]
+			allocatorOpts := ""
+			if len(allocatorInfos) == 2 {
+				allocatorOpts = allocatorInfos[1]
+			}
+			allocator, err := build.NewBeanIdAllocator(allocatorName, allocatorOpts)
+			if err != nil {
+				log.Error("new bean id allocator error: %v", err)
+				return err
+			}
+			fors := strings.Split(argv.IdFor, ",")
+			idFors := make(map[string]bool)
+			for _, f := range fors {
+				idFors[strings.TrimSpace(f)] = true
+			}
+			for _, pkg := range builder.Packages {
+				for _, file := range pkg.Files {
+					for _, bean := range file.Beans {
+						if idFors[bean.Kind] {
+							bean.Id = allocator.Alloc(build.JoinBeanKey(pkg.Name, bean.Name))
+						}
+					}
+				}
+			}
+			if err := allocator.Output(); err != nil {
+				log.Error("id allocator output error: %v", err)
+				return err
+			}
 		}
 
 		// generate codes

@@ -466,6 +466,7 @@ func BuildFunc(t *ast.FuncType) *FuncType {
 }
 
 type Bean struct {
+	Id      int
 	Kind    string
 	Doc     string
 	Name    string

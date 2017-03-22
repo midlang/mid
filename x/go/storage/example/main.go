@@ -139,7 +139,7 @@ func main() {
 	// 第三个参数必须实现 storage.FieldSetterList 接口
 	// 再后面接收字符串类型的可变参数,用于指定需要获取的字段名,不传参数则获取表的所有字段
 	us := demo.NewUserSlice(len(users))
-	api.Find(demo.UserMetaVar, storage.Int64Keys(keys), us)
+	api.Find(storage.Int64Keys(keys), us)
 	log.Info("Find users: %v", us.Slice())
 
 	// 测试错误处理回调,这里尝试 Update 一个无效字段名

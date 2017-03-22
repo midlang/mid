@@ -88,9 +88,19 @@ func (s *session) Update(table Table, fields ...string) error {
 	return nil
 }
 
+// UpdateByIndexScore updates specific fields of records which satify index score range
+func (s *session) UpdateByIndexScore(table Table, index Index, minScore, maxScore int64, fields ...string) (RangeResult, error) {
+	action, result, err := s.updateByIndexScore(table, index, minScore, maxScore, fields...)
+	if err != nil {
+		action = "UpdateByIndexScore: table=" + table.Meta().Name() + ",index=" + index.Name() + ": " + action
+		return nil, s.catch(action, err)
+	}
+	return result, nil
+}
+
 // FindFields gets records all fields by keys and stores loaded data to container
-func (s *session) Find(meta TableMeta, keys KeyList, container TableListContainer, opts ...GetOption) error {
-	action, err := s.find(meta, keys, container, s.applyGetOption(opts), meta.Fields())
+func (s *session) Find(keys KeyList, container TableListContainer, opts ...GetOption) error {
+	action, err := s.find(keys, container, s.applyGetOption(opts), nil)
 	if err != nil {
 		return s.catch("Find: "+action, err)
 	}
@@ -98,10 +108,26 @@ func (s *session) Find(meta TableMeta, keys KeyList, container TableListContaine
 }
 
 // FindFields gets records specific fields by keys and stores loaded data to container
-func (s *session) FindFields(meta TableMeta, keys KeyList, container TableListContainer, fields ...string) error {
-	action, err := s.find(meta, keys, container, getOptions{}, fields)
+func (s *session) FindFields(keys KeyList, container TableListContainer, fields ...string) error {
+	action, err := s.find(keys, container, getOptions{}, fields)
 	if err != nil {
 		return s.catch("Find: "+action, err)
+	}
+	return nil
+}
+
+func (s *session) FindByIndexScore(index Index, minScore, maxScore int64, container TableListContainer, opts ...GetOption) error {
+	action, err := s.findByIndexScore(index, minScore, maxScore, container, s.applyGetOption(opts), nil)
+	if err != nil {
+		return s.catch("FindByIndexScore: "+action, err)
+	}
+	return nil
+}
+
+func (s *session) FindFieldsByIndexScore(index Index, minScore, maxScore int64, container TableListContainer, fields ...string) error {
+	action, err := s.findByIndexScore(index, minScore, maxScore, container, getOptions{}, fields)
+	if err != nil {
+		return s.catch("FindFieldsByIndexScore: "+action, err)
 	}
 	return nil
 }
@@ -238,6 +264,26 @@ func (s *session) update(table Table, insert bool, fields ...string) (string, er
 	return s.updateCache(table, fields...)
 }
 
+func (s *session) updateByIndexScore(table Table, index Index, minScore, maxScore int64, fields ...string) (string, RangeResult, error) {
+	action, result, err := s.indexRangeByScore(index, minScore, maxScore, rangeOptions{})
+	if err != nil {
+		return action, nil, err
+	}
+	originKey := table.Key()
+	for i, n := 0, result.Len(); i < n; i++ {
+		key := typeconv.ToString(result.Key(i))
+		if err = table.SetKey(key); err != nil {
+			return "set key " + key + table.Meta().Name(), nil, err
+		}
+		action, err = s.update(table, false, fields...)
+		if err != nil {
+			return "[key=" + key + "] " + action, nil, err
+		}
+	}
+	table.SetKey(typeconv.ToString(originKey))
+	return action_null, result, nil
+}
+
 func (s *session) updateCache(table Table, fields ...string) (string, error) {
 	var (
 		meta = table.Meta()
@@ -357,12 +403,21 @@ func (s *session) getFromDatabase(table Table, fields ...string) (string, bool, 
 	return action_null, found, nil
 }
 
-func (s *session) find(meta TableMeta, keys KeyList, container TableListContainer, opt getOptions, fields []string) (string, error) {
+func (s *session) find(keys KeyList, container TableListContainer, opt getOptions, fields []string) (string, error) {
+	meta := container.TableMeta()
 	if len(fields) == 0 {
 		fields = meta.Fields()
 	}
-	_, action, err := s.findByFields(meta.Name(), keys, container, opt, FieldSlice(fields), nil)
+	_, action, err := s.findFields(keys, container, opt, FieldSlice(fields), nil)
 	return action, err
+}
+
+func (s *session) findByIndexScore(index Index, minScore, maxScore int64, container TableListContainer, opt getOptions, fields []string) (string, error) {
+	action, result, err := s.indexRangeByScore(index, minScore, maxScore, rangeOptions{})
+	if err != nil {
+		return action, err
+	}
+	return s.find(result, container, opt, fields)
 }
 
 func (s *session) clear(tableName string) (string, error) {
@@ -381,7 +436,7 @@ func (s *session) clear(tableName string) (string, error) {
 	return action_null, nil
 }
 
-func (s *session) findByFields(tableName string, keys KeyList, container TableListContainer, opt getOptions, fields FieldList, refs map[string]View) (map[string]StringKeys, string, error) {
+func (s *session) findFields(keys KeyList, container TableListContainer, opt getOptions, fields FieldList, refs map[string]View) (map[string]StringKeys, string, error) {
 	keySize := keys.Len()
 	if keySize == 0 {
 		return nil, action_null, nil
@@ -394,6 +449,7 @@ func (s *session) findByFields(tableName string, keys KeyList, container TableLi
 			args = append(args, JoinField(key, fields.Field(i)))
 		}
 	}
+	tableName := container.TableMeta().Name()
 	values, err := s.cache.HMGet(JoinKey(s.eng.name, tableName), args...)
 	if err != nil {
 		return nil, action_null, err
@@ -454,7 +510,7 @@ func (s *session) findByFields(tableName string, keys KeyList, container TableLi
 }
 
 func (s *session) recursivelyLoadView(view View, keys KeyList, container TableListContainer, opt getOptions) (string, error) {
-	keysGroup, action, err := s.findByFields(view.Table(), keys, container, opt, view.Fields(), view.Refs())
+	keysGroup, action, err := s.findFields(keys, container, opt, view.Fields(), view.Refs())
 	if err != nil {
 		return action, err
 	}

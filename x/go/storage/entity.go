@@ -1,5 +1,9 @@
 package storage
 
+import (
+	"github.com/mkideal/pkg/typeconv"
+)
+
 // KeyList holds n keys
 type KeyList interface {
 	Len() int
@@ -44,6 +48,85 @@ func (keys Uint32Keys) Key(i int) interface{}    { return keys[i] }
 func (keys Uint64Keys) Key(i int) interface{}    { return keys[i] }
 func (keys StringKeys) Key(i int) interface{}    { return keys[i] }
 func (keys InterfaceKeys) Key(i int) interface{} { return keys[i] }
+
+// ToInt64Keys convert KeyList to an StringKeys which satify filter
+// all keys would be contained if filter is nil
+func ToStringKeys(keys KeyList, filter func(string) bool) StringKeys {
+	if keys == nil {
+		return nil
+	}
+	if strKeys, ok := keys.(StringKeys); ok {
+		return strKeys
+	}
+	strs := make([]string, 0, keys.Len())
+	for i := 0; i < keys.Len(); i++ {
+		value := typeconv.ToString(keys.Key(i))
+		if filter == nil || filter(value) {
+			strs = append(strs, value)
+		}
+	}
+	return StringKeys(strs)
+}
+
+// ToInt64Keys convert KeyList to an Int64Keys which satify filter
+// all keys would be contained if filter is nil
+func ToInt64Keys(keys KeyList, filter func(int64) bool) Int64Keys {
+	if keys == nil {
+		return nil
+	}
+	if int64Keys, ok := keys.(Int64Keys); ok {
+		return int64Keys
+	}
+	int64s := make([]int64, 0, keys.Len())
+	for i := 0; i < keys.Len(); i++ {
+		key := keys.Key(i)
+		if key == nil {
+			continue
+		}
+		var (
+			value int64
+			err   error
+		)
+		switch k := key.(type) {
+		case int:
+			value = int64(k)
+		case int8:
+			value = int64(k)
+		case int16:
+			value = int64(k)
+		case int32:
+			value = int64(k)
+		case int64:
+			value = int64(k)
+		case uint:
+			value = int64(k)
+		case uint8:
+			value = int64(k)
+		case uint16:
+			value = int64(k)
+		case uint32:
+			value = int64(k)
+		case uint64:
+			value = int64(k)
+		case float32:
+			value = int64(k)
+		case float64:
+			value = int64(k)
+		case bool:
+			if k {
+				value = 1
+			}
+		case string:
+			err = typeconv.String2Int64(&value, k)
+		default:
+			err = typeconv.String2Int64(&value, typeconv.ToString(key))
+		}
+		if err == nil && (filter == nil || filter(value)) {
+			int64s = append(int64s, value)
+		}
+	}
+	return Int64Keys(int64s)
+}
 
 // FieldList holds n fields
 type FieldList interface {
@@ -113,13 +196,14 @@ type Table interface {
 
 // TableListContainer is a linear container holds and creates Table
 type TableListContainer interface {
+	TableMeta() TableMeta
 	Len() int
 	New(tableName string, index int, key string) (Table, error)
 }
 
 // View represents a view references a table
 type View interface {
-	Table() string
+	TableMeta() TableMeta
 	Fields() FieldList
 	Refs() map[string]View
 }
@@ -127,7 +211,7 @@ type View interface {
 // Index represents a sorted set for field of table
 type Index interface {
 	Name() string
-	Table() string
+	TableMeta() TableMeta
 	Update(s Session, table ReadonlyTable, key interface{}, updatedFields []string) error
 	Remove(s Session, keys ...interface{}) error
 }

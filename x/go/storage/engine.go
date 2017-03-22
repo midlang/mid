@@ -50,7 +50,7 @@ func (eng *engine) SetErrorHandler(eh ErrorHandler) {
 // AddIndex adds an index
 // panic if repeated index name on a same table
 func (eng *engine) AddIndex(index Index) {
-	tableName := index.Table()
+	tableName := index.TableMeta().Name()
 	idx, ok := eng.indexes[tableName]
 	if !ok {
 		idx = make(map[string]Index)
@@ -102,11 +102,23 @@ func (eng *engine) Update(table Table, fields ...string) error {
 	return nil
 }
 
-// Find gets records all fields by keys and stores loaded data to container
-func (eng *engine) Find(meta TableMeta, keys KeyList, container TableListContainer, opts ...GetOption) error {
+// UpdateByIndexScore updates specific fields of records which satify index score range
+func (eng *engine) UpdateByIndexScore(table Table, index Index, minScore, maxScore int64, fields ...string) (RangeResult, error) {
 	s := eng.newSession()
 	defer s.Close()
-	action, err := s.find(meta, keys, container, s.applyGetOption(opts), meta.Fields())
+	action, result, err := s.updateByIndexScore(table, index, minScore, maxScore, fields...)
+	if err != nil {
+		action = "UpdateByIndexScore: table=" + table.Meta().Name() + ",index=" + index.Name() + ": " + action
+		return nil, s.catch(action, err)
+	}
+	return result, nil
+}
+
+// Find gets records all fields by keys and stores loaded data to container
+func (eng *engine) Find(keys KeyList, container TableListContainer, opts ...GetOption) error {
+	s := eng.newSession()
+	defer s.Close()
+	action, err := s.find(keys, container, s.applyGetOption(opts), nil)
 	if err != nil {
 		return s.catch("Find: "+action, err)
 	}
@@ -114,12 +126,32 @@ func (eng *engine) Find(meta TableMeta, keys KeyList, container TableListContain
 }
 
 // FindFields gets records specific fields by keys and stores loaded data to container
-func (eng *engine) FindFields(meta TableMeta, keys KeyList, container TableListContainer, fields ...string) error {
+func (eng *engine) FindFields(keys KeyList, container TableListContainer, fields ...string) error {
 	s := eng.newSession()
 	defer s.Close()
-	action, err := s.find(meta, keys, container, getOptions{}, fields)
+	action, err := s.find(keys, container, getOptions{}, fields)
 	if err != nil {
 		return s.catch("Find: "+action, err)
+	}
+	return nil
+}
+
+func (eng *engine) FindByIndexScore(index Index, minScore, maxScore int64, container TableListContainer, opts ...GetOption) error {
+	s := eng.newSession()
+	defer s.Close()
+	action, err := s.findByIndexScore(index, minScore, maxScore, container, s.applyGetOption(opts), nil)
+	if err != nil {
+		return s.catch("FindByIndexScore: "+action, err)
+	}
+	return nil
+}
+
+func (eng *engine) FindFieldsByIndexScore(index Index, minScore, maxScore int64, container TableListContainer, fields ...string) error {
+	s := eng.newSession()
+	defer s.Close()
+	action, err := s.findByIndexScore(index, minScore, maxScore, container, getOptions{}, fields)
+	if err != nil {
+		return s.catch("FindFieldsByIndexScore: "+action, err)
 	}
 	return nil
 }

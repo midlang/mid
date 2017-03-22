@@ -8,10 +8,14 @@ type Repository interface {
 	Insert(tables ...Table) error
 	// Update updates specific fields of record
 	Update(table Table, fields ...string) error
+	// UpdateByIndexScore updates specific fields of records which satify index score range
+	UpdateByIndexScore(table Table, index Index, minScore, maxScore int64, fields ...string) (RangeResult, error)
 	// Find gets records all fields by keys and stores loaded data to container
-	Find(meta TableMeta, keys KeyList, container TableListContainer, opts ...GetOption) error
+	Find(keys KeyList, container TableListContainer, opts ...GetOption) error
 	// FindFields gets records specific fields by keys and stores loaded data to container
-	FindFields(meta TableMeta, keys KeyList, container TableListContainer, fields ...string) error
+	FindFields(keys KeyList, container TableListContainer, fields ...string) error
+	FindByIndexScore(index Index, minScore, maxScore int64, container TableListContainer, opts ...GetOption) error
+	FindFieldsByIndexScore(index Index, minScore, maxScore int64, container TableListContainer, fields ...string) error
 	// Get gets one record all fields
 	Get(table Table, opts ...GetOption) (bool, error)
 	// GetFields gets one record specific fields

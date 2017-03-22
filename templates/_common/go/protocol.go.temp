@@ -190,8 +190,8 @@ func New{{$type}}Slice(cap int) *{{$type}}Slice {
 	return &s
 }
 
+func (s {{$type}}Slice) TableMeta() storage.TableMeta { return {{$type}}MetaVar }
 func (s {{$type}}Slice) Len() int { return len(s) }
-func (s {{$type}}Slice) Table(i int) storage.Table { return &s[i] }
 func (s *{{$type}}Slice) Slice() []{{$type}} { return []{{$type}}(*s) }
 
 func (s *{{$type}}Slice) New(table string, index int, key string) (storage.Table, error) {
@@ -221,6 +221,7 @@ func New{{$type}}ViewSlice(cap int) *{{$type}}ViewSlice {
 	return &s
 }
 
+func (s {{$type}}ViewSlice) TableMeta() storage.TableMeta { return {{$type}}MetaVar }
 func (s {{$type}}ViewSlice) Len() int { return len(s) }
 func (s *{{$type}}ViewSlice) Slice() []{{$type}}View { return []{{$type}}View(*s) }
 
@@ -272,7 +273,7 @@ var (
 	}
 )
 
-func ({{$type}}View) Table() string             { return {{$type}}MetaVar.Name() }
+func ({{$type}}View) TableMeta() storage.TableMeta { return {{$type}}MetaVar }
 func ({{$type}}View) Fields() storage.FieldList     { return storage.FieldSlice({{$type}}MetaVar.Fields()) }
 func ({{$type}}View) Refs() map[string]storage.View { return {{lowerCamel $type}}ViewRefs }
 func (view *{{title $type}}View) tables() map[string]storage.Table {
@@ -307,7 +308,7 @@ func (view *{{title $type}}View) tables() map[string]storage.Table {
 
 		var {{$indexStructName}}Var = {{$indexStructName}}{}
 
-		func ({{$indexStructName}}) Table() string { return "{{underScore $type}}" }
+		func ({{$indexStructName}}) TableMeta() storage.TableMeta { return {{$type}}MetaVar }
 		func ({{$indexStructName}}) Name() string { return "{{$index}}" }
 
 		func (index {{$indexStructName}}) Update(session storage.Session, table storage.ReadonlyTable, key interface{}, updatedFields []string) error {
