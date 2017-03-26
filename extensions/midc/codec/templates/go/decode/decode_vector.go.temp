@@ -1,0 +1,46 @@
+---
+date: 2016-12-11 14:21
+author: mkideal
+category: vector
+---
+
+{{- $fieldVar := valueAt . 0}}
+{{- $type := valueAt . 1}}
+{{- $dep := valueAt . 2}}
+
+{{- $length := newString}}
+{{- $forVar := newString}}
+{{- include_template (joinPath (pwd) "../for_var.go.temp") (slice $dep $forVar)}}
+{{- $i := $forVar.Get}}
+{{- if eq $dep.Get 0}}
+	{{- $length.Set "length"}}
+{{- else}}
+	{{- $length.Set (join "" "length" $dep.String)}}
+	var {{$length}} int
+{{- end}}
+
+{{- $fsuffix := newString}}
+{{- if context.Config.BoolEnv "use_fixed_encode"}}
+{{$fsuffix.Set "f"}}
+{{- else}}
+{{$fsuffix.Set "v"}}
+{{- end}}
+if v, _, err := codec.Dec.DecodeUint32{{$fsuffix.Get}}(r); err != nil {
+	return err
+} else {
+	{{$length}} = int(v)
+}
+if {{$length}} < 0 {
+	return codec.ErrNegativeLength
+}
+
+{{- $newDep := newInt}}
+{{- $newDep.Set ($dep.Add 1)}}
+if {{$length}} > 0 {
+	{{$elemType := context.BuildType $type.T}}
+	{{$fieldVar}} = make([]{{$elemType}}, {{$length}})
+	for {{$i}} := 0; {{$i}} < {{$length}}; {{$i}}++ {
+		{{- $varName := join "" $fieldVar "[" $i "]"}}
+		{{- include_template (joinPath (pwd) "decode_type.go.temp") (slice $varName $type.T $newDep)}}
+	}
+}

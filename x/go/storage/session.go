@@ -134,11 +134,7 @@ func (s *session) FindFieldsByIndexScore(index Index, minScore, maxScore int64, 
 
 // Get gets one record all fields
 func (s *session) Get(table Table, opts ...GetOption) (bool, error) {
-	opt := getOptions{}
-	for _, o := range opts {
-		o(&opt)
-	}
-	action, ok, err := s.get(table, opt, table.Meta().Fields()...)
+	action, ok, err := s.get(table, s.applyGetOption(opts), table.Meta().Fields()...)
 	if err != nil {
 		return ok, s.catch("Get: "+action, err)
 	}
@@ -147,8 +143,7 @@ func (s *session) Get(table Table, opts ...GetOption) (bool, error) {
 
 // Get gets one record specific fields
 func (s *session) GetFields(table Table, fields ...string) (bool, error) {
-	opt := getOptions{}
-	action, ok, err := s.get(table, opt, fields...)
+	action, ok, err := s.get(table, getOptions{}, fields...)
 	if err != nil {
 		return ok, s.catch("Get: "+action, err)
 	}
@@ -232,6 +227,31 @@ func (s *session) IndexRangeByLex(index Index, min, max string, opts ...RangeOpt
 	action, result, err := s.indexRangeByLex(index, min, max, s.applyRangeOption(opts))
 	if err != nil {
 		return nil, s.catch("IndexRangeByLex: "+action, err)
+	}
+	return result, nil
+}
+
+// AddRecord adds a record with timestamp
+func (s *session) AddRecord(key string, member interface{}, unixstamp int64) error {
+	action, err := s.addRecord(key, member, unixstamp)
+	if err != nil {
+		return s.catch("AddRecord: "+action, err)
+	}
+	return nil
+}
+
+func (s *session) GetRecordsByTime(key string, startUnixstamp, endUnixstamp int64) (RangeResult, error) {
+	action, result, err := s.getRecordsByTime(key, startUnixstamp, endUnixstamp)
+	if err != nil {
+		return nil, s.catch("GetRecordsByTime: "+action, err)
+	}
+	return result, nil
+}
+
+func (s *session) GetRecordsByPage(key string, pageSize int, startRank int64) (RangeResult, error) {
+	action, result, err := s.getRecordsByPage(key, pageSize, startRank)
+	if err != nil {
+		return nil, s.catch("GetRecordsByPage: "+action, err)
 	}
 	return result, nil
 }
@@ -664,4 +684,32 @@ func (s *session) indexRangeByLex(index Index, min, max string, opt rangeOptions
 		result, err = s.cache.ZRangeByLex(key, byOpt)
 	}
 	return
+}
+
+func (s *session) addRecord(key string, member interface{}, unixstamp int64) (action string, err error) {
+	key = JoinKey(s.Name(), key)
+	_, err = s.cache.ZAdd(key, redis.Z{Member: member, Score: float64(unixstamp)})
+	if err != nil {
+		return action_cache_zadd, err
+	}
+	return action_null, nil
+}
+
+func (s *session) getRecordsByTime(key string, startUnixstamp, endUnixstamp int64) (string, RangeResult, error) {
+	key = JoinKey(s.Name(), key)
+	opt := redis.ZRangeBy{Min: typeconv.ToString(startUnixstamp), Max: typeconv.ToString(endUnixstamp)}
+	result, err := s.cache.ZRangeByScoreWithScores(key, opt)
+	if err != nil {
+		return action_cache_zrangebyscorewithscores, nil, err
+	}
+	return action_null, result, nil
+}
+
+func (s *session) getRecordsByPage(key string, pageSize int, startRank int64) (string, RangeResult, error) {
+	key = JoinKey(s.Name(), key)
+	result, err := s.cache.ZRangeWithScores(key, startRank, startRank+int64(pageSize-1))
+	if err != nil {
+		return action_cache_zrangewithscores, nil, err
+	}
+	return action_null, result, nil
 }

@@ -38,4 +38,8 @@ type Repository interface {
 	IndexRangeByScore(index Index, min, max int64, opts ...RangeOption) (RangeResult, error)
 	// IndexRangeByLex ranges index by lexicographical
 	IndexRangeByLex(index Index, min, max string, opts ...RangeOption) (RangeLexResult, error)
+	// AddRecord adds a record with timestamp
+	AddRecord(key string, member interface{}, unixstamp int64) error
+	GetRecordsByTime(key string, startUnixstamp, endUnixstamp int64) (RangeResult, error)
+	GetRecordsByPage(key string, pageSize int, startRank int64) (RangeResult, error)
 }

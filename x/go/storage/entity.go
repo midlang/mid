@@ -215,3 +215,28 @@ type Index interface {
 	Update(s Session, table ReadonlyTable, key interface{}, updatedFields []string) error
 	Remove(s Session, keys ...interface{}) error
 }
+
+// Record represents a sorted set which score is unixstamp
+type Record interface {
+	Key() string
+	Member() interface{}
+	Unixstamp() int64
+}
+
+type record struct {
+	key       string
+	member    interface{}
+	unixstamp int64
+}
+
+func NewRecord(key string, member interface{}, unixstamp int64) Record {
+	return &record{
+		key:       key,
+		member:    member,
+		unixstamp: unixstamp,
+	}
+}
+
+func (r record) Key() string         { return r.key }
+func (r record) Member() interface{} { return r.member }
+func (r record) Unixstamp() int64    { return r.unixstamp }

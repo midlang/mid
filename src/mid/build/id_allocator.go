@@ -19,8 +19,10 @@ func init() {
 }
 
 type BeanIdAllocator interface {
-	Alloc(key string) int
-	Output() error
+	// Allocate returns a integer as id of key
+	Allocate(key string) int
+	// Output outputs all key-id pairs to writer w or outputs to default writer of allocator if w is nil
+	Output(w io.Writer) error
 }
 
 type IdPair struct {
@@ -69,7 +71,9 @@ func NewFileBeanIdAllocator(filename string) (BeanIdAllocator, error) {
 	return allocator, nil
 }
 
-func (allocator *fileBeanIdAllocator) Alloc(key string) int {
+// Allocate allocates id for key if key not found and returns allocated id
+// Found id returned if key found
+func (allocator *fileBeanIdAllocator) Allocate(key string) int {
 	if id, found := allocator.idMap[key]; found {
 		return id
 	}
@@ -80,12 +84,16 @@ func (allocator *fileBeanIdAllocator) Alloc(key string) int {
 	return id
 }
 
-func (allocator *fileBeanIdAllocator) Output() error {
-	w, err := os.OpenFile(allocator.filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, allocator.perm)
-	if err != nil {
-		return err
+// Output outputs key-id pairs to writer w or outputs to file allocator.filename if w is nil
+func (allocator *fileBeanIdAllocator) Output(w io.Writer) error {
+	if w == nil {
+		file, err := os.OpenFile(allocator.filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, allocator.perm)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		w = file
 	}
-	defer w.Close()
 	if len(allocator.ids) == 0 {
 		return nil
 	}
@@ -96,6 +104,7 @@ func (allocator *fileBeanIdAllocator) Output() error {
 	return nil
 }
 
+// readInit reads file to initialize allocator
 func (allocator *fileBeanIdAllocator) readInit() error {
 	info, err := os.Stat(allocator.filename)
 	if err != nil {
@@ -114,7 +123,7 @@ func (allocator *fileBeanIdAllocator) readInit() error {
 		return err
 	}
 	defer file.Close()
-	idMap, err := ReadBeanIds(file)
+	idMap, err := ReadBeanIds(file, "=")
 	if err != nil {
 		return err
 	}
@@ -128,7 +137,9 @@ func (allocator *fileBeanIdAllocator) readInit() error {
 	return nil
 }
 
-func ReadBeanIds(reader io.Reader) (map[string]int, error) {
+// ReadBeanIds read key-id pairs from reader.
+// Each line contains one key-id pair seperated by `sep`.
+func ReadBeanIds(reader io.Reader, sep string) (map[string]int, error) {
 	var (
 		idMap   = make(map[string]int)
 		advance int
@@ -152,14 +163,14 @@ func ReadBeanIds(reader io.Reader) (map[string]int, error) {
 		if tok == "" {
 			continue
 		}
-		kv := strings.SplitN(tok, "=", 2)
+		kv := strings.SplitN(tok, sep, 2)
 		if len(kv) != 2 {
 			return nil, errors.New(lineno + string(token) + " is not a key value pair seperated by =")
 		}
 		key, value := strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1])
 		id, err := strconv.Atoi(value)
 		if err != nil {
-			return nil, errors.New(lineno + value + " is not a integer")
+			return nil, errors.New(lineno + value + " is not an integer")
 		}
 		idMap[key] = id
 	}

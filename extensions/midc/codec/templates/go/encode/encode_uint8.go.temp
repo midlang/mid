@@ -1,0 +1,10 @@
+---
+date: 2016-12-06 00:02
+author: mkideal
+category: uint8
+---
+
+{{- $fieldVar := .}}
+if _, err := codec.Enc.EncodeUint8(w, {{$fieldVar}}); err != nil {
+	return err
+}

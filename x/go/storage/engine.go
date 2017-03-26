@@ -35,6 +35,9 @@ func NewEngine(name string, database DatabaseProxy, cache CacheProxy) Engine {
 		cache:    cache,
 		indexes:  make(map[string]map[string]Index),
 	}
+	if eng.cache == nil {
+		eng.cache = NullCacheProxy
+	}
 	return eng
 }
 
@@ -273,6 +276,37 @@ func (eng *engine) IndexRangeByLex(index Index, min, max string, opts ...RangeOp
 	action, result, err := s.indexRangeByLex(index, min, max, s.applyRangeOption(opts))
 	if err != nil {
 		return nil, s.catch("IndexRangeByLex: "+action, err)
+	}
+	return result, nil
+}
+
+// AddRecord adds a record with timestamp
+func (eng *engine) AddRecord(key string, member interface{}, unixstamp int64) error {
+	s := eng.newSession()
+	defer s.Close()
+	action, err := s.addRecord(key, member, unixstamp)
+	if err != nil {
+		return s.catch("AddRecord: "+action, err)
+	}
+	return nil
+}
+
+func (eng *engine) GetRecordsByTime(key string, startUnixstamp, endUnixstamp int64) (RangeResult, error) {
+	s := eng.newSession()
+	defer s.Close()
+	action, result, err := s.getRecordsByTime(key, startUnixstamp, endUnixstamp)
+	if err != nil {
+		return nil, s.catch("GetRecordsByTime: "+action, err)
+	}
+	return result, nil
+}
+
+func (eng *engine) GetRecordsByPage(key string, pageSize int, startRank int64) (RangeResult, error) {
+	s := eng.newSession()
+	defer s.Close()
+	action, result, err := s.getRecordsByPage(key, pageSize, startRank)
+	if err != nil {
+		return nil, s.catch("GetRecordsByPage: "+action, err)
 	}
 	return result, nil
 }

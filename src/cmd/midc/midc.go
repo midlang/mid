@@ -57,7 +57,8 @@ var root = &cli.Command{
 			ctx.String("v%v\n", mid.Meta["version"])
 			return nil
 		}
-		argv.Inputs = ctx.Args()
+
+		// initialize log
 		log.SetLevel(argv.LogLevel)
 		if !argv.LogLevel.MoreVerboseThan(log.LvINFO) {
 			log.NoHeader()
@@ -124,6 +125,7 @@ var root = &cli.Command{
 		argv.TemplatesDir = templatesDir
 
 		// validate source directories and files
+		argv.Inputs = ctx.Args()
 		if len(argv.Inputs) == 0 {
 			argv.Inputs = []string{"."}
 		}
@@ -220,7 +222,7 @@ var root = &cli.Command{
 			log.Debug("package %s", cyan(name))
 		}
 
-		// allocate ids
+		// allocate id for beans which kind contained in argv.IdFor
 		allocatorInfos := strings.SplitN(argv.IdAllocator, "=", 2)
 		if argv.IdAllocator != "" && len(allocatorInfos) != 0 {
 			allocatorName := allocatorInfos[0]
@@ -233,21 +235,20 @@ var root = &cli.Command{
 				log.Error("new bean id allocator error: %v", err)
 				return err
 			}
-			fors := strings.Split(argv.IdFor, ",")
-			idFors := make(map[string]bool)
-			for _, f := range fors {
-				idFors[strings.TrimSpace(f)] = true
+			idFor := make(map[string]bool)
+			for _, f := range strings.Split(argv.IdFor, ",") {
+				idFor[strings.TrimSpace(f)] = true
 			}
 			for _, pkg := range builder.Packages {
 				for _, file := range pkg.Files {
 					for _, bean := range file.Beans {
-						if idFors[bean.Kind] {
-							bean.Id = allocator.Alloc(build.JoinBeanKey(pkg.Name, bean.Name))
+						if idFor[bean.Kind] {
+							bean.Id = allocator.Allocate(build.JoinBeanKey(pkg.Name, bean.Name))
 						}
 					}
 				}
 			}
-			if err := allocator.Output(); err != nil {
+			if err := allocator.Output(nil); err != nil {
 				log.Error("id allocator output error: %v", err)
 				return err
 			}

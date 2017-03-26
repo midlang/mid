@@ -36,7 +36,7 @@ func (p *proxySession) Insert(table storage.Table) (int64, error) {
 }
 
 func (p *proxySession) Update(table storage.Table, fields ...string) (int64, error) {
-	return p.session.Cols(fields...).Update(table)
+	return p.session.ID(table.Key()).Cols(fields...).Update(table)
 }
 
 func (p *proxySession) Remove(tableName, keyName string, keys ...interface{}) (int64, error) {

@@ -1,0 +1,33 @@
+---
+date: 2016-12-07 23:35
+author: mkideal
+category: map
+---
+
+{{- $fieldVar := valueAt . 0}}
+{{- $type := valueAt . 1}}
+{{- $dep := valueAt . 2}}
+{{- if context.Config.BoolEnv "use_fixed_encode"}}
+if _, err := codec.Enc.EncodeUint32f(w, uint32(len({{$fieldVar}}))); err != nil {
+	return err
+}
+{{- else}}
+if _, err := codec.Enc.EncodeUint32v(w, uint32(len({{$fieldVar}}))); err != nil {
+	return err
+}
+{{- end}}
+{{- $key := newString}}
+{{- $value := newString}}
+{{- if eq ($dep.Get) 0}}
+	{{$key.Set "key"}}
+	{{$value.Set "value"}}
+{{- else}}
+	{{- $key.Set (join "" "key" $dep.String)}}
+	{{- $value.Set (join "" "value" $dep.String)}}
+{{- end}}
+{{- $newDep := newInt}}
+{{- $newDep.Set ($dep.Add 1)}}
+for {{$key}}, {{$value}} := range {{$fieldVar}} {
+	{{- include_template (joinPath (pwd) "encode_type.go.temp") (slice ($key.Get) $type.K $newDep)}}
+	{{- include_template (joinPath (pwd) "encode_type.go.temp") (slice ($value.Get) $type.V $newDep)}}
+}

@@ -1,0 +1,18 @@
+---
+date: 2016-12-11 13:48
+author: mkideal
+category: uint32
+---
+
+{{- $fieldVar := .}}
+{{- $fsuffix := newString}}
+{{- if context.Config.BoolEnv "use_fixed_encode"}}
+{{$fsuffix.Set "f"}}
+{{- else}}
+{{$fsuffix.Set "v"}}
+{{- end}}
+if v, _, err := codec.Dec.DecodeUint32{{$fsuffix.Get}}(r); err != nil {
+	return err
+} else {
+	{{$fieldVar}} = v
+}

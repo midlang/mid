@@ -24,6 +24,7 @@ var (
 	ErrViewRefFieldMissing = errors.New("view ref field missing")
 	ErrTableNotFoundInView = errors.New("table not found in view")
 	ErrTypeAssert          = errors.New("type assert failed")
+	ErrNotImplemented      = errors.New("not implemented")
 )
 
 const (
@@ -32,6 +33,7 @@ const (
 	action_cache_hmset                      = "cache.HMSet"
 	action_cache_hdel                       = "cache.HDel"
 	action_cache_del                        = "cache.Del"
+	action_cache_zadd                       = "cache.ZAdd"
 	action_cache_zscore                     = "cache.ZScore"
 	action_cache_zrank                      = "cache.ZRank"
 	action_cache_zrange                     = "cache.ZRange"

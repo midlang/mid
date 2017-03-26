@@ -1,0 +1,29 @@
+---
+date: 2016-12-05 23:29
+author: mkideal
+---
+
+{{- $bean := .}}
+func (x {{.Name}}) Encode(w codec.Writer) error {
+	{{- $flag := newBool}}
+	{{- range $field := .Fields}}
+	{{$type := $field.Type}}
+		{{- if OR ($type.IsArray) ($type.IsVector)}}
+			{{- if not $flag.Get}}
+				var length int
+				{{- $flag.Set true}}
+			{{- end}}
+		{{- end}}
+	{{- end}}
+	{{- range $field := .Extends}}
+		{{- $varName := join "" "x." (context.BuildType $field)}}
+		{{- $dep := newInt}}
+		{{- include_template (joinPath (pwd) "encode/encode_type.go.temp") (slice $varName $field $dep)}}
+	{{- end}}
+	{{- range $field := .Fields}}
+		{{- $varName := join "" "x." (title $field.Name)}}
+		{{- $dep := newInt}}
+		{{- include_template (joinPath (pwd) "encode/encode_type.go.temp") (slice $varName $field.Type $dep)}}
+	{{- end}}
+	return nil
+}
