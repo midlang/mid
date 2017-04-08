@@ -86,6 +86,9 @@ func (allocator *fileBeanIdAllocator) Allocate(key string) int {
 
 // Output outputs key-id pairs to writer w or outputs to file allocator.filename if w is nil
 func (allocator *fileBeanIdAllocator) Output(w io.Writer) error {
+	if len(allocator.ids) == 0 {
+		return nil
+	}
 	if w == nil {
 		file, err := os.OpenFile(allocator.filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, allocator.perm)
 		if err != nil {
@@ -93,9 +96,6 @@ func (allocator *fileBeanIdAllocator) Output(w io.Writer) error {
 		}
 		defer file.Close()
 		w = file
-	}
-	if len(allocator.ids) == 0 {
-		return nil
 	}
 	sort.Slice(allocator.ids, func(i, j int) bool { return allocator.ids[i].Id < allocator.ids[j].Id })
 	for _, pair := range allocator.ids {
@@ -165,7 +165,7 @@ func ReadBeanIds(reader io.Reader, sep string) (map[string]int, error) {
 		}
 		kv := strings.SplitN(tok, sep, 2)
 		if len(kv) != 2 {
-			return nil, errors.New(lineno + string(token) + " is not a key value pair seperated by =")
+			return nil, errors.New(lineno + string(token) + " is not a key value pair seperated by " + sep)
 		}
 		key, value := strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1])
 		id, err := strconv.Atoi(value)

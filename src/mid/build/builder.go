@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/midlang/mid/src/mid/ast"
@@ -44,8 +45,9 @@ func (id ObjectId) String() string { return string(id) }
 
 // Builder
 type Builder struct {
-	Packages      map[string]*Package
-	encodedString string
+	Packages       map[string]*Package
+	SortedPackages []*Package
+	encodedString  string
 }
 
 func NewBuilder() *Builder {
@@ -72,8 +74,13 @@ func Build(pkgs map[string]*ast.Package) (*Builder, error) {
 		}
 	}
 	for _, pkg := range pkgs {
-		builder.Packages[pkg.Name] = BuildPackage(pkg)
+		builtPkg := BuildPackage(pkg)
+		builder.Packages[pkg.Name] = builtPkg
+		builder.SortedPackages = append(builder.SortedPackages, builtPkg)
 	}
+	sort.Slice(builder.SortedPackages, func(i, j int) bool {
+		return builder.SortedPackages[i].Name < builder.SortedPackages[j].Name
+	})
 	return builder, nil
 }
 

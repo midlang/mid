@@ -111,7 +111,7 @@ func (eng *engine) UpdateByIndexScore(table Table, index Index, minScore, maxSco
 	defer s.Close()
 	action, result, err := s.updateByIndexScore(table, index, minScore, maxScore, fields...)
 	if err != nil {
-		action = "UpdateByIndexScore: table=" + table.Meta().Name() + ",index=" + index.Name() + ": " + action
+		action = "UpdateByIndexScore: table=" + table.TableMeta().Name() + ",index=" + index.Name() + ": " + action
 		return nil, s.catch(action, err)
 	}
 	return result, nil
@@ -163,7 +163,7 @@ func (eng *engine) FindFieldsByIndexScore(index Index, minScore, maxScore int64,
 func (eng *engine) Get(table Table, opts ...GetOption) (bool, error) {
 	s := eng.newSession()
 	defer s.Close()
-	action, ok, err := s.get(table, s.applyGetOption(opts), table.Meta().Fields()...)
+	action, ok, err := s.get(table, s.applyGetOption(opts), table.TableMeta().Fields()...)
 	if err != nil {
 		return ok, s.catch("Get: "+action, err)
 	}
@@ -185,7 +185,7 @@ func (eng *engine) GetFields(table Table, fields ...string) (bool, error) {
 func (eng *engine) Remove(table ReadonlyTable) error {
 	s := eng.newSession()
 	defer s.Close()
-	action, err := s.remove(table.Meta(), table.Key())
+	action, err := s.remove(table.TableMeta(), table.Key())
 	if err != nil {
 		return s.catch("Remove: "+action, err)
 	}

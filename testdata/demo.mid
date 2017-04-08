@@ -11,8 +11,7 @@ const (
 	D = 4;
 )
 
-// doc: status
-// Status
+// doc: Status
 enum Status {
 	Ok = 0, // ok
 	Bad = 1, // bad

@@ -276,7 +276,7 @@ func (is *ImportSpec) Begin() lexer.Pos {
 type ConstSpec struct {
 	Doc     *CommentGroup // doc or nil
 	Name    *Ident        // name
-	Value   Expr          // value node or nil
+	Value   Expr          // value node
 	Comment *CommentGroup // line comments or nil
 }
 

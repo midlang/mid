@@ -182,7 +182,7 @@ type TableMeta interface {
 
 // ReadonlyTable represents a read-only table
 type ReadonlyTable interface {
-	Meta() TableMeta
+	TableMeta() TableMeta
 	Key() interface{}
 	FieldGetter
 }

@@ -2,9 +2,9 @@ package build
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"strconv"
 )
@@ -88,7 +88,11 @@ func (plugin Plugin) Generate(builder *Builder, stdout, stderr io.Writer) error 
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command(plugin.Bin, string(encodedPlugin), runtimeConfig, source)
+	cmd := exec.Command(plugin.Bin,
+		"-p", string(encodedPlugin),
+		"-c", runtimeConfig,
+		"-src", source,
+	)
 	if stdout != nil {
 		cmd.Stdout = stdout
 	}
@@ -128,21 +132,21 @@ func (pset *PluginSet) Lookup(lang string) (*Plugin, bool) {
 }
 
 func ParseFlags() (plugin Plugin, config PluginRuntimeConfig, builder *Builder, err error) {
-	args := os.Args[1:]
-	if len(args) != 3 {
-		err = fmt.Errorf("usage: %s <json_ecnoded_plugin> <json_ecnoded_config> <gob_and_base64_encoded_source>", os.Args[0])
-		return
-	}
-	if err = json.Unmarshal([]byte(args[0]), &plugin); err != nil {
+	flPlugin := flag.String("p", "", "plugin information which encoded with json")
+	flConfig := flag.String("c", "", "plugin runtime config which encoded with json")
+	flSource := flag.String("src", "", "AST source which encoded with job and base64")
+	flag.Parse()
+
+	if err = json.Unmarshal([]byte(*flPlugin), &plugin); err != nil {
 		err = fmt.Errorf("decode plugin error: %v", err)
 		return
 	}
-	if err = config.Decode(args[1]); err != nil {
+	if err = config.Decode(*flConfig); err != nil {
 		err = fmt.Errorf("decode config error: %v", err)
 		return
 	}
 	builder = new(Builder)
-	if err = builder.Decode(args[2]); err != nil {
+	if err = builder.Decode(*flSource); err != nil {
 		err = fmt.Errorf("decode source error: %v", err)
 	}
 	return

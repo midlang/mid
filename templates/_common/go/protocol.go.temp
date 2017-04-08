@@ -9,6 +9,8 @@ desc: protocol 的代码生成规则
 	{{error "%s: count of fields must be greater than 1, but got %d" $type (len .Fields)}}
 {{end}}
 
+{{- $metaVar := join "" (lowerCamel $type) "MetaVar"}}
+
 {{- /* 获取关键字段及其类型 */}}
 {{- $key := newString}}
 {{- $keyType := newString}}
@@ -18,6 +20,7 @@ desc: protocol 的代码生成规则
 	{{- /* 检查字段名合法性 */}}
 	{{- if eq (title $field.Name) "Key"}}{{error "%s: field name must not be `key` or `Key`" $type}}{{end}}
 	{{- if eq (title $field.Name) "Meta"}}{{error "%s: field name must not be `meta` or `Meta`" $type}}{{end}}
+	{{- if eq (title $field.Name) "TableMeta"}}{{error "%s: field name must not be `tableMeta` or `TableMeta`" $type}}{{end}}
 	{{- if eq (title $field.Name) "GetField"}}{{error "%s: field name must not be `getField` or `GetField`" $type}}{{end}}
 	{{- if eq (title $field.Name) "SetField"}}{{error "%s: field name must not be `setField` or `SetField`" $type}}{{end}}
 
@@ -110,7 +113,8 @@ func New{{$type}}() *{{$type}} {
 	{{end}}
 {{end}}
 
-func ({{$type}}) Meta() storage.TableMeta { return {{$type}}MetaVar }
+func ({{$type}}) Meta() {{$type}}Meta { return {{$metaVar}} }
+func ({{$type}}) TableMeta() storage.TableMeta { return {{$metaVar}} }
 func (x {{$type}}) Key() interface{} { return x.{{$key.Get}} }
 func (x *{{$type}}) SetKey(value string) error {
 	{{- if eq ($keyType.Get) "string"}}x.{{$key.Get | title}} = value
@@ -122,7 +126,7 @@ func (x *{{$type}}) SetKey(value string) error {
 func (x {{$type}}) GetField(field string) (interface{}, bool) {
 	switch field {
 		{{- range $field := .Fields}}
-		{{- if ne (title $field.Name) ($key.Get)}}case {{$type}}MetaVar.F_{{$field.Name | underScore}}:
+		{{- if ne (title $field.Name) ($key.Get)}}case {{$metaVar}}.F_{{$field.Name | underScore}}:
 				return x.{{$field.Name | title}}, true
 		{{- end}}
 		{{end -}}
@@ -134,7 +138,7 @@ func (x *{{$type}}) SetField(field, value string) error {
 	switch field {
 		{{- range $field := .Fields}}
 		{{- $fieldName := title $field.Name}}
-		{{- if ne ($fieldName) ($key.Get)}}case {{$type}}MetaVar.F_{{$field.Name | underScore}}:
+		{{- if ne ($fieldName) ($key.Get)}}case {{$metaVar}}.F_{{$field.Name | underScore}}:
 		{{- $fieldType := context.BuildType $field.Type}}
 		{{- if eq $fieldType "string"}}x.{{$fieldName}} = value
 		{{- else if (OR $field.Type.IsInt $field.Type.IsBool)}}return typeconv.String2{{title $fieldType}}(&x.{{$fieldName}}, value)
@@ -170,7 +174,7 @@ func ({{$type}}Meta) Name() string { return "{{$type | underScore}}" }
 func ({{$type}}Meta) Key() string { return "{{$key.Get | underScore}}" }
 func ({{$type}}Meta) Fields() []string { return _{{$type | underScore}}_fields }
 
-var {{$type}}MetaVar = &{{$type}}Meta{
+var {{$metaVar}} = {{$type}}Meta{
 	{{- range $field := .Fields}}
 		{{- if ne (title $field.Name) ($key.Get)}}F_{{$field.Name | underScore}}: "{{$field.Name | underScore}}",{{end}}
 	{{end}}
@@ -178,7 +182,7 @@ var {{$type}}MetaVar = &{{$type}}Meta{
 
 var _{{$type | underScore}}_fields = []string{
 	{{- range $field := .Fields}}
-		{{- if ne (title $field.Name) ($key.Get)}}{{$type}}MetaVar.F_{{$field.Name | underScore}},{{end}}
+		{{- if ne (title $field.Name) ($key.Get)}}{{$metaVar}}.F_{{$field.Name | underScore}},{{end}}
 	{{end}}
 }
 
@@ -190,7 +194,7 @@ func New{{$type}}Slice(cap int) *{{$type}}Slice {
 	return &s
 }
 
-func (s {{$type}}Slice) TableMeta() storage.TableMeta { return {{$type}}MetaVar }
+func (s {{$type}}Slice) TableMeta() storage.TableMeta { return {{$metaVar}} }
 func (s {{$type}}Slice) Len() int { return len(s) }
 func (s *{{$type}}Slice) Slice() []{{$type}} { return []{{$type}}(*s) }
 
@@ -221,7 +225,7 @@ func New{{$type}}ViewSlice(cap int) *{{$type}}ViewSlice {
 	return &s
 }
 
-func (s {{$type}}ViewSlice) TableMeta() storage.TableMeta { return {{$type}}MetaVar }
+func (s {{$type}}ViewSlice) TableMeta() storage.TableMeta { return {{$metaVar}} }
 func (s {{$type}}ViewSlice) Len() int { return len(s) }
 func (s *{{$type}}ViewSlice) Slice() []{{$type}}View { return []{{$type}}View(*s) }
 
@@ -261,7 +265,7 @@ var (
 					{{- end}}
 				{{- end}}
 				{{- if eq $fieldType ($refKeyType.Get)}}
-					{{- $type}}MetaVar.F_{{underScore $field.Name}}: {{$ref}}ViewVar,
+					{{- $metaVar}}.F_{{underScore $field.Name}}: {{$ref}}ViewVar,
 				{{- else}}
 					{{- error "type of ref table `%s` field is not same as key type of `%s`, want `%s`, but got `%s`" $ref $ref ($refKeyType.Get) $fieldType}}
 				{{- end}}
@@ -273,8 +277,8 @@ var (
 	}
 )
 
-func ({{$type}}View) TableMeta() storage.TableMeta { return {{$type}}MetaVar }
-func ({{$type}}View) Fields() storage.FieldList     { return storage.FieldSlice({{$type}}MetaVar.Fields()) }
+func ({{$type}}View) TableMeta() storage.TableMeta { return {{$metaVar}} }
+func ({{$type}}View) Fields() storage.FieldList     { return storage.FieldSlice({{$metaVar}}.Fields()) }
 func ({{$type}}View) Refs() map[string]storage.View { return {{lowerCamel $type}}ViewRefs }
 func (view *{{title $type}}View) tables() map[string]storage.Table {
 	m := make(map[string]storage.Table)
@@ -302,13 +306,13 @@ func (view *{{title $type}}View) tables() map[string]storage.Table {
 			{{- error "%s.%s: index type must an integer, but got `%s`" $type $field.Name $fieldType}}
 		{{- end}}
 		{{- $indexStructName := upperCamel $index}}
-		{{- $indexField := join "" (title $type) "MetaVar.F_" (underScore $field.Name)}}
+		{{- $indexField := join "" ($metaVar) ".F_" (underScore $field.Name)}}
 		// Index
 		type {{$indexStructName}} struct {}
 
 		var {{$indexStructName}}Var = {{$indexStructName}}{}
 
-		func ({{$indexStructName}}) TableMeta() storage.TableMeta { return {{$type}}MetaVar }
+		func ({{$indexStructName}}) TableMeta() storage.TableMeta { return {{$metaVar}} }
 		func ({{$indexStructName}}) Name() string { return "{{$index}}" }
 
 		func (index {{$indexStructName}}) Update(session storage.Session, table storage.ReadonlyTable, key interface{}, updatedFields []string) error {
@@ -317,7 +321,7 @@ func (view *{{title $type}}View) tables() map[string]storage.Table {
 			}
 			value, found := table.GetField({{$indexField}})
 			if !found {
-				return fmt.Errorf("field `%s` not found in table `%s`", {{$indexField}}, table.Meta().Name())
+				return fmt.Errorf("field `%s` not found in table `%s`", {{$indexField}}, table.TableMeta().Name())
 			}
 			_{{underScore $field.Name}}, ok := value.({{$fieldType}})
 			if !ok {

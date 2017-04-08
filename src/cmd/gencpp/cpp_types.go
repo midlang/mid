@@ -42,8 +42,6 @@ func buildType(typ build.Type) string {
 			panic("type `" + t.Name + "` not a builtin type")
 		}
 		switch builtinType {
-		case lexer.Void:
-			return "void"
 		case lexer.Bool:
 			return "bool"
 		case lexer.Byte:

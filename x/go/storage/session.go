@@ -92,7 +92,7 @@ func (s *session) Update(table Table, fields ...string) error {
 func (s *session) UpdateByIndexScore(table Table, index Index, minScore, maxScore int64, fields ...string) (RangeResult, error) {
 	action, result, err := s.updateByIndexScore(table, index, minScore, maxScore, fields...)
 	if err != nil {
-		action = "UpdateByIndexScore: table=" + table.Meta().Name() + ",index=" + index.Name() + ": " + action
+		action = "UpdateByIndexScore: table=" + table.TableMeta().Name() + ",index=" + index.Name() + ": " + action
 		return nil, s.catch(action, err)
 	}
 	return result, nil
@@ -134,7 +134,7 @@ func (s *session) FindFieldsByIndexScore(index Index, minScore, maxScore int64, 
 
 // Get gets one record all fields
 func (s *session) Get(table Table, opts ...GetOption) (bool, error) {
-	action, ok, err := s.get(table, s.applyGetOption(opts), table.Meta().Fields()...)
+	action, ok, err := s.get(table, s.applyGetOption(opts), table.TableMeta().Fields()...)
 	if err != nil {
 		return ok, s.catch("Get: "+action, err)
 	}
@@ -152,7 +152,7 @@ func (s *session) GetFields(table Table, fields ...string) (bool, error) {
 
 // Remove removes one record
 func (s *session) Remove(table ReadonlyTable) error {
-	action, err := s.remove(table.Meta(), table.Key())
+	action, err := s.remove(table.TableMeta(), table.Key())
 	if err != nil {
 		return s.catch("Remove: "+action, err)
 	}
@@ -269,7 +269,7 @@ func (s *session) update(table Table, insert bool, fields ...string) (string, er
 		}
 	} else {
 		if len(fields) == 0 {
-			fields = table.Meta().Fields()
+			fields = table.TableMeta().Fields()
 		}
 		_, err := s.database.Update(table, fields...)
 		if err != nil {
@@ -293,7 +293,7 @@ func (s *session) updateByIndexScore(table Table, index Index, minScore, maxScor
 	for i, n := 0, result.Len(); i < n; i++ {
 		key := typeconv.ToString(result.Key(i))
 		if err = table.SetKey(key); err != nil {
-			return "set key " + key + table.Meta().Name(), nil, err
+			return "set key " + key + table.TableMeta().Name(), nil, err
 		}
 		action, err = s.update(table, false, fields...)
 		if err != nil {
@@ -306,7 +306,7 @@ func (s *session) updateByIndexScore(table Table, index Index, minScore, maxScor
 
 func (s *session) updateCache(table Table, fields ...string) (string, error) {
 	var (
-		meta = table.Meta()
+		meta = table.TableMeta()
 		key  = table.Key()
 	)
 	if len(fields) == 0 {
@@ -386,7 +386,7 @@ func (s *session) get(table Table, opt getOptions, fields ...string) (string, bo
 }
 
 func (s *session) getFromCache(table Table, fields ...string) (string, bool, error) {
-	meta := table.Meta()
+	meta := table.TableMeta()
 	tableKey := typeconv.ToString(table.Key())
 	if len(fields) == 0 {
 		fields = meta.Fields()
@@ -518,7 +518,7 @@ func (s *session) findFields(keys KeyList, container TableListContainer, opt get
 			if ks, ok := keysGroup[field]; ok {
 				value, existedField := table.GetField(field)
 				if !existedField {
-					return keysGroup, action_get_field(table.Meta().Name(), field), ErrFieldNotFound
+					return keysGroup, action_get_field(table.TableMeta().Name(), field), ErrFieldNotFound
 				} else {
 					ks[index] = typeconv.ToString(value)
 				}
@@ -554,7 +554,7 @@ func (s *session) recursivelyLoadView(view View, keys KeyList, container TableLi
 }
 
 func (s *session) updateIndex(table ReadonlyTable, key interface{}, updatedFields []string) (action string, err error) {
-	if indexes, ok := s.eng.indexes[table.Meta().Name()]; ok {
+	if indexes, ok := s.eng.indexes[table.TableMeta().Name()]; ok {
 		for _, index := range indexes {
 			if err = index.Update(s, table, key, updatedFields); err != nil {
 				action = "update index `" + JoinIndexKey(s.eng.name, index) + "`"

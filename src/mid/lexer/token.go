@@ -143,7 +143,7 @@ func (tok Token) IsKeyword() bool  { return keyword_beg < tok && tok < keyword_e
 type BuiltinType int
 
 const (
-	Void    BuiltinType = iota // void
+	Any     BuiltinType = iota // any
 	Bool                       // bool
 	Byte                       // byte
 	Bytes                      // bytes
@@ -165,94 +165,45 @@ const (
 	Array                      // array<T,Size>
 )
 
-func LookupType(ident string) (BuiltinType, bool) {
-	switch ident {
-	case "", "void":
-		return Void, true
-	case "bool":
-		return Bool, true
-	case "byte":
-		return Byte, true
-	case "bytes":
-		return Bytes, true
-	case "string":
-		return String, true
-	case "int":
-		return Int, true
-	case "int8":
-		return Int8, true
-	case "int16":
-		return Int16, true
-	case "int32":
-		return Int32, true
-	case "int64":
-		return Int64, true
-	case "uint":
-		return Uint, true
-	case "uint8":
-		return Uint8, true
-	case "uint16":
-		return Uint16, true
-	case "uint32":
-		return Uint32, true
-	case "uint64":
-		return Uint64, true
-	case "float32":
-		return Float32, true
-	case "float64":
-		return Float64, true
-	case "map":
-		return Map, true
-	case "vector":
-		return Vector, true
-	case "array":
-		return Array, true
+var builtinTypes = [...]string{
+	Any:     "any",
+	Bool:    "bool",
+	Byte:    "byte",
+	Bytes:   "bytes",
+	String:  "string",
+	Int:     "int",
+	Int8:    "int8",
+	Int16:   "int16",
+	Int32:   "int32",
+	Int64:   "int64",
+	Uint:    "uint",
+	Uint8:   "uint8",
+	Uint16:  "uint16",
+	Uint32:  "uint32",
+	Uint64:  "uint64",
+	Float32: "float32",
+	Float64: "float64",
+	Map:     "map",
+	Vector:  "vector",
+	Array:   "array",
+}
+
+var revBuiltinTypes = make(map[string]BuiltinType)
+
+func init() {
+	for t, s := range builtinTypes {
+		revBuiltinTypes[s] = BuiltinType(t)
 	}
-	return 0, false
+}
+
+func LookupType(ident string) (BuiltinType, bool) {
+	t, ok := revBuiltinTypes[ident]
+	return t, ok
 }
 
 func (bt BuiltinType) String() string {
-	switch bt {
-	case Void:
-		return "void"
-	case Bool:
-		return "bool"
-	case Byte:
-		return "byte"
-	case Bytes:
-		return "bytes"
-	case String:
-		return "string"
-	case Int:
-		return "int"
-	case Int8:
-		return "int8"
-	case Int16:
-		return "int16"
-	case Int32:
-		return "int32"
-	case Int64:
-		return "int64"
-	case Uint:
-		return "uint"
-	case Uint8:
-		return "uint8"
-	case Uint16:
-		return "uint16"
-	case Uint32:
-		return "uint32"
-	case Uint64:
-		return "uint64"
-	case Float32:
-		return "float32"
-	case Float64:
-		return "float64"
-	case Map:
-		return "map"
-	case Vector:
-		return "vector"
-	case Array:
-		return "array"
+	if int(bt) >= 0 && int(bt) < len(builtinTypes) {
+		return builtinTypes[int(bt)]
 	}
 	return "<unknown>"
 }
@@ -275,6 +226,6 @@ func (bt BuiltinType) IsInt() bool {
 	return false
 }
 
-func (bt BuiltinType) IsFloat() bool {
-	return bt == Float32 || bt == Float64
-}
+func (bt BuiltinType) IsFloat() bool     { return bt == Float32 || bt == Float64 }
+func (bt BuiltinType) IsNumber() bool    { return bt.IsInt() || bt.IsFloat() }
+func (bt BuiltinType) IsContainer() bool { return bt == Array || bt == Map || bt == Vector }

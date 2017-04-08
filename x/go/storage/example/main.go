@@ -59,13 +59,13 @@ func main() {
 
 	// Update
 	inserted.Age = 20
-	api.Update(inserted, demo.UserMetaVar.F_age)
+	api.Update(inserted, inserted.Meta().F_age)
 	//loaded = &demo.User{Id: 1}
 	//found, err = api.Get(loaded)
 	//log.Debug("Get: found=%v, error=%v, value=%v", found, err, loaded)
 
 	// Remove
-	api.Remove(inserted) // <=> api.RemoveRecords(inserted.Meta(), inserted.Key())
+	api.Remove(inserted) // <=> api.RemoveRecords(inserted.TableMeta(), inserted.Key())
 	found, err = api.Get(&demo.User{Id: inserted.Id})
 	log.Debug("Remove: found=%v, error=%v", found, err)
 
@@ -123,7 +123,7 @@ func main() {
 	log.Debug("IndexScore: user %d UserAgeIndex equal to storage.InvalidScore? %v", -1, score == storage.InvalidScore)
 
 	// Clear
-	api.Clear(demo.UserMetaVar.Name())
-	api.Clear(demo.AddressMetaVar.Name())
-	api.Clear(demo.ProductMetaVar.Name())
+	api.Clear(demo.User{}.Meta().Name())
+	api.Clear(demo.Address{}.Meta().Name())
+	api.Clear(demo.Product{}.Meta().Name())
 }

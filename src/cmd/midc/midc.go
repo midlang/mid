@@ -223,7 +223,7 @@ var root = &cli.Command{
 		}
 
 		// allocate id for beans which kind contained in argv.IdFor
-		allocatorInfos := strings.SplitN(argv.IdAllocator, "=", 2)
+		allocatorInfos := strings.SplitN(argv.IdAllocator, ":", 2)
 		if argv.IdAllocator != "" && len(allocatorInfos) != 0 {
 			allocatorName := allocatorInfos[0]
 			allocatorOpts := ""
