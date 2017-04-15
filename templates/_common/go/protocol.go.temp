@@ -38,8 +38,6 @@ desc: protocol 的代码生成规则
 	{{- if $field.Type.IsBool}}
 		{{- if OR (eq ($default.Get) "true") (eq ($default.Get) "1") }}
 			{{- $default.Set "DEFAULT 1"}}
-		{{- else}}
-			{{- $default.Set "DEFAULT 0"}}
 		{{- end}}
     {{- end}}
 	{{- if ne ($default.Get) ""}}{{$option.Set (join " " ($option.Get) $default.Get)}}

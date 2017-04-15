@@ -65,7 +65,7 @@ func buildType(typ build.Type) string {
 	case *build.ArrayType:
 		size, ok := build.IntFromExpr(t.Size)
 		if !ok {
-			panic("array.Size not a integer")
+			panic("array.Size not an integer")
 		}
 		return fmt.Sprintf("[%s]%s", size, buildType(t.T))
 	case *build.VectorType:

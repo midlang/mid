@@ -1,0 +1,119 @@
+package syntax;
+
+enum Token {
+	ILLEGAL = 0, `value:"ILLEGAL"` // invalid token
+	EOF     = 1, `value:"EOF"`     // eof
+	COMMENT = 2, `value:"COMMENT"` // comment
+	IDENT   = 3, `value:"IDENT"`   // identifier, e.g. main,abc
+	INT     = 4, `value:"INT"`     // integer, e.g. 12345
+	FLOAT   = 5, `value:"FLOAT"`   // float number, e.g. 123.45
+	CHAR    = 6, `value:"CHAR"`    // char, e.g. 'c'
+	STRING  = 7, `value:"STRING"`  // string, e.g. "abc"
+
+    // operators
+	LPAREN    = 11, `kind:"operator" value:"("`
+	RPAREN    = 12, `kind:"operator" value:")"`
+	LBRACK    = 13, `kind:"operator" value:"["`
+	RBRACK    = 14, `kind:"operator" value:"]"`
+	LBRACE    = 15, `kind:"operator" value:"{"`
+	RBRACE    = 16, `kind:"operator" value:"}"`
+	LT        = 17, `kind:"operator" value:"<"`
+	GT        = 18, `kind:"operator" value:">"`
+	EQ        = 19  `kind:"operator" value:"="`
+	COMMA     = 20, `kind:"operator" value:","`
+	DOT       = 21, `kind:"operator" value:"."`
+	SEMICOLON = 22, `kind:"operator" value:";"`
+	COLON     = 23, `kind:"operator" value:":"`
+	AT        = 24, `kind:"operator" value:"@"`
+	DOLLAR    = 25, `kind:"operator" value:"$"`
+	SHARP     = 26, `kind:"operator" value:"#"`
+	SLASH     = 27, `kind:"operator" value:"/"`
+	STAR      = 28, `kind:"operator" value:"*"`
+
+    // keywords
+    PACKAGE     = 40, `kind:"keyword" value:"package"`
+    IMPORT      = 41, `kind:"keyword" value:"import"`
+    ENUM        = 42, `kind:"keyword" value:"enum"`
+    CONST       = 43, `kind:"keyword" value:"const"`
+    REQUIRED    = 44, `kind:"keyword" value:"required"`
+    OPTIONAL    = 45, `kind:"keyword" value:"optional"`
+    EXTENDS     = 46, `kind:"keyword" value:"extends"`
+}
+
+// common nodes
+
+struct Field `kind:"node"` {
+    CommentGroup doc;
+    vector<Ident> options;
+    Type type;
+    vector<Ident> names;
+    Expr default;
+    BasicLit tag;
+    CommentGroup comment;
+}
+
+// expr nodes
+
+struct BadExpr `kind:"expr"` {
+    int from; `begin:"true"`
+    int to;
+}
+
+struct Ident `kind:"expr"` {
+    int pos; `value:"begin"`
+    string name;
+}
+
+struct BasicLit `kind:"expr"` {
+    int pos; `begin:"true" token:"INT,FLOAT,CHAR,STRING"`
+    Token tok; `store:"token"`
+    string lit; `stror:"lit"`
+}
+
+// type nodes
+
+struct BasicType `kind:"type"` {
+    Ident name; `begin:"true"`
+}
+
+// array<T,Size>
+struct ArrayType `kind:"type"` {
+    int pos; `begin:"true" token:"IDENT:array"`
+    int lt; `token:"LT"`
+    Type t;
+    int commaPos; `token:"COMMA"`
+    Expr size;
+    int gt; `token:"GT"`
+}
+
+// vector<T>
+struct VectorType `kind:"type"` {
+    int pos; `begin:"true" token:"IDENT:vector"`
+    int lt; `token:"LT"`
+    Type t;
+    int gt; `token:"GT"`
+}
+
+// map<K,V>
+struct MapType `kind:"type"` {
+    int pos; `begin:"true" token:"IDENT:array"`
+    int lt; `token:"LT"`
+    Type t;
+    int commaPos; `token:"COMMA"`
+    Expr size;
+    int gt; `token:"GT"`
+}
+
+// struct/protocol/enum
+struct BeanType `kind:"type"` {
+    Ident pkg; `token:"IDENT+DOT" optional:"true"`
+    Ident name;
+}
+
+// func
+struct FuncType `kind:"type"` {
+    int lParen; `begin:"true" token:"LPAREN"`
+    vector<Field> params;
+    int rParen; `token:"RPAREN"`
+    Type result; `optional:"true"`
+}

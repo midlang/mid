@@ -21,7 +21,7 @@ type argT struct {
 	ConfigFile   string            `cli:"c,config" usage:"config filename"`
 	LogLevel     logger.Level      `cli:"log" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
 	Outdirs      map[string]string `cli:"O,outdir" usage:"output directories for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
-	Extensions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xproto -Xredis -Xmysql -Xrpc"`
+	Extensions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xmeta -Xcodec"`
 	Envvars      map[string]string `cli:"E,env" usage:"custom defined environment variables"`
 	ImportPaths  []string          `cli:"I,importpath" usage:"import paths for lookuping imports"`
 	TemplateKind string            `cli:"K,tempkind" usage:"template kind, a directory name" dft:"default"`

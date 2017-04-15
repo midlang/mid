@@ -80,7 +80,7 @@ func buildType(typ build.Type) string {
 	case *build.ArrayType:
 		size, ok := basicIntExprString(t.Size)
 		if !ok {
-			panic("array.Size not a integer")
+			panic("array.Size not an integer")
 		}
 		return fmt.Sprintf("std::array<%s,%s> ", buildType(t.T), size)
 	case *build.VectorType:
