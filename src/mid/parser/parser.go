@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -556,6 +557,16 @@ func ParseFile(fset *lexer.FileSet, filename string, src []byte) (f *ast.File, e
 		src, err = ioutil.ReadFile(filename)
 		if err != nil {
 			return
+		}
+	}
+	if len(src) > 0 {
+		if bytes.HasPrefix(src, []byte("#!")) {
+			index := bytes.Index(src, []byte("\n"))
+			if index >= 0 {
+				src = src[index+1:]
+			} else {
+				src = src[0:0]
+			}
 		}
 	}
 	p := new(parser)
