@@ -1,7 +1,7 @@
 ---
 layout: home
 date: 2016-12-03T18:11:54+08:00
-title: Midlang
+title: Getting started
 permalink: /
 ---
 
