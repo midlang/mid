@@ -194,7 +194,7 @@ Builtin template kinds: `default`, `beans`
 ## Plugin for editor
 
 - vim-mid - [https://github.com/midlang/vim-mid](https://github.com/midlang/vim-mid)
-- vim-sublime - [https://github.com/midlang/vim-sublime](https://github.com/midlang/vim-sublime)
+- mid-sublime - [https://github.com/midlang/mid-sublime](https://github.com/midlang/mid-sublime)
 
 ## TODO
 
