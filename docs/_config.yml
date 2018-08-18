@@ -1,1 +1,22 @@
 theme: jekyll-theme-cayman
+permalink: /:categories/:title:output_ext
+
+google_analytics: 'UA-77412491-2'
+
+email: i@mkideal.com
+facebook_username: mkideal.io
+twitter_username: mkideal
+wechat_id: mkideal
+github_username: mkideal
+disqus_username: mkideal
+
+markdown: kramdown
+kramdown:
+  syntax_highlighter_opts:
+    span:
+      line_numbers: false
+    block:
+      line_numbers: true
+
+plugins:
+  - jemoji

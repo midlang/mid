@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: " en-US " }}">
+
+<head>
+	<meta charset="UTF-8">
+
+	{% seo %}
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#157878">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+	
+	{% include shared-deps.html %}
+</head>
+
+<body>
+	<header class="page-header" role="banner">
+		{% include shared-header.html %}
+	</header>
+
+	<main id="content" class="main-content" role="main">
+		<h1>{{ page.title }}</h1>
+		<p style="color: #9E9E9E">
+			<span style="color: #8D6E63">{{ page.date | date: "%Y/%m/%d %H:%M" }}</span>
+			{% if page.previous.url %}
+				<a class="tiny ui labeled icon primary button nav-button" href="{{page.previous.url}}" title="{{page.previous.title}}"><i class="left arrow icon"></i>Prev</a>
+			{% endif %}
+			{% if page.next.url %}
+				<a class="tiny ui right labeled icon primary button nav-button" href="{{page.next.url}}" title="{{page.next.title}}">Next<i class="right arrow icon"></i></a>
+			{% endif %}
+		</p>
+
+		<div class="overlay">
+			<div id="toc" class="toc">
+				<input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none" />
+				<div class="toctitle">
+					<p>
+						<strong>目录</strong>
+						<span class="toctogglespan">
+							<label class="toctogglelabel" for="toctogglecheckbox"></label>
+						</span>
+					</p>
+				</div>
+				<div class="toccontent">
+					{% include toc.html html=content h_min=2 h_max=4 %}
+				</div>
+			</div>
+		</div>
+
+		{{ content }}
+
+		<footer class="site-footer">
+			{% if page.previous.url %}
+				<a class="tiny ui labeled icon primary button nav-button" href="{{page.previous.url}}" title="{{page.previous.title}}"><i class="left arrow icon"></i>Prev</a>
+			{% endif %}
+			{% if page.next.url %}
+				<a class="tiny ui right labeled icon primary button nav-button" href="{{page.next.url}}" title="{{page.next.title}}">Next<i class="right arrow icon"></i></a>
+			{% endif %}
+
+			{% include disqus.html %}
+		</footer>
+
+		<footer class="site-footer">
+			{% include shared-footer.html %}
+		</footer>
+	</main>
+
+	<script>
+		$(function() {
+			$('.nav-button').popup({});
+
+			$('.main-content h2').each(function() {
+				var e = $(this);
+				e.html('§ ' + e.html());
+			});
+
+			function toccheckboxChanged(e) {
+				//console.log("toccheckboxChanged");
+				if(e.is(':checked')){
+					$('.toccontent').hide();
+				} else {
+					$('.toccontent').show();
+				}
+			}
+
+			$('.overlay').visibility({
+				type: 'fixed',
+				offset: 20,
+				onTopVisible: function(calculations) {
+					console.log("onTopVisible");
+					// 如果原来是隐藏状态则改为显示
+					var e = $('#toctogglecheckbox');
+					if (e.is(':checked')) {
+						e.prop("checked", false);
+						toccheckboxChanged(e);
+					}
+				},
+				onBottomPassed: function(calculations) {
+					console.log("onBottomPassed");
+					// 如果原来是显示状态则改为隐藏
+					var e = $('#toctogglecheckbox');
+					if (!e.is(':checked')) {
+						e.prop("checked", true);
+						toccheckboxChanged(e);
+					}
+				},
+				onPassing: function(calculations) {
+					console.log("onPassing");
+					// 如果原来是显示状态则改为隐藏
+					var e = $('#toctogglecheckbox');
+					if (!e.is(':checked')) {
+					 	e.prop("checked", true);
+					 	toccheckboxChanged(e);
+					}
+				},
+			});
+
+			$('#toctogglecheckbox').change(function(){
+				toccheckboxChanged($(this));
+			});
+
+			$(document.links).filter(function() {
+				return this.hostname != window.location.hostname;
+			}).attr('target', '_blank');
+		});
+	</script>
+
+	{% include ga.js.temp %}
+
+</body>
+
+</html>

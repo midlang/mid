@@ -9,3 +9,6 @@ src/cmd/genprotobuf/genprotobuf
 testdata/generated/
 targets/
 x/go/storage/example/demo/
+
+docs/_site/
+docs/.sass-cache/

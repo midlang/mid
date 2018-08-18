@@ -1,0 +1,134 @@
+---
+---
+
+@import "{{ site.theme }}";
+//@media screen and (min-width: 64em) {
+@media screen and (min-width: 64em) {
+	.main-content {
+	    max-width: 88rem;
+	    padding: 2rem 6rem;
+	    margin: 0 auto;
+	    font-size: 1.45rem;
+	}
+}
+
+	.main-content li {
+		font-size: 1.4rem;
+		line-height: 1.5em;
+	}
+
+	.main-content p {
+		line-height: 1.6em;
+	}
+//}
+
+.main-content h1 {
+    color: #159957;
+	font-size: 3.0rem;
+}
+
+.main-content h2 {
+    color: #1E88E5;
+	font-size: 2.4rem;
+}
+
+.main-content h3 {
+    color: #7E57C2;
+	font-size: 1.8rem;
+}
+
+.main-content h4 {
+    color: #F57C00;
+	font-size: 1.6rem;
+}
+
+.main-content h5 {
+    color: #C51162;
+	font-size: 1.5rem;
+}
+
+.main-content h6 {
+    color: #263238;
+	font-size: 1.45rem;
+}
+
+.highlight table td {
+	padding: 0.5rem 0.5rem;
+	border: 0px;
+}
+
+.main-content .rouge-code pre {
+    border: 0px;
+}
+
+.main-content code {
+	font-size: 1.3rem;
+	background-color: #fcfcfc;
+	border-radius: 0.25rem;
+}
+
+.project-avatar {
+  margin-top: 0;
+  margin-bottom: 0.1rem;
+
+  @include large {
+    font-size: 3.25rem;
+	width: 500px;
+	max-width: 80%;
+  }
+
+  @include medium {
+    font-size: 2.25rem;
+	width: 500px;
+	max-width: 80%;
+  }
+
+  @include small {
+    font-size: 1.75rem;
+	width: 500px;
+	max-width: 80%;
+  }
+}
+
+.toc {
+	border: 1px solid #a2a9b1;
+	background-color: #f8f9fae8;
+	font-size: 100%;
+	display: inline-block;
+	padding: 15px;
+}
+
+.toc ul {
+	margin-bottom: 0px;
+	padding-left: 1.5rem;
+}
+
+.toctitle p {
+	text-align: center;
+}
+
+.overlay {
+	margin: 0em 3em 1em 0em;
+}
+.overlay .toc {
+	position: relative;
+	left: 0;
+	transition: left 0.5s ease;
+}
+
+.toctogglelabel {
+    cursor: pointer;
+    color: #0645ad;
+}
+span.toctogglespan::before {
+	content: '[';
+}
+.toctogglecheckbox:not(:checked) + .toctitle .toctogglelabel:after {
+    content: '隐藏';
+}
+.toctogglecheckbox:checked + .toctitle .toctogglelabel:after {
+    content: '显示';
+}
+span.toctogglespan::after {
+	content: ']';
+}
