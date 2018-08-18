@@ -10,5 +10,5 @@ midlang
    \/__/     \/__/     \/__/     \/__/     \/__/     \/__/     \/__/
 ```
 
-[English](./docs/index.md)
-[中文](./README_cn.md)
+#### [English](./docs/index.md)
+#### [中文](./README_cn.md)
