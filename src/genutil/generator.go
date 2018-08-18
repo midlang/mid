@@ -57,17 +57,19 @@ func Init(
 	// creates context
 	context = NewContext(buildType, plugin, config)
 
+	// <doc title="Functions">
 	funcs = template.FuncMap{
-		// context returns context
+		// @{context} returns context
 		"context": func() *Context { return context },
-		// outdir returns output directory
+		// {outdir} returns output directory
 		"outdir": func() string { return context.Config.Outdir },
-		// error print error log and returns an error
+		// {error} print error log and returns an error
 		"error": func(format string, args ...interface{}) error {
 			err := fmt.Errorf(format, args...)
 			log.Error("Error: %v", err)
 			return err
 		},
+		// {isInt} check whether the type is an integer
 		"isInt": func(typ string) bool {
 			switch typ {
 			case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
@@ -76,7 +78,7 @@ func Init(
 				return false
 			}
 		},
-		// include includes a text file
+		// {include} includes a file
 		"include": func(filename string) (string, error) {
 			if !filepath.IsAbs(filename) {
 				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
@@ -84,7 +86,7 @@ func Init(
 			content, err := ioutil.ReadFile(filename)
 			return string(content), err
 		},
-		// include_template includes a template file with `data`
+		// {include_template} includes a template file with `data`
 		// NOTE: include_template ignores meta header
 		"include_template": func(filename string, data interface{}) (string, error) {
 			if !filepath.IsAbs(filename) {
@@ -191,7 +193,7 @@ func Init(
 		"NOT": func(b bool) bool { return !b },
 		"XOR": func(b1, b2 bool) bool { return b1 != b2 },
 	}
-
+	// </doc>
 }
 
 // GeneratePackage generates codes for package
