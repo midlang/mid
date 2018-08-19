@@ -1,9 +1,11 @@
 ---
-layout: home
-date: 2016-12-03T18:11:54+08:00
-title: Quickstart
+layout: default
+date: 2016-12-03 18:11:54 +0800
+title: Docs
 permalink: /
 ---
+
+<a href="/cn" class="ui labeled icon button"><i class="hand point right icon"></i>中文</a>
 
 ## What's midlang?
 

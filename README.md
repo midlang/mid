@@ -11,4 +11,4 @@ midlang
 ```
 
 * [x] [English](./docs/index.md)
-* [ ] [中文](./README_cn.md)
+* [ ] [中文](./docs/index-cn.md)

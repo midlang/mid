@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 date: 2016-12-03T17:49:57+08:00
 title: Downloads
 permalink: /dl
