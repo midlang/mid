@@ -125,10 +125,10 @@ span.toctogglespan::before {
 	content: '[';
 }
 .toctogglecheckbox:not(:checked) + .toctitle .toctogglelabel:after {
-    content: '隐藏';
+    content: 'hide';
 }
 .toctogglecheckbox:checked + .toctitle .toctogglelabel:after {
-    content: '显示';
+    content: 'show';
 }
 span.toctogglespan::after {
 	content: ']';

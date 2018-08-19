@@ -31,22 +31,7 @@
 			{% endif %}
 		</p>
 
-		<div class="overlay">
-			<div id="toc" class="toc">
-				<input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none" />
-				<div class="toctitle">
-					<p>
-						<strong>目录</strong>
-						<span class="toctogglespan">
-							<label class="toctogglelabel" for="toctogglecheckbox"></label>
-						</span>
-					</p>
-				</div>
-				<div class="toccontent">
-					{% include toc.html html=content h_min=2 h_max=4 %}
-				</div>
-			</div>
-		</div>
+		{% include toc-section.html %}
 
 		{{ content }}
 
@@ -75,50 +60,7 @@
 				e.html('§ ' + e.html());
 			});
 
-			function toccheckboxChanged(e) {
-				//console.log("toccheckboxChanged");
-				if(e.is(':checked')){
-					$('.toccontent').hide();
-				} else {
-					$('.toccontent').show();
-				}
-			}
-
-			$('.overlay').visibility({
-				type: 'fixed',
-				offset: 20,
-				onTopVisible: function(calculations) {
-					console.log("onTopVisible");
-					// 如果原来是隐藏状态则改为显示
-					var e = $('#toctogglecheckbox');
-					if (e.is(':checked')) {
-						e.prop("checked", false);
-						toccheckboxChanged(e);
-					}
-				},
-				onBottomPassed: function(calculations) {
-					console.log("onBottomPassed");
-					// 如果原来是显示状态则改为隐藏
-					var e = $('#toctogglecheckbox');
-					if (!e.is(':checked')) {
-						e.prop("checked", true);
-						toccheckboxChanged(e);
-					}
-				},
-				onPassing: function(calculations) {
-					console.log("onPassing");
-					// 如果原来是显示状态则改为隐藏
-					var e = $('#toctogglecheckbox');
-					if (!e.is(':checked')) {
-					 	e.prop("checked", true);
-					 	toccheckboxChanged(e);
-					}
-				},
-			});
-
-			$('#toctogglecheckbox').change(function(){
-				toccheckboxChanged($(this));
-			});
+			{% include toc-section.js %}
 
 			$(document.links).filter(function() {
 				return this.hostname != window.location.hostname;

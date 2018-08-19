@@ -1,0 +1,16 @@
+<div class="overlay">
+	<div id="toc" class="toc">
+		<input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none" />
+		<div class="toctitle">
+			<p>
+				<strong>Contents</strong>
+				<span class="toctogglespan">
+					<label class="toctogglelabel" for="toctogglecheckbox"></label>
+				</span>
+			</p>
+		</div>
+		<div class="toccontent">
+			{% include toc.html html=content h_min=2 h_max=4 %}
+		</div>
+	</div>
+</div>

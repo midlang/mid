@@ -21,6 +21,7 @@
 
 	<main id="content" class="main-content" role="main">
 		<h1>{{ page.title }}</h1>
+		{% include toc-section.html %}
 		{{ content }}
 
 		<footer class="site-footer">
@@ -30,6 +31,8 @@
 
 	<script>
 		$(function() {
+			{% include toc-section.js %}
+
 			$(document.links).filter(function() {
 				return this.hostname != window.location.hostname;
 			}).attr('target', '_blank');
