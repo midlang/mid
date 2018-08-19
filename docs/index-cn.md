@@ -5,7 +5,7 @@ title: 文档
 permalink: /cn
 ---
 
-<a href="/" class="ui labeled icon mini button"><i class="hand point right icon"></i>English</a>
+<a href="https://midlang.org" class="ui labeled icon mini button"><i class="hand point right icon"></i>English</a>
 
 ## midlang 是什么？
 
@@ -228,5 +228,6 @@ type UserService interface {
 
 ## midc 命令行工具的使用
 
+[go]: https://golang.org/ "Go"
 [dsl]: https://en.wikipedia.org/wiki/Domain-specific_language "DSL"
 [mid-github]: https://github.com/midlang/mid "midlang"

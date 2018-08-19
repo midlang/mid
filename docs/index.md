@@ -5,7 +5,7 @@ title: Docs
 permalink: /
 ---
 
-<a href="/cn" class="ui labeled icon mini button"><i class="hand point right icon"></i>中文</a>
+<a href="https://midlang.org/cn" class="ui labeled icon mini button"><i class="hand point right icon"></i>中文</a>
 
 ## What's midlang?
 
