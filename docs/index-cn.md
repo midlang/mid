@@ -5,7 +5,7 @@ title: 文档
 permalink: /cn
 ---
 
-<a href="/" class="ui labeled icon button"><i class="hand point right icon"></i>English</a>
+<a href="/" class="ui labeled icon mini button"><i class="hand point right icon"></i>English</a>
 
 ## midlang 是什么？
 
