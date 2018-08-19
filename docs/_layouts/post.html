@@ -55,11 +55,6 @@
 		$(function() {
 			$('.nav-button').popup({});
 
-			$('.main-content h2').each(function() {
-				var e = $(this);
-				e.html('§ ' + e.html());
-			});
-
 			{% include toc-section.js %}
 
 			$(document.links).filter(function() {

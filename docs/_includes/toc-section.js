@@ -1,3 +1,5 @@
+{% unless page.notoc %}
+
 function toccheckboxChanged(e) {
 	//console.log("toccheckboxChanged");
 	if (e.is(':checked')) {
@@ -19,6 +21,24 @@ $('.overlay').visibility({
 			toccheckboxChanged(e);
 		}
 	},
+	onTopVisibleReverse: function(calculations) {
+		console.log("onTopVisibleReverse");
+	},
+	onTopPassedReverse: function(calculations) {
+		console.log("onTopPassedReverse");
+	},
+	onTopPassed: function(calculations) {
+		console.log("onTopPassed");
+	},
+	onBottomVisible: function(calculations) {
+		console.log("onBottomVisible");
+	},
+	onBottomVisibleReverse: function(calculations) {
+		console.log("onBottomVisibleReverse");
+	},
+	onBottomPassedReverse: function(calculations) {
+		console.log("onBottomPassedReverse");
+	},
 	onBottomPassed: function(calculations) {
 		console.log("onBottomPassed");
 		// 如果原来是显示状态则改为隐藏
@@ -27,6 +47,9 @@ $('.overlay').visibility({
 			e.prop("checked", true);
 			toccheckboxChanged(e);
 		}
+	},
+	onPassingReverse: function(calculations) {
+		console.log("onPassingReverse");
 	},
 	onPassing: function(calculations) {
 		console.log("onPassing");
@@ -42,3 +65,22 @@ $('.overlay').visibility({
 $('#toctogglecheckbox').change(function() {
 	toccheckboxChanged($(this));
 });
+
+$('.main-content h2').each(function() {
+	var e = $(this);
+	e.html('<i class="block layout icon"></i>' + e.html());
+});
+$('.main-content h3').each(function() {
+	var e = $(this);
+	e.html('<i class="tasks icon"></i>' + e.html());
+});
+$('.main-content h4').each(function() {
+	var e = $(this);
+	e.html('<i class="tag icon"></i>' + e.html());
+});
+$('.main-content h5').each(function() {
+	var e = $(this);
+	e.html('<i class="pointing right icon"></i>' + e.html());
+});
+
+{% endunless %}

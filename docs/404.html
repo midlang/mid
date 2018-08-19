@@ -1,5 +1,6 @@
 ---
 layout: default
+notoc: true
 ---
 
 <style type="text/css" media="screen">
@@ -9,17 +10,23 @@ layout: default
 		text-align: center;
 	}
 	
-	h1 {
+	.p404-head {
 		margin: 30px 0;
-		font-size: 4em;
+		font-size: 5em;
+		line-height: 1;
+		letter-spacing: -1px;
+	}
+
+	.p404-content {
+		margin: 30px 0;
+		font-size: 2em;
 		line-height: 1;
 		letter-spacing: -1px;
 	}
 </style>
 
 <div class="container">
-	<h1>404</h1>
+	<div class="p404-head">404</div>
 
-	<h2><strong>Page not found :(</strong></h2>
-	<p>The requested page could not be found.</p>
+	<strong class="p404-content">Page not found</strong>
 </div>

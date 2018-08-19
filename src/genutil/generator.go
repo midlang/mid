@@ -57,19 +57,18 @@ func Init(
 	// creates context
 	context = NewContext(buildType, plugin, config)
 
-	// <doc title="Functions">
 	funcs = template.FuncMap{
-		// @{context} returns context
+		// context returns context
 		"context": func() *Context { return context },
-		// {outdir} returns output directory
+		// outdir returns output directory
 		"outdir": func() string { return context.Config.Outdir },
-		// {error} print error log and returns an error
+		// error print error log and returns an error
 		"error": func(format string, args ...interface{}) error {
 			err := fmt.Errorf(format, args...)
 			log.Error("Error: %v", err)
 			return err
 		},
-		// {isInt} check whether the type is an integer
+		// isInt check whether the type is an integer
 		"isInt": func(typ string) bool {
 			switch typ {
 			case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
@@ -78,7 +77,7 @@ func Init(
 				return false
 			}
 		},
-		// {include} includes a file
+		// include includes a file
 		"include": func(filename string) (string, error) {
 			if !filepath.IsAbs(filename) {
 				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
@@ -86,9 +85,9 @@ func Init(
 			content, err := ioutil.ReadFile(filename)
 			return string(content), err
 		},
-		// {include_template} includes a template file with `data`
+		// include_template includes a template file with `data`
 		// NOTE: include_template ignores meta header
-		"include_template": func(filename string, data interface{}) (string, error) {
+		"includeTemplate": func(filename string, data interface{}) (string, error) {
 			if !filepath.IsAbs(filename) {
 				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
 			}
@@ -111,6 +110,11 @@ func Init(
 		"joinPath": func(paths ...string) string { return filepath.Join(paths...) },
 		// os
 		"osenv": func(key string) string { return os.Getenv(key) },
+		// values
+		"newBool":   func() *Bool { b := Bool(false); return &b },
+		"newString": func() *String { s := String(""); return &s },
+		"newInt":    func() *Int { i := Int(0); return &i },
+
 		// string operations
 		"string":      func(v interface{}) string { return fmt.Sprintf("%v", v) },
 		"title":       func(s string) string { return strings.Title(s) },
@@ -169,10 +173,6 @@ func Init(
 		"lower":      func(s string) string { return namemapper.Lower(s) },
 		"upperCamel": func(s string) string { return namemapper.UpperCamel(s) },
 		"lowerCamel": func(s string) string { return namemapper.LowerCamel(s) },
-		// values
-		"newBool":   func() *Bool { b := Bool(false); return &b },
-		"newString": func() *String { s := String(""); return &s },
-		"newInt":    func() *Int { i := Int(0); return &i },
 		// logic
 		"OR": func(bools ...bool) bool {
 			for _, b := range bools {
@@ -193,7 +193,6 @@ func Init(
 		"NOT": func(b bool) bool { return !b },
 		"XOR": func(b1, b2 bool) bool { return b1 != b2 },
 	}
-	// </doc>
 }
 
 // GeneratePackage generates codes for package
