@@ -10,5 +10,5 @@ midlang
    \/__/     \/__/     \/__/     \/__/     \/__/     \/__/     \/__/
 ```
 
-* [-] [English](https://midlang.org)
-* [-] [中文](https://midlang.org/cn)
+* [x] [English](https://midlang.org)
+* [x] [中文](https://midlang.org/cn)
