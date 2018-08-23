@@ -37,7 +37,10 @@ func init() {
 	gob.Register(&FuncType{})
 }
 
+//--------------------------------------------------------------
 // helper functions
+
+// BuildDoc builds Doc node to string
 func BuildDoc(doc *ast.CommentGroup) string {
 	if doc == nil {
 		return ""
@@ -49,6 +52,7 @@ func BuildDoc(doc *ast.CommentGroup) string {
 	return text
 }
 
+// BuildDoc builds Comment node to string
 func BuildComment(comment *ast.CommentGroup) string {
 	if comment == nil {
 		return ""
@@ -57,6 +61,7 @@ func BuildComment(comment *ast.CommentGroup) string {
 	return text
 }
 
+// BuildTag builds BasicLit to Tag
 func BuildTag(tag *ast.BasicLit) Tag {
 	if tag == nil {
 		return ""
@@ -72,6 +77,7 @@ func BuildTag(tag *ast.BasicLit) Tag {
 	return Tag(s)
 }
 
+// BuildIdent builds Ident node to string
 func BuildIdent(ident *ast.Ident) string {
 	if ident == nil {
 		return ""
@@ -79,6 +85,7 @@ func BuildIdent(ident *ast.Ident) string {
 	return ident.Name
 }
 
+// BuildIdentList builds Ident nodes to string slice
 func BuildIdentList(idents []*ast.Ident) []string {
 	if len(idents) == 0 {
 		return []string{}
@@ -90,24 +97,31 @@ func BuildIdentList(idents []*ast.Ident) []string {
 	return strs
 }
 
+// Tag represents a tag
 type Tag string
 
+// Clone clones a new tag
 func (tag Tag) Clone() *Tag {
 	x := Tag(string(tag))
 	return &x
 }
+
+// String covnerts ta string
 func (tag Tag) String() string { return string(tag) }
 
+// HasKey checks if key found in tag
 func (tag Tag) HasKey(key string) bool {
 	_, ok := tag.Lookup(key)
 	return ok
 }
 
+// Get gets value for key
 func (tag Tag) Get(key string) string {
 	value, _ := tag.Lookup(key)
 	return value
 }
 
+// Set sets value for key
 func (tag *Tag) Set(key, value string) string {
 	pairs, _, index := tag.parse(key)
 	if index >= 0 {
@@ -119,6 +133,7 @@ func (tag *Tag) Set(key, value string) string {
 	return ""
 }
 
+// Del deletes pair for key
 func (tag *Tag) Del(key string) string {
 	pairs, _, index := tag.parse(key)
 	if index >= 0 {
@@ -128,6 +143,7 @@ func (tag *Tag) Del(key string) string {
 	return ""
 }
 
+// Lookup finds value for key
 func (tag Tag) Lookup(key string) (value string, ok bool) {
 	_, value, index := tag.parse(key)
 	return value, index >= 0
@@ -202,6 +218,7 @@ func (tag Tag) parse(key string) (pairs []tagpair, value string, index int) {
 	return
 }
 
+// Field represents a field of struct or protocol
 type Field struct {
 	Doc     string
 	Options []string
@@ -212,6 +229,7 @@ type Field struct {
 	Comment string
 }
 
+// Name returns name of field
 func (field Field) Name() (string, error) {
 	if len(field.Names) == 0 {
 		return "", nil
@@ -222,6 +240,7 @@ func (field Field) Name() (string, error) {
 	return "", ErrAmbiguousNames
 }
 
+// Value returns default value of field
 func (field Field) Value() string {
 	switch e := field.Default.(type) {
 	case *BasicLit:
@@ -230,19 +249,23 @@ func (field Field) Value() string {
 	panic("unsupported expr")
 }
 
+// GetTag gets tag value for key
 func (field Field) GetTag(key string) string {
 	return field.Tag.Get(key)
 }
 
+// HasTag checks if tag contains key
 func (field Field) HasTag(key string) bool {
 	_, ok := field.Tag.Lookup(key)
 	return ok
 }
 
+// AddTag adds key-value pair to tag
 func (field *Field) AddTag(key, value string) {
 	field.Tag.Set(key, value)
 }
 
+// BuildField builds Field node to Field struct
 func BuildField(field *ast.Field) *Field {
 	out := &Field{
 		Doc:     BuildDoc(field.Doc),
@@ -257,6 +280,7 @@ func BuildField(field *ast.Field) *Field {
 	return out
 }
 
+// BuildFieldList builds Field nodes to field struct slice
 func BuildFieldList(fields *ast.FieldList) []*Field {
 	if fields == nil || len(fields.List) == 0 {
 		return []*Field{}
@@ -268,10 +292,12 @@ func BuildFieldList(fields *ast.FieldList) []*Field {
 	return list
 }
 
+// Expr is an interface which represents expression node
 type Expr interface {
 	ExprNode()
 }
 
+// IntFromExpr converts Expr node to string which represents an integer
 func IntFromExpr(expr Expr) (string, bool) {
 	switch e := expr.(type) {
 	case *BasicLit:

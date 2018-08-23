@@ -58,35 +58,18 @@ func Init(
 	context = NewContext(buildType, plugin, config)
 
 	funcs = template.FuncMap{
+		// Common functions
+
 		// context returns context
 		"context": func() *Context { return context },
-		// outdir returns output directory
-		"outdir": func() string { return context.Config.Outdir },
 		// error print error log and returns an error
 		"error": func(format string, args ...interface{}) error {
 			err := fmt.Errorf(format, args...)
 			log.Error("Error: %v", err)
 			return err
 		},
-		// isInt check whether the type is an integer
-		"isInt": func(typ string) bool {
-			switch typ {
-			case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
-				return true
-			default:
-				return false
-			}
-		},
-		// include includes a file
-		"include": func(filename string) (string, error) {
-			if !filepath.IsAbs(filename) {
-				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
-			}
-			content, err := ioutil.ReadFile(filename)
-			return string(content), err
-		},
 		// include_template includes a template file with `data`
-		// NOTE: include_template ignores meta header
+		// NOTE: includeTemplate ignores meta header
 		"includeTemplate": func(filename string, data interface{}) (string, error) {
 			if !filepath.IsAbs(filename) {
 				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
@@ -102,43 +85,55 @@ func Init(
 			context.Pwd = pwd
 			return buf.String(), err
 		},
-		"valueAt": func(values []interface{}, index int) interface{} { return values[index] },
-		"slice":   func(values ...interface{}) []interface{} { return values },
-		// pwd returns current template file directory
-		"pwd": func() string { return context.Pwd },
+		// include includes a file
+		"include": func(filename string) (string, error) {
+			if !filepath.IsAbs(filename) {
+				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
+			}
+			content, err := ioutil.ReadFile(filename)
+			return string(content), err
+		},
+		// isInt check whether the type is an integer
+		"isInt": func(typ string) bool {
+			switch typ {
+			case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
+				return true
+			default:
+				return false
+			}
+		},
 		// joinPath joins file paths
 		"joinPath": func(paths ...string) string { return filepath.Join(paths...) },
-		// os
+		// osenv gets env
 		"osenv": func(key string) string { return os.Getenv(key) },
+		// outdir returns output directory
+		"outdir": func() string { return context.Config.Outdir },
+		// pwd returns current template file directory
+		"pwd":     func() string { return context.Pwd },
+		"slice":   func(values ...interface{}) []interface{} { return values },
+		"valueAt": func(values []interface{}, index int) interface{} { return values[index] },
+
 		// values
 		"newBool":   func() *Bool { b := Bool(false); return &b },
 		"newString": func() *String { s := String(""); return &s },
 		"newInt":    func() *Int { i := Int(0); return &i },
 
-		// string operations
-		"string":      func(v interface{}) string { return fmt.Sprintf("%v", v) },
-		"title":       func(s string) string { return strings.Title(s) },
-		"toLower":     func(s string) string { return strings.ToLower(s) },
-		"toUpper":     func(s string) string { return strings.ToUpper(s) },
-		"contains":    func(sub, s string) bool { return strings.Contains(s, sub) },
+		// String functions
+
+		"append":      func(appended string, s string) string { return s + appended },
 		"containsAny": func(chars, s string) bool { return strings.ContainsAny(s, chars) },
-		"count":       func(sep, s string) int { return strings.Count(s, sep) },
-		"index":       func(sep, s string) int { return strings.Index(s, sep) },
-		"lastIndex":   func(sep, s string) int { return strings.LastIndex(s, sep) },
-		"join":        func(sep string, strs ...string) string { return strings.Join(strs, sep) },
-		"joinStrings": func(sep string, strs []string) string { return strings.Join(strs, sep) },
-		"split":       func(sep, s string) []string { return strings.Split(s, sep) },
-		"splitN":      func(sep string, n int, s string) []string { return strings.SplitN(s, sep, n) },
-		"stringAt":    func(strs []string, index int) string { return strs[index] },
-		"repeat":      func(count int, s string) string { return strings.Repeat(s, count) },
-		"replace":     func(old, new string, n int, s string) string { return strings.Replace(s, old, new, n) },
+		"contains":    func(substr, s string) bool { return strings.Contains(s, substr) },
+		"count":       func(substr, s string) int { return strings.Count(s, substr) },
+		"firstOf":     func(sep, s string) string { return firstOf(sep, s) },
 		"hasPrefix":   func(prefix string, s string) bool { return strings.HasPrefix(s, prefix) },
 		"hasSuffix":   func(suffix string, s string) bool { return strings.HasSuffix(s, suffix) },
-		"trimPrefix":  func(prefix string, s string) string { return strings.TrimPrefix(s, prefix) },
-		"trimSuffix":  func(suffix string, s string) string { return strings.TrimSuffix(s, suffix) },
-		"firstOf":     func(sep, s string) string { return firstOf(sep, s) },
+		"index":       func(substr, s string) int { return strings.Index(s, substr) },
+		"joinStrings": func(sep string, strs []string) string { return strings.Join(strs, sep) },
+		"join":        func(sep string, strs ...string) string { return strings.Join(strs, sep) },
+		"lastIndex":   func(sep, s string) int { return strings.LastIndex(s, sep) },
 		"lastOf":      func(sep, s string) string { return lastOf(sep, s) },
-		"nthOf":       func(sep, s string, n int) string { return nthOf(sep, s, n) },
+		"lowerCamel":  func(s string) string { return namemapper.LowerCamel(s) },
+		"nthOf":       func(sep, n int, s string) string { return nthOf(sep, s, n) },
 		"oneof": func(s string, set ...string) bool {
 			for _, s2 := range set {
 				if s == s2 {
@@ -147,8 +142,12 @@ func Init(
 			}
 			return false
 		},
-		"trimSpace": func(s string) string { return strings.TrimSpace(s) },
-		"append":    func(appended string, s string) string { return s + appended },
+		"repeat":   func(count int, s string) string { return strings.Repeat(s, count) },
+		"replace":  func(old, new string, n int, s string) string { return strings.Replace(s, old, new, n) },
+		"splitN":   func(sep string, n int, s string) []string { return strings.SplitN(s, sep, n) },
+		"split":    func(sep, s string) []string { return strings.Split(s, sep) },
+		"stringAt": func(strs []string, index int) string { return strs[index] },
+		"string":   func(data interface{}) string { return fmt.Sprintf("%v", data) },
 		"substr": func(startIndex, endIndex int, s string) string {
 			n := len(s)
 			if n == 0 {
@@ -157,7 +156,7 @@ func Init(
 			if startIndex < 0 {
 				startIndex = startIndex%n + n
 			}
-			if endIndex < 0 {
+			if endIndex <= 0 {
 				endIndex = endIndex%n + n
 			}
 			if endIndex > n {
@@ -168,20 +167,17 @@ func Init(
 			}
 			return s[startIndex:endIndex]
 		},
+		"title":      func(s string) string { return strings.Title(s) },
+		"toLower":    func(s string) string { return strings.ToLower(s) },
+		"toUpper":    func(s string) string { return strings.ToUpper(s) },
+		"trimPrefix": func(prefix string, s string) string { return strings.TrimPrefix(s, prefix) },
+		"trimSpace":  func(s string) string { return strings.TrimSpace(s) },
+		"trimSuffix": func(suffix string, s string) string { return strings.TrimSuffix(s, suffix) },
 		"underScore": func(s string) string { return namemapper.UnderScore(s) },
-		"upper":      func(s string) string { return namemapper.Upper(s) },
-		"lower":      func(s string) string { return namemapper.Lower(s) },
 		"upperCamel": func(s string) string { return namemapper.UpperCamel(s) },
-		"lowerCamel": func(s string) string { return namemapper.LowerCamel(s) },
-		// logic
-		"OR": func(bools ...bool) bool {
-			for _, b := range bools {
-				if b {
-					return true
-				}
-			}
-			return false
-		},
+
+		// Logical functions
+
 		"AND": func(bools ...bool) bool {
 			for _, b := range bools {
 				if !b {
@@ -191,6 +187,14 @@ func Init(
 			return true
 		},
 		"NOT": func(b bool) bool { return !b },
+		"OR": func(bools ...bool) bool {
+			for _, b := range bools {
+				if b {
+					return true
+				}
+			}
+			return false
+		},
 		"XOR": func(b1, b2 bool) bool { return b1 != b2 },
 	}
 }

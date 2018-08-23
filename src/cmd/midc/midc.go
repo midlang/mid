@@ -48,7 +48,7 @@ func newArgT() *argT {
 var root = &cli.Command{
 	Name:        "midc",
 	Argv:        func() interface{} { return newArgT() },
-	Desc:        "midlang compiler - compile source files and generate other languages code or documents",
+	Desc:        "midlang compiler - compile source files and generate code or documentation",
 	CanSubRoute: true,
 
 	Fn: func(ctx *cli.Context) error {

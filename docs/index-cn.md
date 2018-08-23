@@ -5,7 +5,7 @@ title: 文档
 permalink: /cn
 ---
 
-<a href="https://midlang.org" class="ui labeled icon mini button"><i class="hand point right icon"></i>English</a>
+<a href="/" class="ui labeled icon mini button"><i class="hand point right icon"></i>English</a>
 
 ## midlang 是什么？
 
@@ -88,7 +88,7 @@ service UserService {
 }
 ```
 
-### 使用代码生成模板生成代码
+### 使用模板生成代码
 
 定义模板文件 `package.go.temp` 如下
 
@@ -223,6 +223,51 @@ type UserService interface {
 下面分别围绕这 3 点来详细讲解 `mid` 的使用。
 
 ## mid 源文件语法
+
+### 基本组成元素
+
+#### 关键字
+
+```
+const
+enum
+extends
+group
+import
+optional
+package
+protocol
+required
+service
+struct
+```
+
+#### 字面值
+
+* 标志符: 如 `main`, `x`, `i`
+* 整数: 如 `12345`
+* 浮点数: 如 `123.45`
+* 字符: 如 `'a'`
+* 字符串: 如 `"abc"`
+
+#### 运算符
+
+```c
+( // 左圆括号
+) // 有圆括号
+[ // 左方括号
+] // 右方括号
+{ // 左花括号
+} // 右花括号
+< // 左尖括号(小于号)
+> // 右尖括号(大于号)
+, // 逗号
+. // 点
+; // 分号
+: // 冒号
+= // 等号
+# // 井号
+```
 
 ## mid 模板的使用
 

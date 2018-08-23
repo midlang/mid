@@ -9,6 +9,30 @@ function toccheckboxChanged(e) {
 	}
 }
 
+function tocMarkupHelper(ul, deeps) {
+	var count = 0;
+	ul.children("li").each(function() {
+		count++;
+		var li = $(this);
+		deeps.push(count);
+		li.children("a").each(function() {
+			var a = $(this);
+			var prepended = '<span class="toc-title-markup">' + deeps.join(".") + '</span>';
+			a.html(prepended + "&nbsp;&nbsp;" + a.html());
+		});
+		li.children("ul").each(function() {
+			tocMarkupHelper($(this), deeps.slice());
+		});
+		deeps.pop();
+	});
+}
+
+$(".toccontent").children("ul").each(function() {
+	$(this).css("padding-left", 0);
+	tocMarkupHelper($(this), []);
+});
+
+/*
 $('.overlay').visibility({
 	type: 'fixed',
 	offset: 20,
@@ -61,6 +85,7 @@ $('.overlay').visibility({
 		}
 	},
 });
+*/
 
 $('#toctogglecheckbox').change(function() {
 	toccheckboxChanged($(this));
@@ -68,19 +93,7 @@ $('#toctogglecheckbox').change(function() {
 
 $('.main-content h2').each(function() {
 	var e = $(this);
-	e.html('<i class="block layout icon"></i>' + e.html());
-});
-$('.main-content h3').each(function() {
-	var e = $(this);
-	e.html('<i class="tasks icon"></i>' + e.html());
-});
-$('.main-content h4').each(function() {
-	var e = $(this);
-	e.html('<i class="tag icon"></i>' + e.html());
-});
-$('.main-content h5').each(function() {
-	var e = $(this);
-	e.html('<i class="pointing right icon"></i>' + e.html());
+	e.html('§ ' + e.html());
 });
 
 {% endunless %}

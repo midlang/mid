@@ -36,7 +36,6 @@
 .main-content h3 {
     color: #7E57C2;
 	font-size: 1.8rem;
-	border-bottom: 1px solid #3f87a6;
 }
 
 .main-content h4 {
@@ -79,6 +78,18 @@ pre.lineno {
 	color: rgba(27,31,35,0.25);
 }
 
+.title h5 {
+	display: inline;
+}
+
+.function-name {
+	color: #008FEF;
+}
+
+.field-name {
+	color: #FD971F;
+}
+
 .project-avatar {
   margin-top: 0;
   margin-bottom: 0.1rem;
@@ -103,20 +114,25 @@ pre.lineno {
 }
 
 .toc {
-	border: 1px solid #a2a9b1;
+	border: 2px solid #a2a9b1;
 	background-color: #f8f9fae8;
 	font-size: 100%;
 	display: inline-block;
-	padding: 15px;
+	padding: 10px;
 }
 
 .toc ul {
 	margin-bottom: 0px;
-	padding-left: 1.5rem;
+	padding-left: 3rem;
+	list-style-type: none;
 }
 
 .toctitle p {
 	text-align: center;
+}
+
+.toc-title-markup {
+	color: black;
 }
 
 .overlay {
