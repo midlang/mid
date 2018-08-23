@@ -5,22 +5,22 @@
 		{
 			"lang": "go",
 			"name": "std",
-			"bin": "gengo"
+			"bin": "mid-gen-go"
 		},
 		{
 			"lang": "cpp",
 			"name": "std",
-			"bin": "gencpp"
+			"bin": "mid-gen-cpp"
 		},
 		{
 			"lang": "js",
 			"name": "std",
-			"bin": "genjs"
+			"bin": "mid-gen-js"
 		},
 		{
 			"lang": "protobuf",
 			"name": "std",
-			"bin": "genprotobuf"
+			"bin": "mid-genproto-buf"
 		}
 	]
 }

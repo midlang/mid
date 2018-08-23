@@ -95,5 +95,9 @@ $('.main-content h2').each(function() {
 	var e = $(this);
 	e.html('§ ' + e.html());
 });
+$('.main-content h5').each(function() {
+	var e = $(this);
+	e.html('<i class="pointing right icon"></i> ' + e.html());
+});
 
 {% endunless %}

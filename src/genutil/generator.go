@@ -133,7 +133,7 @@ func Init(
 		"lastIndex":   func(sep, s string) int { return strings.LastIndex(s, sep) },
 		"lastOf":      func(sep, s string) string { return lastOf(sep, s) },
 		"lowerCamel":  func(s string) string { return namemapper.LowerCamel(s) },
-		"nthOf":       func(sep, n int, s string) string { return nthOf(sep, s, n) },
+		"nthOf":       func(sep string, n int, s string) string { return nthOf(sep, s, n) },
 		"oneof": func(s string, set ...string) bool {
 			for _, s2 := range set {
 				if s == s2 {

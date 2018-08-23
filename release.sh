@@ -2,7 +2,7 @@
 
 set -e
 
-Go=go
+CMD_GO=go
 released_dir=targets
 languages=`cat languages.txt`
 
@@ -16,9 +16,9 @@ cd ..
 function mid_release_for() {
 	local _version=$1
 	local _os=$2
-	local _cpu=$3
+	local _arch=$3
 
-	local _target_dir=mid$_version.$_os-$_cpu
+	local _target_dir=mid$_version.$_os-$_arch
 	local _target_midroot=$_target_dir/mid
 	mkdir -p $_target_dir/bin
 	mkdir -p $_target_midroot
@@ -28,14 +28,16 @@ function mid_release_for() {
 	fi
 
 	# Building compiler `midc`
-	echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc$_suffix ./src/cmd/midc/"
-	GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/midc$_suffix ./src/cmd/midc/
+	echo "GOOS=$_os GOARCH=$_arch $CMD_GO build -o $_target_dir/bin/midc$_suffix ./src/cmd/midc/"
+	GOOS=$_os GOARCH=$_arch $CMD_GO build -o $_target_dir/bin/midc$_suffix ./src/cmd/midc/
 
 	# Building generators
-	for lang in $languages
+	local _lang
+	for _lang in $languages
 	do
-		echo "GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang$_suffix ./src/cmd/gen$lang"
-		GOOS=$_os GOARCH=$_cpu $Go build -o $_target_dir/bin/gen$lang$_suffix ./src/cmd/gen$lang
+		local _bin=mid-gen-$_lang
+		echo "GOOS=$_os GOARCH=$_arch $CMD_GO build -o $_target_dir/bin/$_bin$_suffix ./src/cmd/$_bin"
+		GOOS=$_os GOARCH=$_arch $CMD_GO build -o $_target_dir/bin/$_bin$_suffix ./src/cmd/$_bin
 	done
 
 	# Coping files

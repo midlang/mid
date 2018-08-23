@@ -12,8 +12,8 @@ languages=`cat languages.txt`
 for lang in $languages
 do
 	_pwd=`pwd`
-	cd ./src/cmd/gen$lang
-	echo "Installing generator: gen$lang"
+	cd ./src/cmd/mid-gen-$lang
+	echo "Installing generator: mid-gen-$lang"
 	go install
 	cd $_pwd
 done

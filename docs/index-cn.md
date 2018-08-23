@@ -226,22 +226,6 @@ type UserService interface {
 
 ### 基本组成元素
 
-#### 关键字
-
-```
-const
-enum
-extends
-group
-import
-optional
-package
-protocol
-required
-service
-struct
-```
-
 #### 字面值
 
 * 标志符: 如 `main`, `x`, `i`
@@ -249,6 +233,8 @@ struct
 * 浮点数: 如 `123.45`
 * 字符: 如 `'a'`
 * 字符串: 如 `"abc"`
+
+**注意**: [标识符][identifier]只能由下划线(`-`)，小写英文字母(`abcdefghijklmnopqrstuvwxyz`)，大写英文字母(`ABCDEFGHIJKLMNOPQRSTUVWXYZ`)和数字(`0123456789`)组成，且第一个字符不能是数字。比如 `main`，`total2`，`hello_world`，`_hello`，`HELLO`，`helloWorld`，`_1` 等都是合法的标识符，而 `$1`，`#var`，`哈罗`，`3d` 等都是不合法的标识符。
 
 #### 运算符
 
@@ -269,10 +255,230 @@ struct
 # // 井号
 ```
 
+#### 内置数据类型
+
+内置的数据类型包括
+
+* 基础数据类型: `any`
+，`byte`，`bytes`，`bool`，`string`，`float32`，`float64`，`int`，`int8`，`int16`，`int32`，`int64`，`uint`，`uint8`，`uint16`，`uint32`，`uint64`
+* 容器数据类型: `vector`，`array`，`map`
+
+#### 关键字
+
+```c
+const    // 常量
+enum     // 枚举
+extends  // 继承
+group    // 分组
+import   // 引入包
+optional // 可选字段
+package  // 定义包
+protocol // 结构对象定义
+required // 必填字段
+service  // 接口定义
+struct   // 结构对象定义
+```
+
+##### `package`: 定义包
+
+包名需要声明在文件的顶部（即除了注释之外，包名声明必须是第一个语法节点）。包名声明必须以分号 `;` 结尾，且包名必须是一个有效的[标识符][identifier]。如
+
+```
+package main;
+```
+
+##### `import`: 引入包
+
+##### `const`: 常量
+
+**注意**: 常量定义目前仅支持整数类型。
+
+定义常量是可以单行定义，如下
+
+```c
+const C = 1;
+```
+
+也可以分组定义，如下
+
+```c
+const (
+    A = 1;
+    B = 2;
+    C = 3;
+)
+```
+
+不管是单行还是分组的方式定义，每个常量末尾都需要使用分号 `;` 结束。
+
+##### `enum`: 枚举
+
+**注意**: 枚举定义目前仅支持整数类型。
+
+枚举定义方式如下
+
+```c
+enum Color {
+    None = 0,
+    Red = 1,
+    Blue = 2,
+    Green = 3,
+}
+```
+
+枚举类型需要定义一个名字，如上例中的 `Color`，每个枚举值结尾需要一个逗号 `,`。
+
+##### `struct`: 结构体定义
+
+`struct` 是 `mid` 中由使用者自定义的复杂数据类型，使用是很像 `c` 语言的定义方式。如下例
+
+```c
+struct User {
+    int64 id;
+    string name;
+    string email;
+    bool is_student;
+    vector<string> addresses;
+}
+```
+
+与 `c` 不同的是右花括号 `}` 后面不需要分号（但是每个字段定义后面需要分号）。
+
+##### `protocol`: 结构体定义
+
+实际上 `protocol` 和 `struct` 除了名称之外，完全一模一样，所以定义方式参照 `struct` 的定义说明即可。既然和 `struct` 完全一样，那为什么需要多出一个 `protocol` 关键字呢？这是由于开发中经常遇到结构体的 2 种类别。第一种仅仅就是定义一个结构，说明包含的数据有什么，它没有更高的含义，另一种则常常具有一种明显的业务含义，比如数据中的一张表的定义，在定义接口时，接口参数的定义。也就是说，当使用者在需要区别对待结构体的意义时，就可以给结构分别冠以 `struct` 和 `protocol` 来区分，而如果使用者的业务不需要区分，那么始终使用 `struct` 或 `protocol` 即可。
+
+##### `extends`: 继承
+
+继承语法适用于 `struct` 和 `protocol`，可以单继承也可以多继承，如
+
+```c
+struct User {
+    int64 id;
+    string name;
+    string email;
+    bool is_student;
+    vector<string> addresses;
+}
+
+// 单继承
+struct GameUser extends User {
+    int zone;
+    string nickname;
+    int level;
+}
+
+struct Action {
+    int action_id;
+    string ip;
+    int64 timestamp;
+}
+
+// 多继承
+protocol Login extends User,Action {
+    string ip;
+    int port;
+}
+```
+
+##### `optional`: 可选字段
+##### `required`: 必填字段
+
+##### `service`: 接口定义
+
+接口定义用于声明一组方法，比如
+
+```c
+struct User {
+    int64 id;
+    string name;
+    string email;
+    bool is_student;
+    vector<string> addresses;
+}
+
+service UserService{
+    getUsers() vector<User>;
+    addUser(User user) bool;
+    delUser(int64 id) bool;
+    findUser(int64 id) User;
+}
+```
+
+##### `group`: 分组
+
+分组本身并不是一个实体，仅用于对结构体，接口等进行更好的组织。很多时候都不需要使用 `group`，但有时候可能认为将关联性很强的结构体分组定义是很好的组织方式。
+
+```go
+group (
+    struct LoginRequest {
+        int id;
+    }
+
+    struct LoginResponse {
+        int result;
+    }
+)
+
+group (
+    struct LogoutRequest {
+        int id;
+    }
+
+    struct LogoutResponse {
+        int result;
+    }
+)
+```
+
 ## mid 模板的使用
+
+[mid][mid-github] 使用模板来定制代码的生成，所以掌握模板的书写至关重要。目前 `mid` 使用 [go][go] 语言的[模板][go-template]语法。
 
 ## midc 命令行工具的使用
 
+执行 `midc -h` 查看帮助，如下
+
+<pre><code>midlang compiler - compile source files and generate other languages code or documents
+
+Options:
+
+  -h, --help                   display help information
+      --suffix=SUFFIX[=.mid]   source file suffix
+      --midroot[=$MIDROOT]     mid root directory
+  -v, --version                display version information
+  -c, --config                 config filename
+      --log[=warn]             log level for debugging: trace/debug/info/warn/error/fatal
+  -O, --outdir                 output directories for each language, e.g. -Ogo=dir1 -Ocpp=dir2
+  -X, --extension              extensions, e.g. -Xmeta -Xcodec
+  -E, --env                    custom defined environment variables
+  -I, --importpath             import paths for lookuping imports
+  -K, --tempkind[=default]     template kind, a directory name
+  -T, --template               templates directories for each language, e.g. -Tgo=dir1 -Tjava=dir2
+      --id-allocator           id allocator name and options,supported allocators: file
+      --id-for                 specific bean kinds which should be allocated a id
+</code></pre>
+
+### 最常用的参数
+
+* `-O` 指定输出目录: 使用 `-Ogo=dir1 -Ojava=dir2 -Ocpp=dir3` 这样的格式对需要生成的语言指定输出目录。
+
+* `-T` 指定模板目录: 使用 `-Tgo=dir1 -Tjava=dir2 -Tcpp=dir3` 这样的格式对需要生成的语言指定模板目录。
+
+* `-E` 自定义环境变量
+
+### 其他相对较少使用的参数
+
+* `-K` 指定使用内置模板
+* `-I` 指定包引入的查找目录
+* `-X` 使用内置扩展
+* `-c` 指定配置文件
+* `--log` 指定日志级别，支持 `trace/debug/info/warn/error/fatal`
+* `--suffix` 指定源文件后缀名
+* `--midroot` 指定 `mid` 安装根目录
+
 [go]: https://golang.org/ "Go"
+[go-template]: https://golang.org/pkg/text/template/ "Go template"
 [dsl]: https://en.wikipedia.org/wiki/Domain-specific_language "DSL"
+[identifier]: https://zh.wikipedia.org/wiki/%E6%A8%99%E8%AD%98%E7%AC%A6 "Identifier"
 [mid-github]: https://github.com/midlang/mid "midlang"

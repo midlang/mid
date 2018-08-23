@@ -2,10 +2,10 @@
 *.swo
 *.DS_Store
 src/cmd/midc/midc
-src/cmd/gengo/gengo
-src/cmd/gencpp/gencpp
-src/cmd/genjs/genjs
-src/cmd/genprotobuf/genprotobuf
+src/cmd/mid-gen-go/mid-gen-go
+src/cmd/mid-gen-cpp/mid-gen-cpp
+src/cmd/mid-gen-js/mid-gen-js
+src/cmd/mid-gen-protobuf/mid-gen-protobuf
 testdata/generated/
 targets/
 x/go/storage/example/demo/
