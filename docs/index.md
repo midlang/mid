@@ -7,6 +7,8 @@ permalink: /
 
 <a href="/cn" class="ui labeled icon mini button"><i class="hand point right icon"></i>中文</a>
 
+Go to [API documentation](/api) 。
+
 ## What's midlang?
 
 The aim of the first stage is to implement a [Domain-specific language][dsl],but have some differences.

@@ -7,6 +7,8 @@ permalink: /cn
 
 <a href="/" class="ui labeled icon mini button"><i class="hand point right icon"></i>English</a>
 
+_已经看过本篇文章，需要了解模板 API_ ? 请前往 [API文档](/cn/api) 。
+
 ## midlang 是什么？
 
 [midlang][mid-github]是一个通用的领域特定语言（domain-specific language、[DSL][dsl]）。`midlang` 完成语法解析工作得到语法树，然后交给语言生成插件去生成代码，而生成代码的过程高度使用模板，从而使 `midlang` 的使用者可以方便地定制代码的生成。
