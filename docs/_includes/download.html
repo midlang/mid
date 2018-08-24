@@ -1,0 +1,36 @@
+<div id="download-selection" style="border: solid 2px #66b5ff; padding: 15px; display: inline-block; margin-bottom: 20px; border-radius: 5px; background-color: #e6f3ff">
+	<div id="os-selection" class="ui compact selection dropdown">
+		<i class="dropdown icon"></i>
+		<div class="text"><i class="linux icon"></i>linux</div>
+		<div class="menu">
+			<div class="item active selected"><i class="linux icon"></i>linux</div>
+			<div class="item"><i class="apple icon"></i>macOS</div>
+			<div class="item"><i class="windows icon"></i>windows</div>
+		</div>
+	</div>
+	<div id="arch-selection" class="ui compact selection dropdown">
+		<i class="dropdown icon"></i>
+		<div class="text">64 bit</div>
+		<div class="menu">
+			<div class="item">64 bit</div>
+			<div class="item">32 bit</div>
+		</div>
+	</div>
+	<div id="version-selection" class="ui compact selection dropdown">
+		<i class="dropdown icon"></i>
+		<div class="text">v{{ site.mid_versions[0] }}</div>
+		<div class="menu">
+			{% for v in site.mid_versions %}
+			{% if v == site.mid_versions.first %}
+			<div class="item active selected">v{{ v }}</div>
+			{% else %}
+			<div class="item">v{{ v }}</div>
+			{% endif %}
+			{% endfor %}
+		</div>
+	</div>
+	<div id="download-button" class="ui compact selection dropdown" style="background-color: #80dfff; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
+		<i class="arrow circle down icon"></i>
+		<div class="text">下载</div>
+	</div>
+</div>

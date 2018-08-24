@@ -112,6 +112,25 @@ cd /path/to/mid # replace `/path/to/mid` with your actual directory
 ./install.sh
 ```
 
+### Install from binary
+
+Download and install
+
+<div class="post-content-align">
+{% include download.html %}
+</div>
+
+```sh
+tar zcf <name>.tar.gz
+cd <name>
+
+# install to /usr/local/
+sudo ./install.sh
+
+# or install to other directory, e.g. user directory
+# PREFIX=$HOME ./install.sh
+```
+
 ## Getting started
 
 ### Write a source file `demo.mid`

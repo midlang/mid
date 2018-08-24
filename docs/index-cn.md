@@ -31,7 +31,11 @@ cd /path/to/mid
 
 ### 使用预编译包安装
 
-先从 [https://midlang.org/dl](https://midlang.org/dl) 下载安装包，然后解压安装
+下载安装包，然后解压安装
+
+<div class="post-content-align">
+{% include download.html %}
+</div>
 
 ```sh
 tar zcf <name>.tar.gz

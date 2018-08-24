@@ -23,43 +23,7 @@
 	<main id="content" class="main-content" role="main">
 		<h1>{{ page.title }}</h1>
 
-		<div id="download-selection" style="border: solid 2px #66b5ff; padding: 15px; display: inline-block; margin-bottom: 20px; border-radius: 5px; background-color: #e6f3ff">
-			<div id="os-selection" class="ui compact selection dropdown">
-				<i class="dropdown icon"></i>
-				<div class="text"><i class="linux icon"></i>linux</div>
-				<div class="menu">
-					<div class="item active selected"><i class="linux icon"></i>linux</div>
-					<div class="item"><i class="apple icon"></i>macOS</div>
-					<div class="item"><i class="windows icon"></i>windows</div>
-				</div>
-			</div>
-			<div id="arch-selection" class="ui compact selection dropdown">
-				<i class="dropdown icon"></i>
-				<div class="text">64 bit</div>
-				<div class="menu">
-					<div class="item">64 bit</div>
-					<div class="item">32 bit</div>
-				</div>
-			</div>
-			<div id="version-selection" class="ui compact selection dropdown">
-				<i class="dropdown icon"></i>
-				<div class="text">v{{ site.mid_versions[0] }}</div>
-				<div class="menu">
-					{% for v in site.mid_versions %}
-					{% if v == site.mid_versions.first %}
-					<div class="item active selected">v{{ v }}</div>
-					{% else %}
-					<div class="item">v{{ v }}</div>
-					{% endif %}
-					{% endfor %}
-				</div>
-			</div>
-			<div id="download-button" class="ui compact selection dropdown" style="background-color: #80dfff; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
-				<i class="arrow circle down icon"></i>
-				<div class="text">下载</div>
-			</div>
-		</div>
-		<br/>
+		{% include download.html %}
 
 		{% include toc-section.html %}
 
@@ -81,61 +45,8 @@
 			}).attr('target', '_blank');
 
 			$('.ui.accordion').accordion();
-			$('.ui.dropdown').dropdown();
 
-			function active_selection(menu, text) {
-				$(menu + " .menu").children(".item").each(function() {
-					var value = $(this).text();
-					if (text === value) {
-						$(this).addClass("active selected");
-						$(menu + " .text").html($(this).html());
-					} else {
-						$(this).removeClass("active selected");
-					}
-				});
-			}
-			var current_os = platform.os.family;
-			if (current_os == "OS X") {
-				active_selection("#os-selection", "macOS");
-			} else if (current_os == "Windows") {
-				active_selection("#os-selection", "windows");
-			}
-			var current_arch = platform.os.architecture;
-			if (current_arch == 32) {
-				active_selection("#arch-selection", "32 bit");
-			}
-
-			$('#download-button').click(function() {
-				var os = "linux";
-				var arch = "64 bit";
-				var version = "";
-				var suffix = ".tar.gz";
-				$("#os-selection .menu").children(".selected").each(function() {
-					os = $(this).text();
-				});
-				$("#arch-selection .menu").children(".selected").each(function() {
-					arch = $(this).text();
-				});
-				$("#version-selection .menu").children(".selected").each(function() {
-					version = $(this).text();
-				});
-				if (os === "macOS") {
-					os = "darwin";
-				}
-				if (os === "windows") {
-					suffix = ".zip";
-				}
-				if (arch === "32 bit") {
-					arch = "386";
-				} else if (arch === "64 bit") {
-					arch = "amd64";
-				}
-				version = version.replace(/^v/, '');
-				var addr = "https://github.com/midlang/mid/releases/download/";
-				addr += "v" + version +  "/mid" + version +  "." + os +  "-" + arch + suffix;
-				console.log("address: " + addr);
-				window.location.href = addr;
-			});
+			{% include download.js %}
 		});
 	</script>
 
