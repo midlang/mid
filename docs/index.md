@@ -87,23 +87,6 @@ See [builtin templates](https://github.com/midlang/mid/tree/master/templates)
 
 ## Install
 
-### Install from binary package
-
-- Download binary package from here: [https://midlang.org/dl](https://midlang.org/dl)
-
-- Unpack `\*.tar.gz`, and then `cd` target directory
-
-```sh
-tar zcf <name>.tar.gz
-cd <name>
-```
-
-- Install to your local host
-
-1. Copy all files in directory `bin` to any directory which contained in env `PATH`
-2. Copy file `midconfig` your home directory or one of these: `/etc`,`/usr/local/etc`
-3. Copy directories `templates` and `extensions` to $HOME/.mid or $MIDROOT if exist
-
 ### Install from source
 
 ```sh
@@ -112,7 +95,7 @@ cd /path/to/mid # replace `/path/to/mid` with your actual directory
 ./install.sh
 ```
 
-### Install from binary
+### Install from binary package
 
 Download and install
 
