@@ -17,5 +17,10 @@ kramdown:
     block:
       line_numbers: true
 
+mid_versions:
+    - "0.1.2"
+    - "0.1.1"
+    - "0.1"
+
 plugins:
   - jemoji

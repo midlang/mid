@@ -46,9 +46,9 @@ function mid_release_for() {
 	cp ./README.md $_target_dir/
 	cp -r ./templates $_target_midroot/
 	cp -r ./extensions $_target_midroot/
-	if [[ "$_os" != "windows" ]]; then
-		cp ./install.sh $_target_dir/
-	fi
+
+	cp ./hack/install.sh $_target_dir/install.sh
+	chmod +x $_target_dir/install.sh
 
 	# Targz or zip( for windows )
 	if [[ "$_os" == "windows" ]]; then

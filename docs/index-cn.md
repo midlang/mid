@@ -1,7 +1,7 @@
 ---
 layout: default
 date: 2018-08-19 14:30:11 +0800
-title: 文档
+title: 初识 midlang
 permalink: /cn
 ---
 
@@ -9,7 +9,7 @@ permalink: /cn
 
 ## midlang 是什么？
 
-[midlang][mid-github]是一个通用的领域特定语言（domain-specific language、[DSL][dsl]）。`midlang` 完成语法解析工作得到语法树，然后交给语言生成插件去生成代码，而生成代码的过程高度使用 [go][go] 语言的模板工具，从而使 `midlang` 的使用者可以方便地定制代码的生成。
+[midlang][mid-github]是一个通用的领域特定语言（domain-specific language、[DSL][dsl]）。`midlang` 完成语法解析工作得到语法树，然后交给语言生成插件去生成代码，而生成代码的过程高度使用模板，从而使 `midlang` 的使用者可以方便地定制代码的生成。
 
 `midlang` 至少可以用于以下目的:
 
@@ -31,16 +31,17 @@ cd /path/to/mid
 
 ### 使用预编译包安装
 
-先从 [https://midlang.org/dl](https://midlang.org/dl) 下载安装包，然后解压安装包拷贝文件
+先从 [https://midlang.org/dl](https://midlang.org/dl) 下载安装包，然后解压安装
 
 ```sh
 tar zcf <name>.tar.gz
 cd <name>
-sudo cp bin/* /usr/local/bin/
-sudo cp midconfig /usr/local/etc/
-mkdir -p $HOME/.mid
-cp -r templates $HOME/.mid/
-cp -r extentions $HOME/.mid/
+
+# 安装到 /usr/local/
+sudo ./install.sh
+
+# 或安装到别的目录，如用户目录
+# PREFIX=$HOME ./install.sh
 ```
 
 ## 开始使用
@@ -51,7 +52,7 @@ cp -r extentions $HOME/.mid/
 
 首先创建一个名为 `demo.mid` 的文本文件，文件内容如下
 
-```
+```c
 /**
  * package declaration must has a `;`
  */
@@ -92,8 +93,8 @@ service UserService {
 
 定义模板文件 `package.go.temp` 如下
 
-```
 {% raw %}
+```
 package {{.Name}}
 
 {{/* 定义常量的生成模板 */}}
@@ -144,8 +145,8 @@ type {{$type}} int
 {{end}}
 
 {{.GenerateDeclsBySubTemplates}}
-{% endraw %}
 ```
+{% endraw %}
 
 将该文件放到 `demo.mid` 所在目录的子目录 `templates` 下，即如下的目录结构:
 
@@ -330,7 +331,7 @@ enum Color {
 
 ##### `struct`: 结构体定义
 
-`struct` 是 `mid` 中由使用者自定义的复杂数据类型，使用是很像 `c` 语言的定义方式。如下例
+`struct` 是 `mid` 中由使用者自定义的复杂数据类型，使用时很像 `c` 语言的定义方式。如下例
 
 ```c
 struct User {
@@ -431,10 +432,6 @@ group (
 )
 ```
 
-## mid 模板的使用
-
-[mid][mid-github] 使用模板来定制代码的生成，所以掌握模板的书写至关重要。目前 `mid` 使用 [go][go] 语言的[模板][go-template]语法。
-
 ## midc 命令行工具的使用
 
 执行 `midc -h` 查看帮助，如下
@@ -476,6 +473,196 @@ Options:
 * `--log` 指定日志级别，支持 `trace/debug/info/warn/error/fatal`
 * `--suffix` 指定源文件后缀名
 * `--midroot` 指定 `mid` 安装根目录
+
+## mid 模板的使用
+
+[mid][mid-github] 使用模板来定制代码的生成，所以掌握模板的书写至关重要。目前 `mid` 使用 [go][go] 语言的[模板][go-template]语法。
+`mid` 的内置代码生成插件在使用模板时有一些约定规则。
+
+### 模板文件名规范
+
+之前的示例中使用的模板文件名为 `package.go.temp`。在这个文件名中 `temp` 是后缀，表明这是一个模板文件，`package` 代表这个模板将应用于语法树中的所有 `package` 类型的节点，`go` 则表示输出文件的后缀。
+
+一般地，模板文件名格式为 `<ast_node_type>.<output_file_suffix>[.extra_info].temp`，其中
+
+* `<ast_node_type>` 为节点类型，可取的值为: `package`，`file`，`const`，`enum`，`struct`，`protocol`，`service`
+* `<output_file_suffix>` 为生成文件后缀，如 `go`，`c`，`java`，`js`，`MD`，`txt` 等等
+* `[.extra_info]` 为可选的额外信息，可用于助记或区分。如 `package.go.orm.temp`，`package.go.def.temp`
+
+按照上面的说明，模板文件的命名将直接控制文件的生成。内置生成插件使用模板生成文件的过程为
+
+1. 首先根据指定的模板目录取出该目录下所有后缀为 `.temp` 的模板文件
+2. 对于每个模板文件，取出文件名指定的节点类型 `ast_node_type` 和生成文件后缀 `output_file_suffix`
+3. 遍历语法树中的 `ast_node_type` 类型的所有节点，对于每个节点，传入节点到模板中执行，生成文件输出
+
+由于同一种节点可以有多个模板文件，故而同一个节点可能输出到多个文件中。我们举个简单的例子来说明。
+
+源文件 `demo.mid` 内容如下
+
+```c
+package model;
+
+struct User {
+    int id;
+}
+
+struct Profile {
+	string email;
+}
+```
+
+模板文件 `temp/package.txt.temp` 如下
+
+{% raw %}
+```
+hello package {{.Name}}
+```
+{% endraw %}
+
+模板文件 `temp/package.md.temp` 如下
+
+{% raw %}
+```
+## {{.Name}}
+```
+{% endraw %}
+
+模板文件 `temp/struct.txt.temp` 如下
+
+{% raw %}
+```
+hello struct {{.Name}}
+```
+{% endraw %}
+
+模板文件 `temp/struct.go.temp` 如下
+
+{% raw %}
+```
+package {{context.Pkg.Name}}
+
+type {{.Name}} struct {
+	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}
+	{{end}}
+}
+```
+{% endraw %}
+
+目录结构如下
+
+```
+.
+├── demo.mid
+└── temp
+    ├── package.md.temp
+    ├── package.txt.temp
+    ├── struct.go.temp
+    └── struct.txt.temp
+```
+
+执行命令 `midc -Ogo=out -Tgo=temp` 后的目录结构如下
+
+```
+.
+├── demo.mid
+├── out
+│   └── model
+│       ├── Profile.go
+│       ├── Profile.txt
+│       ├── User.go
+│       ├── User.txt
+│       ├── model.md
+│       └── model.txt
+└── temp
+    ├── package.md.temp
+    ├── package.txt.temp
+    ├── struct.go.temp
+    └── struct.txt.temp
+```
+
+可以看到新增了 6 个文件，这 6 个文件就是输出的文件。这 6 个文件的内容分别为
+
+* model.md
+
+```
+## model
+```
+
+* model.txt
+
+```
+hello package model
+```
+
+* User.txt
+
+```
+hello struct User
+```
+
+* User.go
+
+```go
+package model
+
+type User struct {
+	Id int
+}
+```
+
+* Profile.txt
+
+```
+hello struct Profile
+```
+
+* Profile.go
+
+```go
+package model
+
+type Profile struct {
+	email string
+}
+```
+
+### 模板文件头元数据
+
+在模板文件最前面使用
+
+```
+---
+key1: value1
+key2: value2
+...
+keyN: valueN
+---
+```
+
+的方式可以定义模板文件的元数据，value 中可以使用模板。比如如下所示的模板文件 `struct.go.temp`
+
+{% raw %}
+```
+---
+file: {{.Name | toLower}}.go
+author: me
+date: 2008/08/08
+---
+package {{context.Pkg.Name}}
+
+type {{.Name}} struct {
+	{{range $field := .Fields}}{{$field.Name | title}} {{context.BuildType $field.Type}}
+	{{end}}
+}
+```
+{% endraw %}
+
+在这个例子中 `file` 字段是具有特殊含义的，该字段指定了文件输出的名字，这将覆盖掉默认的文件名（语法节点名+后缀），而 `author`，`data` 这两个字段不起任何作用，仅用于模板书写和观看者标注。目前有特殊用途的字段有以下几个
+
+* `file`: 指定输出文件的名字
+* `cond`: 文件输出的条件，这个值不等于 `false` 是文件会输出的必要条件之一
+* `notexist`: 该字段为 `true` 时要求输出的文件当前并不存在，这可以用于控制当要生成的文件已经存在时就不再输出
+* `append`: 该字段为 `true` 时文件追加输出（即如果原文件存在，则在文件后面追加输出内容而不是覆盖）
 
 [go]: https://golang.org/ "Go"
 [go-template]: https://golang.org/pkg/text/template/ "Go template"

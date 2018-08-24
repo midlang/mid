@@ -116,7 +116,7 @@ cd /path/to/mid # replace `/path/to/mid` with your actual directory
 
 ### Write a source file `demo.mid`
 
-```mid
+```
 /**
  * package declaration must has a `;`
  */

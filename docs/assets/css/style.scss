@@ -12,14 +12,14 @@
 	}
 }
 
-	.main-content li {
-		font-size: 1.4rem;
-		line-height: 1.5em;
-	}
+.main-content li {
+	font-size: 1.4rem;
+	line-height: 1.5em;
+}
 
-	.main-content p {
-		line-height: 1.6em;
-	}
+.main-content p {
+	line-height: 1.6em;
+}
 //}
 
 .main-content h1 {
@@ -60,12 +60,12 @@
 
 .main-content .rouge-code pre {
     border: 0px;
-	line-height: 1.5rem;
+	line-height: 1.8rem;
 }
 
 .main-content .rouge-gutter pre {
     border: 0px;
-	line-height: 1.5rem;
+	line-height: 1.8rem;
 }
 
 .main-content code {
@@ -77,6 +77,42 @@
 pre.lineno {
 	color: rgba(27,31,35,0.25);
 }
+
+//---- post-content margin
+.post-content h3 {
+	margin-left: 1rem;
+}
+
+.post-content h4 {
+	margin-left: 1.3rem;
+}
+
+.post-content h5 {
+	margin-left: 1.6rem;
+}
+
+.post-content h6 {
+	margin-left: 1.8rem;
+}
+
+.post-content li{
+	margin-left: 2rem;
+}
+
+.post-content p {
+	margin-left: 2rem;
+}
+
+.post-content .highlighter-rouge div {
+	margin-left: 2rem;
+}
+
+.post-content div.highlight {
+	border: solid 1px #375EAB;
+	border-radius: 5px;
+}
+
+//---- post-content
 
 .title h5 {
 	display: inline;
