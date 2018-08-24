@@ -485,7 +485,7 @@ Options:
 
 一般地，模板文件名格式为 `<ast_node_type>.<output_file_suffix>[.extra_info].temp`，其中
 
-* `<ast_node_type>` 为节点类型，可取的值为: `package`，`file`，`const`，`enum`，`struct`，`protocol`，`service`
+* `<ast_node_type>` 为节点类型，可取的值为: `package`，`file`，`const`，`enum`，`group`，`struct`，`protocol`，`service`
 * `<output_file_suffix>` 为生成文件后缀，如 `go`，`c`，`java`，`js`，`MD`，`txt` 等等
 * `[.extra_info]` 为可选的额外信息，可用于助记或区分。如 `package.go.orm.temp`，`package.go.def.temp`
 

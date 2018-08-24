@@ -12,15 +12,13 @@
 	}
 }
 
-.main-content li {
-	font-size: 1.4rem;
-	line-height: 1.5em;
+.main-content pre {
+	font: 1rem Monaco, Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
-.main-content p {
-	line-height: 1.6em;
+.main-content .highlight pre, .main-content pre {
+	font-size: 1rem;
 }
-//}
 
 .main-content h1 {
     color: #159957;
@@ -51,6 +49,14 @@
 .main-content h6 {
     color: #263238;
 	font-size: 1.45rem;
+}
+
+.main-content li {
+	line-height: 1.5em;
+}
+
+.main-content p {
+	line-height: 1.6em;
 }
 
 .highlight table td {

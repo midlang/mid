@@ -18,8 +18,8 @@ The compiler `midc` compile midlang source code to an AST, and then you can visi
 
 Here is an example template file (`package.go.temp`\):
 
-```
 {% raw %}
+```
 package {{.Name}}
 
 {{define "T_const"}}
@@ -60,8 +60,8 @@ type {{$type}} int
 {{end}}
 
 {{.GenerateDeclsBySubTemplates}}
-{% endraw %}
 ```
+{% endraw %}
 
 The following will be devoted to writing a document on how to use template in midlang.
 
