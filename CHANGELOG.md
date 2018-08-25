@@ -3,6 +3,10 @@ Change log
 
 ## Head
 
+## v0.1.3 (2018-08-25)
+
+* Fix docs
+* Fix APIs
 * Add `js` generator
 
 ## v0.1.2 (2016-12-12)

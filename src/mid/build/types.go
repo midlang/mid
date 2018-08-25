@@ -540,10 +540,6 @@ func (bean Bean) HasTag(key string) bool {
 	return ok
 }
 
-func (bean *Bean) AddTag(key, value string) {
-	bean.Tag.Set(key, value)
-}
-
 type ImportSpec struct {
 	Doc     string
 	Name    string
