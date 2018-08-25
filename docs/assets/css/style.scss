@@ -2,80 +2,253 @@
 ---
 
 @import "{{ site.theme }}";
-//@media screen and (min-width: 64em) {
-@media screen and (min-width: 64em) {
+
+// for large screen
+@include large {
 	.main-content {
 	    max-width: 88rem;
 	    padding: 2rem 6rem;
 	    margin: 0 auto;
 	    font-size: 1.45rem;
 	}
+	.main-content h1 {
+		font-size: 3.0rem;
+	}
+	.main-content h2 {
+		font-size: 2.4rem;
+	}
+	.main-content h3 {
+		font-size: 1.8rem;
+	}
+	.main-content h4 {
+		font-size: 1.6rem;
+	}
+	.main-content h5 {
+		font-size: 1.5rem;
+	}
+	.main-content h6 {
+		font-size: 1.45rem;
+	}
+	.main-content li {
+		font-size: 1.4rem;
+	}
+	.main-content p {
+		font-size: 1.4rem;
+	}
+	.toc ul {
+		padding-left: 3rem;
+	}
+	.post-content h3 {
+		margin-left: 1rem;
+	}
+	.post-content h4 {
+		margin-left: 1.3rem;
+	}
+	.post-content h5 {
+		margin-left: 1.6rem;
+	}
+	.post-content h6 {
+		margin-left: 1.8rem;
+	}
+	.post-content li{
+		margin-left: 2rem;
+	}
+	.post-content p {
+		margin-left: 2rem;
+	}
+	.post-content-align {
+		margin-left: 2rem;
+	}
+	.post-content .highlighter-rouge div {
+		margin-left: 2rem;
+	}
+	.main-content .highlight pre, .main-content pre {
+		font-size: 1.2rem;
+	}
 }
 
+// for medium screen
+@include medium {
+	.main-content {
+	    max-width: 88rem;
+	    padding: 1.6rem 5rem;
+	    margin: 0 auto;
+	    font-size: 1.25rem;
+	}
+	.main-content h1 {
+		font-size: 2.4rem;
+	}
+	.main-content h2 {
+		font-size: 2.1rem;
+	}
+	.main-content h3 {
+		font-size: 1.6rem;
+	}
+	.main-content h4 {
+		font-size: 1.5rem;
+	}
+	.main-content h5 {
+		font-size: 1.4rem;
+	}
+	.main-content h6 {
+		font-size: 1.3rem;
+	}
+	.main-content li {
+		font-size: 1.26rem;
+	}
+	.main-content p {
+		font-size: 1.26rem;
+	}
+	.toc ul {
+		padding-left: 2rem;
+	}
+	.post-content h3 {
+		margin-left: 0.7rem;
+	}
+	.post-content h4 {
+		margin-left: 1rem;
+	}
+	.post-content h5 {
+		margin-left: 1.3rem;
+	}
+	.post-content h6 {
+		margin-left: 1.5rem;
+	}
+	.post-content li{
+		margin-left: 1.7rem;
+	}
+	.post-content p {
+		margin-left: 1.7rem;
+	}
+	.post-content-align {
+		margin-left: 1.7rem;
+	}
+	.post-content .highlighter-rouge div {
+		margin-left: 1.7rem;
+	}
+	.main-content .highlight pre, .main-content pre {
+		font-size: 1.0rem;
+	}
+}
+
+// for small screen
+@include small {
+	.main-content {
+	    max-width: 88rem;
+	    padding: 0.5rem 1rem;
+	    margin: 0 auto;
+	    font-size: 1rem;
+	}
+	.main-content h1 {
+		font-size: 2rem;
+	}
+	.main-content h2 {
+		font-size: 1.8rem;
+	}
+	.main-content h3 {
+		font-size: 1.5rem;
+	}
+	.main-content h4 {
+		font-size: 1.3rem;
+	}
+	.main-content h5 {
+		font-size: 1.2rem;
+	}
+	.main-content h6 {
+		font-size: 1.1rem;
+	}
+	.main-content li {
+		font-size: 1.05rem;
+	}
+	.main-content p {
+		font-size: 1.05rem;
+	}
+	.toc ul {
+		padding-left: 1.5rem;
+	}
+	.post-content h3 {
+		margin-left: 0.4rem;
+	}
+	.post-content h4 {
+		margin-left: 0.6rem;
+	}
+	.post-content h5 {
+		margin-left: 0.8rem;
+	}
+	.post-content h6 {
+		margin-left: 1.0rem;
+	}
+	.post-content li{
+		margin-left: 1.2rem;
+	}
+	.post-content p {
+		margin-left: 1.2rem;
+	}
+	.post-content-align {
+		margin-left: 1.2rem;
+	}
+	.post-content .highlighter-rouge div {
+		margin-left: 1.2rem;
+	}
+	.main-content .highlight pre, .main-content pre {
+		font-size: 0.8rem;
+	}
+}
+
+// for all screen size
 .main-content pre {
 	font: 1rem Monaco, Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
-.main-content .highlight pre, .main-content pre {
-	font-size: 0.85rem;
-}
-
 .main-content h1 {
-    color: #159957;
-	font-size: 3.0rem;
+	color: #159957;
 }
 
 .main-content h2 {
-    color: #1E88E5;
-	font-size: 2.4rem;
+	color: #1E88E5;
 	border-bottom: 2px solid #3f87a6;
 }
 
 .main-content h3 {
-    color: #7E57C2;
-	font-size: 1.8rem;
+	color: #7E57C2;
 }
 
 .main-content h4 {
-    color: #F57C00;
-	font-size: 1.6rem;
+	color: #F57C00;
 }
 
 .main-content h5 {
-    color: #C51162;
-	font-size: 1.5rem;
+	color: #C51162;
 }
 
 .main-content h6 {
-    color: #263238;
-	font-size: 1.45rem;
+	color: #263238;
 }
 
 .main-content li {
-	line-height: 1.5em;
+	line-height: 1.6em;
 }
-
 .main-content p {
 	line-height: 1.6em;
 }
 
 .highlight table td {
-	padding: 0.5rem 0.5rem;
+	padding: 0.5em 0.5em;
 	border: 0px;
 }
 
 .main-content .rouge-code pre {
     border: 0px;
-	line-height: 1.8rem;
+	line-height: 1.8em;
 }
 
 .main-content .rouge-gutter pre {
     border: 0px;
-	line-height: 1.8rem;
+	line-height: 1.8em;
 }
 
 .main-content code {
-	font-size: 1.3rem;
+	font-size: inherit;
 	background-color: #fcfcfc;
 	border-radius: 0.25rem;
 }
@@ -85,37 +258,6 @@ pre.lineno {
 }
 
 //---- post-content margin
-.post-content h3 {
-	margin-left: 1rem;
-}
-
-.post-content h4 {
-	margin-left: 1.3rem;
-}
-
-.post-content h5 {
-	margin-left: 1.6rem;
-}
-
-.post-content h6 {
-	margin-left: 1.8rem;
-}
-
-.post-content li{
-	margin-left: 2rem;
-}
-
-.post-content p {
-	margin-left: 2rem;
-}
-
-.post-content-align {
-	margin-left: 2rem;
-}
-
-.post-content .highlighter-rouge div {
-	margin-left: 2rem;
-}
 
 .post-content div.highlight {
 	border: solid 1px #375EAB;
@@ -169,7 +311,6 @@ pre.lineno {
 
 .toc ul {
 	margin-bottom: 0px;
-	padding-left: 3rem;
 	list-style-type: none;
 }
 
