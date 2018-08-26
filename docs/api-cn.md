@@ -960,7 +960,7 @@ struct User `table:"user"` {
 <div class="ui styled accordion" style="width: 100%">
 
   <!-- Name -->
-  <div class="title"><h5><code><span class="field-name">Name</span>()</code>
+  <div class="title"><h5><code><span class="function-name">Name</span>()</code>
 	字段名称
 	</h5></div><div class="content"><p>使用示例</p><pre>
 <code>{% raw %}{{define "T_struct"}}
@@ -973,7 +973,7 @@ struct User `table:"user"` {
 {% endraw %}</code></pre></div>
 
   <!-- Value -->
-  <div class="title"><h5><code><span class="field-name">Value</span>()</code>
+  <div class="title"><h5><code><span class="function-name">Value</span>()</code>
 	字段值(目前仅对 enum 有效)
 	</h5></div><div class="content"><p>使用示例</p><pre>
 <code>{% raw %}{{define "T_enum"}}
