@@ -30,6 +30,8 @@ type Context struct {
 
 	// BuildType functions for current language
 	buildType BuildTypeFunc
+
+	Filename string
 }
 
 // NewContext creates a context by buildType,plugin,plugin_config
@@ -156,13 +158,17 @@ func (ctx *Context) JSInitValue(typ build.Type) string {
 			}
 		}
 	case typ.IsVector():
-		return "new Array()"
+		return "[]"
 	case typ.IsMap():
-		return "new Map()"
+		return "{}"
 	case typ.IsStruct():
 		t, ok := typ.(*build.StructType)
 		if ok {
-			return "new " + t.String(".") + "()"
+			if bean := ctx.Pkg.FindBean(t.Name); bean != nil && bean.Kind == "enum" {
+				return "0"
+			} else {
+				return "new " + t.String(".") + "()"
+			}
 		}
 	}
 	return "null"

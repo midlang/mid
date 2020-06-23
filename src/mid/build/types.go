@@ -308,6 +308,18 @@ func IntFromExpr(expr Expr) (string, bool) {
 	return "", false
 }
 
+func ParseIntFromExpr(expr Expr) (int, bool) {
+	s, ok := IntFromExpr(expr)
+	if !ok {
+		return 0, ok
+	}
+	if i, err := strconv.Atoi(s); err != nil {
+		return 0, false
+	} else {
+		return i, true
+	}
+}
+
 type ExprBase struct{}
 
 func (ExprBase) ExprNode() {}
@@ -349,7 +361,6 @@ type Type interface {
 	IsVector() bool
 	IsMap() bool
 	IsStruct() bool
-	IsEnum() bool
 	IsString() bool
 	IsInt() bool
 	IsFloat() bool
@@ -364,7 +375,6 @@ func (TypeBase) TypeNode()      {}
 func (TypeBase) IsArray() bool  { return false }
 func (TypeBase) IsVector() bool { return false }
 func (TypeBase) IsMap() bool    { return false }
-func (TypeBase) IsEnum() bool   { return false }
 func (TypeBase) IsStruct() bool { return false }
 func (TypeBase) IsString() bool { return false }
 func (TypeBase) IsInt() bool    { return false }
@@ -520,6 +530,16 @@ func BuildBean(bean *ast.BeanDecl) *Bean {
 		}
 	}
 	return b
+}
+
+func (bean Bean) FindFieldByName(name string) *Field {
+	for _, field := range bean.Fields {
+		name2, err := field.Name()
+		if err == nil && name == name2 {
+			return field
+		}
+	}
+	return nil
 }
 
 func (bean Bean) Field(i int) *Field {
@@ -714,6 +734,17 @@ func BuildPackage(pkg *ast.Package) *Package {
 		sort.Sort(byFilename(p.Files))
 	}
 	return p
+}
+
+func (pkg *Package) FindBean(name string) *Bean {
+	for _, file := range pkg.Files {
+		for _, bean := range file.Beans {
+			if bean.Name == name {
+				return bean
+			}
+		}
+	}
+	return nil
 }
 
 type byFilename []*File

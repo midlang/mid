@@ -112,6 +112,14 @@ func Init(
 		"pwd":     func() string { return context.Pwd },
 		"slice":   func(values ...interface{}) []interface{} { return values },
 		"valueAt": func(values []interface{}, index int) interface{} { return values[index] },
+		"bareFilename": func(filename string) string {
+			filename = filepath.Base(filename)
+			dotIndex := strings.Index(filename, ".")
+			if dotIndex >= 0 {
+				return filename[:dotIndex]
+			}
+			return filename
+		},
 
 		// values
 		"newBool":   func() *Bool { b := Bool(false); return &b },
@@ -242,6 +250,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 		context.Root = temp
 		context.Kind = kind
 		context.Suffix = suffix
+		context.Filename = ""
 
 		// apply template to specific kind node
 		switch kind {
@@ -260,6 +269,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 			}
 		case "file":
 			for _, f := range pkg.Files {
+				context.Filename = f.Filename
 				_, filename := filepath.Split(f.Filename)
 				filename = firstOf(".", filename)
 				dftName := filename + "." + suffix
@@ -275,6 +285,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 				} else {
 					return files, err
 				}
+				context.Filename = ""
 			}
 		case "const":
 			if len(constDecls) == 0 {
@@ -301,6 +312,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 			}
 		case "group":
 			for _, f := range pkg.Files {
+				context.Filename = f.Filename
 				for _, g := range f.Groups {
 					dftName := g.Name + "." + suffix
 					meta.File = oldMetaFile
@@ -316,10 +328,12 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 						return files, err
 					}
 				}
+				context.Filename = ""
 			}
 		// beans: enum,struct,protocol,service
 		default:
 			for _, f := range pkg.Files {
+				context.Filename = f.Filename
 				for _, b := range f.Beans {
 					if b.Kind == kind {
 						dftName := b.Name + "." + suffix
@@ -337,6 +351,7 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 						}
 					}
 				}
+				context.Filename = ""
 			}
 		}
 	}

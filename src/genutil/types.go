@@ -11,7 +11,13 @@ type Package struct {
 	*build.Package
 }
 
+// Depcrated API, use `Gen' instead
 func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
+	return pkg.Gen()
+}
+
+// Gen generates file by predefined sub-template `T_const`, `T_group`, `T_<kind>`
+func (pkg Package) Gen() (string, error) {
 	buf := new(bytes.Buffer)
 
 	if temp := context.Root.Lookup("T_const"); temp != nil {
@@ -32,22 +38,28 @@ func (pkg Package) GenerateDeclsBySubTemplates() (string, error) {
 
 	if temp := context.Root.Lookup("T_group"); temp != nil {
 		for _, f := range pkg.Files {
+			context.Filename = f.Filename
 			for _, g := range f.Groups {
 				if err := temp.Execute(buf, NewGroup(f, g)); err != nil {
+					context.Filename = ""
 					return "", err
 				}
 			}
+			context.Filename = ""
 		}
 	}
 
 	for _, f := range pkg.Files {
+		context.Filename = f.Filename
 		for _, b := range f.Beans {
 			if temp := context.Root.Lookup("T_" + b.Kind); temp != nil {
 				if err := temp.Execute(buf, NewBean(f, b)); err != nil {
+					context.Filename = ""
 					return "", err
 				}
 			}
 		}
+		context.Filename = ""
 	}
 	return buf.String(), nil
 }
@@ -81,7 +93,13 @@ func (f *File) FindGroup(name string) *build.Group {
 	return f.groups[name]
 }
 
+// Depcrated API, use `Gen' instead
 func (f File) GenerateDeclsBySubTemplates() (string, error) {
+	return f.Gen()
+}
+
+// Gen generates file by predefined sub-template `T_const`, `T_<kind>`
+func (f File) Gen() (string, error) {
 	buf := new(bytes.Buffer)
 
 	if temp := context.Root.Lookup("T_const"); temp != nil {
@@ -95,11 +113,14 @@ func (f File) GenerateDeclsBySubTemplates() (string, error) {
 	}
 
 	for _, b := range f.Beans {
+		context.Filename = f.Filename
 		if temp := context.Root.Lookup("T_" + b.Kind); temp != nil {
 			if err := temp.Execute(buf, NewBean(f.File, b)); err != nil {
+				context.Filename = ""
 				return "", err
 			}
 		}
+		context.Filename = ""
 	}
 	return buf.String(), nil
 }

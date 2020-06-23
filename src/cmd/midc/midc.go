@@ -60,7 +60,7 @@ var root = &cli.Command{
 
 		// initialize log
 		log.SetLevel(argv.LogLevel)
-		if !argv.LogLevel.MoreVerboseThan(log.LvINFO) {
+		if argv.LogLevel < log.LvINFO {
 			log.NoHeader()
 		}
 		log.WithJSON(argv).Debug("argv")
