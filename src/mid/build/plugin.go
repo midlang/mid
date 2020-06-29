@@ -5,8 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 type PluginRuntimeConfig struct {
@@ -91,8 +94,8 @@ func (plugin Plugin) Generate(builder *Builder, stdout, stderr io.Writer) error 
 	cmd := exec.Command(plugin.Bin,
 		"-p", string(encodedPlugin),
 		"-c", runtimeConfig,
-		"-src", source,
 	)
+	cmd.Stdin = strings.NewReader(source)
 	if stdout != nil {
 		cmd.Stdout = stdout
 	}
@@ -146,7 +149,19 @@ func ParseFlags() (plugin Plugin, config PluginRuntimeConfig, builder *Builder, 
 		return
 	}
 	builder = new(Builder)
-	if err = builder.Decode(*flSource); err != nil {
+	var source string
+	if *flSource != "" {
+		source = *flSource
+	} else {
+		var content []byte
+		content, err = ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			err = fmt.Errorf("read source error: %v", err)
+			return
+		}
+		source = string(content)
+	}
+	if err = builder.Decode(source); err != nil {
 		err = fmt.Errorf("decode source error: %v", err)
 	}
 	return

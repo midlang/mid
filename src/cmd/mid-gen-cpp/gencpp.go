@@ -30,7 +30,6 @@ func main() {
 
 func generate(builder *build.Builder, plugin build.Plugin, config build.PluginRuntimeConfig) (err error) {
 	defer func() {
-		return
 		if e := recover(); e != nil {
 			switch x := e.(type) {
 			case error:

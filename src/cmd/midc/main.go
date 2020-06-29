@@ -26,6 +26,7 @@ type argT struct {
 	ImportPaths  []string          `cli:"I,importpath" usage:"import paths for lookuping imports"`
 	TemplateKind string            `cli:"K,tempkind" usage:"template kind, a directory name" dft:"default"`
 	TemplatesDir map[string]string `cli:"T,template" usage:"templates directories for each language, e.g. -Tgo=dir1 -Tjava=dir2"`
+	PluginFiles  map[string]string `cli:"P" usage:"plugin generator file"`
 	IdAllocator  string            `cli:"id-allocator" usage:"id allocator name and options,supported allocators: file"`
 	IdFor        string            `cli:"id-for" usage:"specific bean kinds which should be allocated a id"`
 
@@ -91,13 +92,11 @@ var root = &cli.Command{
 				}
 			}
 		}
-		if argv.ConfigFile == "" {
-			log.Error("missing config file")
-			return nil
-		}
-		if err := argv.Config.Load(argv.ConfigFile); err != nil {
-			log.Error("load config %s: %v", cyan(argv.ConfigFile), red(err))
-			return nil
+		if argv.ConfigFile != "" {
+			if err := argv.Config.Load(argv.ConfigFile); err != nil {
+				log.Error("load config %s: %v", cyan(argv.ConfigFile), red(err))
+				return nil
+			}
 		}
 		// set MidRoot
 		if argv.Config.MidRoot == "" {
@@ -155,11 +154,28 @@ var root = &cli.Command{
 				log.Error("language %s output directory is empty", blue(lang))
 				hasError = true
 			}
-			plugin, ok := argv.Plugins.Lookup(lang)
-			if !ok {
-				log.Error("language plugin %s not found", blue(lang))
-				hasError = true
-				continue
+			var (
+				plugin *build.Plugin
+				ok     bool
+			)
+			if pluginFilename, found := argv.PluginFiles[lang]; found {
+				plugin = &build.Plugin{
+					Lang: lang,
+					Bin:  pluginFilename,
+					Name: "temp",
+				}
+			} else {
+				if argv.Plugins == nil {
+					log.Error("language plugin %s not found", blue(lang))
+					hasError = true
+					continue
+				}
+				plugin, ok = argv.Plugins.Lookup(lang)
+				if !ok {
+					log.Error("language plugin %s not found", blue(lang))
+					hasError = true
+					continue
+				}
 			}
 			if err := plugin.Init(); err != nil {
 				log.Error("init plugin %s: %v", formatPlugin(plugin.Lang, plugin.Name), err)
