@@ -10,4 +10,5 @@ require (
 	github.com/mkideal/log v1.0.0
 	github.com/mkideal/pkg v0.0.0-20170503154153-3e188c9e7ecc
 	github.com/stretchr/testify v1.5.1
+	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a // indirect
 )

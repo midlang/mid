@@ -19,7 +19,7 @@ do
 done
 
 echo "Coping config file"
-cp ./midconfig $HOME/midconfig
+cp ./midconfig $HOME/.midconfig
 
 echo "Coping templates and extensions"
 midroot=$HOME/.mid

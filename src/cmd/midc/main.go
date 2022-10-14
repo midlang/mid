@@ -84,8 +84,13 @@ var root = &cli.Command{
 
 		// load config file
 		if argv.ConfigFile == "" {
-			for _, dir := range []string{os.Getenv("HOME"), "/etc", "/usr/local/etc"} {
-				fullpath := filepath.Join(dir, "midconfig")
+			var paths []string
+			if homeDir, err := os.UserHomeDir(); err == nil && homeDir != "" {
+				paths = append(paths, homeDir)
+			}
+			paths = append(paths, "/usr/local/etc", "/etc")
+			for _, dir := range paths {
+				fullpath := filepath.Join(dir, ".midconfig")
 				if tmpInfo, err := os.Lstat(fullpath); err == nil && tmpInfo != nil && !tmpInfo.IsDir() {
 					argv.ConfigFile = fullpath
 					break

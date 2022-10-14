@@ -47,7 +47,7 @@ function mid_release_for() {
 	cp -r ./templates $_target_midroot/
 	cp -r ./extensions $_target_midroot/
 
-	cp ./hack/install.sh $_target_dir/install.sh
+	cp ./install.sh $_target_dir/install.sh
 	chmod +x $_target_dir/install.sh
 
 	# Targz or zip( for windows )
@@ -68,8 +68,10 @@ mkdir -p $released_dir/$version
 
 mid_release_for $version windows 386
 mid_release_for $version windows amd64
+mid_release_for $version windows arm64
 mid_release_for $version linux 386
 mid_release_for $version linux amd64
-mid_release_for $version darwin 386
+mid_release_for $version linux arm64
 mid_release_for $version darwin amd64
+mid_release_for $version darwin arm64
 
