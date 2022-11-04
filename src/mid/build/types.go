@@ -10,7 +10,6 @@ import (
 
 	"github.com/midlang/mid/src/mid/ast"
 	"github.com/midlang/mid/src/mid/lexer"
-	"github.com/mkideal/log"
 )
 
 var (
@@ -276,7 +275,6 @@ func BuildField(field *ast.Field) *Field {
 		Tag:     BuildTag(field.Tag),
 		Comment: BuildComment(field.Comment),
 	}
-	log.Trace("BuildField: field=%v", out.Names)
 	return out
 }
 

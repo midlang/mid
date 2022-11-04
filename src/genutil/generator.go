@@ -10,10 +10,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/midlang/mid/src/mid/build"
-	"github.com/mkideal/log"
+	"github.com/gopherd/log"
 	"github.com/mkideal/pkg/errors"
 	"github.com/mkideal/pkg/textutil/namemapper"
+
+	"github.com/midlang/mid/src/mid/build"
 )
 
 // BuildTypeFunc is a function type which used to build `build.Type` to a string
@@ -65,7 +66,7 @@ func Init(
 		// error print error log and returns an error
 		"error": func(format string, args ...interface{}) error {
 			err := fmt.Errorf(format, args...)
-			log.Error("Error: %v", err)
+			log.Error().Printf("Error: %v", err)
 			return err
 		},
 		// include_template includes a template file with `data`
@@ -218,7 +219,9 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 		return nil, errors.Throw(err.Error())
 	}
 	if len(infos) == 0 {
-		log.With(context.Plugin.Lang).Warn("no templates found")
+		log.Warn().
+			String("plugin", context.Plugin.Lang).
+			Print("no templates found")
 		return nil, nil
 	}
 
@@ -234,7 +237,6 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 	constDecls := make([]*GenDecl, 0)
 	files = make(map[string]bool)
 	for _, info := range infos {
-		log.With(context.Plugin.Lang).Debug("template file: %s", info.Name())
 		filename := filepath.Join(context.Plugin.TemplatesDir, info.Name())
 		meta, temp, err := ParseTemplateFile(filename)
 		if err != nil {
@@ -244,7 +246,6 @@ func GeneratePackage(pkg *build.Package) (files map[string]bool, err error) {
 
 		var file io.WriteCloser
 		kind, suffix := ParseTemplateFilename(info.Name())
-		log.Debug("kind=%s, suffix=%s", kind, suffix)
 
 		// sets context.Root and context.Kind
 		context.Root = temp

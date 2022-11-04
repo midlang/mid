@@ -5,13 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gopherd/log"
 	"github.com/midlang/mid/src/mid"
 	"github.com/midlang/mid/src/mid/build"
 	"github.com/midlang/mid/src/mid/lexer"
 	"github.com/midlang/mid/src/mid/parser"
 	"github.com/mkideal/cli"
-	"github.com/mkideal/log"
-	"github.com/mkideal/log/logger"
 )
 
 type argT struct {
@@ -19,7 +18,7 @@ type argT struct {
 	Config
 	Version      bool              `cli:"!v,version" usage:"display version information"`
 	ConfigFile   string            `cli:"c,config" usage:"config filename"`
-	LogLevel     logger.Level      `cli:"log" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
+	LogLevel     log.Level         `cli:"log" usage:"log level for debugging: trace/debug/info/warn/error/fatal" dft:"warn"`
 	Outdirs      map[string]string `cli:"O,outdir" usage:"output directories for each language, e.g. -Ogo=dir1 -Ocpp=dir2"`
 	Extensions   []string          `cli:"X,extension" usage:"extensions, e.g. -Xmeta -Xcodec"`
 	Envvars      map[string]string `cli:"E,env" usage:"custom defined environment variables"`
@@ -61,10 +60,6 @@ var root = &cli.Command{
 
 		// initialize log
 		log.SetLevel(argv.LogLevel)
-		if argv.LogLevel < log.LvINFO {
-			log.NoHeader()
-		}
-		log.WithJSON(argv).Debug("argv")
 
 		var (
 			blue = ctx.Color().Blue
@@ -99,7 +94,10 @@ var root = &cli.Command{
 		}
 		if argv.ConfigFile != "" {
 			if err := argv.Config.Load(argv.ConfigFile); err != nil {
-				log.Error("load config %s: %v", cyan(argv.ConfigFile), red(err))
+				log.Error().
+					String("filename", cyan(argv.ConfigFile)).
+					String("error", red(err)).
+					Print("load config failed")
 				return nil
 			}
 		}
@@ -120,10 +118,15 @@ var root = &cli.Command{
 		for lang, dir := range argv.TemplatesDir {
 			absDir, err := filepath.Abs(dir)
 			if err != nil {
-				log.Error("invalid templates directory: %s", red(dir))
+				log.Error().
+					String("dir", red(dir)).
+					Printf("invalid templates directory")
 				return nil
 			}
-			log.Debug("language %s templates directory: %s", cyan(lang), dir)
+			log.Debug().
+				String("lang", cyan(lang)).
+				String("dir", dir).
+				Print("language templates directory")
 			templatesDir[lang] = absDir
 		}
 		argv.TemplatesDir = templatesDir
@@ -136,13 +139,19 @@ var root = &cli.Command{
 		for _, in := range argv.Inputs {
 			finfo, err := os.Lstat(in)
 			if err != nil {
-				log.Error("input %s: %v", cyan(in), red(err))
+				log.Error().
+					String("input", cyan(in)).
+					String("error", red(err)).
+					Print("stat error")
 				return nil
 			}
 			if finfo.IsDir() {
 				files, err := filesInDir(in, sourceFileFilter)
 				if err != nil {
-					log.Error("get source files from dir %s: %v", cyan(in), red(err))
+					log.Error().
+						String("input", cyan(in)).
+						String("error", red(err)).
+						Print("get source files from dir error")
 					return nil
 				}
 				inputs = append(inputs, files...)
@@ -150,13 +159,14 @@ var root = &cli.Command{
 				inputs = append(inputs, in)
 			}
 		}
-		log.Debug("inputs: %v", inputs)
 
 		// lookup plugins
 		var hasError bool
 		for lang, outdir := range argv.Outdirs {
 			if outdir == "" {
-				log.Error("language %s output directory is empty", blue(lang))
+				log.Error().
+					String("lang", blue(lang)).
+					Print("language output directory is empty")
 				hasError = true
 			}
 			var (
@@ -171,26 +181,36 @@ var root = &cli.Command{
 				}
 			} else {
 				if argv.Plugins == nil {
-					log.Error("language plugin %s not found", blue(lang))
+					log.Error().
+						String("lang", blue(lang)).
+						Print("language plugin not found")
 					hasError = true
 					continue
 				}
 				plugin, ok = argv.Plugins.Lookup(lang)
 				if !ok {
-					log.Error("language plugin %s not found", blue(lang))
+					log.Error().
+						String("lang", blue(lang)).
+						Print("language plugin not found")
 					hasError = true
 					continue
 				}
 			}
 			if err := plugin.Init(); err != nil {
-				log.Error("init plugin %s: %v", formatPlugin(plugin.Lang, plugin.Name), err)
+				log.Error().
+					String("plugin", formatPlugin(plugin.Lang, plugin.Name)).
+					Error("error", err).
+					Print("init plugin error")
 				hasError = true
 				continue
 			}
 			oldOutdir := outdir
 			outdir, err = filepath.Abs(outdir)
 			if err != nil {
-				log.Error("get abs of outdir `%s` error: %v", oldOutdir, err)
+				log.Error().
+					String("outdir", oldOutdir).
+					Error("error", err).
+					Print("get abs of outdir error")
 				hasError = true
 				continue
 			}
@@ -210,11 +230,16 @@ var root = &cli.Command{
 				fullpath := filepath.Join(templatesRootDir, argv.TemplateKind, plugin.Lang)
 				plugin.TemplatesDir, err = filepath.Abs(fullpath)
 				if err != nil {
-					log.Error("get abs of path `%s` error: %v", fullpath, err)
+					log.Error().
+						String("fullpath", fullpath).
+						Error("error", err).
+						Print("get abs of path error")
 					return nil
 				}
 				if plugin.TemplatesDir == "" {
-					log.Error("templates directory of plugin %s missing", formatPlugin(plugin.Lang, plugin.Name))
+					log.Error().
+						String("plugin", formatPlugin(plugin.Lang, plugin.Name)).
+						Print("templates directory of plugin missing")
 					hasError = true
 					continue
 				}
@@ -229,18 +254,17 @@ var root = &cli.Command{
 		fset := lexer.NewFileSet()
 		pkgs, err := parser.ParseFiles(fset, argv.ImportPaths, inputs)
 		if err != nil {
-			log.Error("parse error:\n%v", red(err))
+			log.Error().
+				String("error", red(err)).
+				Print("parse error")
 			return nil
 		}
 		builder, err := build.Build(pkgs)
 		if err != nil {
-			log.Error("build error: %v", red(err))
+			log.Error().
+				String("error", red(err)).
+				Print("build error")
 			return nil
-		}
-
-		log.Debug("len(pkgs): %d", len(pkgs))
-		for name, _ := range pkgs {
-			log.Debug("package %s", cyan(name))
 		}
 
 		// allocate id for beans which kind contained in argv.IdFor
@@ -253,7 +277,9 @@ var root = &cli.Command{
 			}
 			allocator, err := build.NewBeanIdAllocator(allocatorName, allocatorOpts)
 			if err != nil {
-				log.Error("new bean id allocator error: %v", err)
+				log.Error().
+					Error("error", err).
+					Print("new bean id allocator error")
 				return err
 			}
 			idFor := make(map[string]bool)
@@ -270,16 +296,23 @@ var root = &cli.Command{
 				}
 			}
 			if err := allocator.Output(nil); err != nil {
-				log.Error("id allocator output error: %v", err)
+				log.Error().
+					Error("error", err).
+					Print("id allocator output error")
 				return err
 			}
 		}
 
 		// generate codes
 		for _, plugin := range plugins {
-			log.Debug("ready execute plugin %s", formatPlugin(plugin.Lang, plugin.Name))
+			log.Debug().
+				String("plugin", formatPlugin(plugin.Lang, plugin.Name)).
+				Print("ready execute plugin")
 			if err := plugin.Generate(builder, os.Stdout, os.Stderr); err != nil {
-				log.Error("plugin %s generate codes error: %v", formatPlugin(plugin.Lang, plugin.Name), red(err))
+				log.Error().
+					String("plugin", formatPlugin(plugin.Lang, plugin.Name)).
+					String("error", red(err)).
+					Print("plugin generate codes error")
 			}
 		}
 		return nil
@@ -287,9 +320,12 @@ var root = &cli.Command{
 }
 
 func main() {
-	defer log.Uninit(log.InitConsole(log.LvTRACE))
+	log.Start()
+	defer log.Shutdown()
 	err := root.Run(os.Args[1:])
-	log.If(err != nil).Error("%v", err)
+	log.If(err != nil).Error().
+		Error("error", err).
+		Print("run error")
 }
 
 func filesInDir(dir string, filter func(os.FileInfo) bool) ([]string, error) {
@@ -323,7 +359,8 @@ func loadExtensions(extensionsDir string, argv *argT) (extensions []build.Extens
 		var exts []build.Extension
 		exts, err = build.LoadExtensions(extensionsDir, shouldLoadExts)
 		if err != nil {
-			log.Error("load extensions error: %v", err)
+			log.Error().
+				Printf("load extensions error: %v", err)
 			break
 		}
 		extensions = append(extensions, exts...)

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/gopherd/log"
 	"github.com/midlang/mid/src/mid/build"
-	"github.com/mkideal/log"
 )
 
 type Config struct {
@@ -31,9 +31,9 @@ func (cfg *Config) Load(filename string) error {
 	if err := json.NewDecoder(file).Decode(cfg); err != nil {
 		return err
 	}
-	log.Debug("plugins.length: %d", cfg.Plugins.Len())
+	log.Debug().Printf("plugins.length: %d", cfg.Plugins.Len())
 	for _, p := range cfg.LoadedPlugins {
-		log.Debug("register plugin %s", p.Lang)
+		log.Debug().Printf("register plugin %s", p.Lang)
 		if err := cfg.Plugins.Register(p); err != nil {
 			return err
 		}

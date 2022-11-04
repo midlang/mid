@@ -3,33 +3,35 @@ package main
 import (
 	"fmt"
 
+	"github.com/gopherd/log"
+	"github.com/mkideal/pkg/errors"
+
 	"github.com/midlang/mid/src/genutil"
 	"github.com/midlang/mid/src/mid/build"
-	"github.com/mkideal/log"
-	"github.com/mkideal/pkg/errors"
 )
 
 func main() {
-	defer log.Uninit(log.InitColoredConsole(log.LvWARN))
+	log.Start(log.WithLevel(log.LevelWarn))
+	defer log.Shutdown()
 
 	plugin, config, builder, err := build.ParseFlags()
-	log.If(err != nil).Fatal("ParseFlags: %v", err)
-
-	level := log.SetLevelFromString(config.Verbose)
-	if !level.MoreVerboseThan(log.LvWARN) {
-		log.NoHeader()
-	}
-	log.WithJSON(plugin).Debug("plugin")
-	log.WithJSON(config).Debug("config")
-	log.WithJSON(builder).Trace("builder")
+	log.If(err != nil).Fatal().
+		Error("err", err).
+		Print("ParseFlags error")
+	log.Debug().
+		Any("plugin", plugin).
+		Any("config", config).
+		Any("builder", builder).
+		Print("running plugin")
 
 	err = generate(builder, plugin, config)
-	log.If(err != nil).Error("generate ts: %v", err)
+	log.If(err != nil).Error().
+		Error("err", err).
+		Print("generate error")
 }
 
 func generate(builder *build.Builder, plugin build.Plugin, config build.PluginRuntimeConfig) (err error) {
 	defer func() {
-		return
 		if e := recover(); e != nil {
 			switch x := e.(type) {
 			case error:

@@ -5,11 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
 	"github.com/midlang/mid/src/mid/ast"
-	"github.com/mkideal/log"
 )
 
 func init() {
@@ -58,7 +58,6 @@ func NewBuilder() *Builder {
 
 func Build(pkgs map[string]*ast.Package) (*Builder, error) {
 	builder := NewBuilder()
-	log.Debug("pkgs: %v", pkgs)
 	for _, pkg := range pkgs {
 		for _, file := range pkg.Files {
 			for _, imp := range file.Imports {
@@ -91,7 +90,7 @@ func (builder *Builder) Encode() string {
 	buf := new(bytes.Buffer)
 	err := gob.NewEncoder(buf).Encode(builder)
 	if err != nil {
-		log.Fatal("encode builder error: %v", err)
+		log.Fatalf("encode builder error: %v", err)
 	}
 	builder.encodedString = base64.StdEncoding.EncodeToString(buf.Bytes())
 	return builder.encodedString

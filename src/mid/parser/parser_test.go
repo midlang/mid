@@ -1,16 +1,14 @@
 package parser
 
 import (
-	//"fmt"
+	"fmt"
 	"io"
+	"log"
 	"os"
 	"testing"
 
 	"github.com/midlang/mid/src/mid/ast"
 	"github.com/midlang/mid/src/mid/lexer"
-
-	"github.com/mkideal/log"
-	"github.com/mkideal/log/provider"
 )
 
 type traceVisitor struct {
@@ -20,8 +18,7 @@ type traceVisitor struct {
 }
 
 func (v *traceVisitor) Fprintf(w io.Writer, format string, args ...interface{}) {
-	log.Printf(2, log.LvINFO, string(v.indents)+format, args...)
-	//fmt.Fprintf(w, string(v.indents)+format, args...)
+	log.Output(2, string(v.indents)+fmt.Sprintf(format, args...))
 }
 
 func (v *traceVisitor) Visit(node ast.Node) ast.Visitor {
@@ -96,8 +93,6 @@ func (v *traceVisitor) Out() {
 
 func TestParser(t *testing.T) {
 	w := os.Stdout
-	defer log.Uninit(log.InitWithProvider(provider.NewConsoleWithWriter("", w, w)))
-
 	src := []byte(`package demo;
 
 import "a/b/c";
@@ -138,6 +133,6 @@ enum Type {
 	ast.Walk(file, &traceVisitor{w: w, prefix: []byte(". . ")})
 
 	for _, unresolved := range file.Unresolved {
-		log.Info("unresolved ident: %s (pos: %v)", unresolved.Name, fset.Position(unresolved.Pos))
+		log.Printf("unresolved ident: %s (pos: %v)", unresolved.Name, fset.Position(unresolved.Pos))
 	}
 }

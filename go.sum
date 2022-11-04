@@ -2,6 +2,8 @@ github.com/Bowery/prompt v0.0.0-20190916142128-fa8279994f75 h1:xGHheKK44eC6K0u5X
 github.com/Bowery/prompt v0.0.0-20190916142128-fa8279994f75/go.mod h1:4/6eNcqZ09BZ9wLK3tZOjBA1nDj+B0728nlX5YRlSmQ=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/gopherd/log v0.1.12 h1:kkLRDH9MhEXtLiWc77jwisNhCQkNZWrgbtAzUIHopDc=
+github.com/gopherd/log v0.1.12/go.mod h1:gmYpBUEA6VpJUvyariz0aU4gT3Oqvu94nk45vx8W6uQ=
 github.com/labstack/gommon v0.3.0 h1:JEeO0bvc78PKdyHxloTKiF8BD5iGrH8T6MSeGvSgob0=
 github.com/labstack/gommon v0.3.0/go.mod h1:MULnywXg0yavhxWKc+lOruYdAhDwPK9wf0OL7NoOu+k=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
@@ -13,8 +15,6 @@ github.com/mattn/go-isatty v0.0.12 h1:wuysRhFDzyxgEmMf5xjvJ2M9dZoWAXNNr5LSBS7uHX
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
 github.com/mkideal/cli v0.0.5 h1:mDI9cfeqa+F8cccafj8EwB40dqgqTEjsovnAm0Fl+sc=
 github.com/mkideal/cli v0.0.5/go.mod h1:HLuSls75T7LFlTgByGeuLwcvdUmmx/aUQxnnEKxoZzY=
-github.com/mkideal/log v1.0.0 h1:GF4Bjcmdjsp2ZT/FUzTDc9g87oD4hgXFudmTEopHq+M=
-github.com/mkideal/log v1.0.0/go.mod h1:UHY5EOk5+/f2z2bQ6BGspFw5gl4F1SKjZI7Bqetm724=
 github.com/mkideal/pkg v0.0.0-20170503154153-3e188c9e7ecc h1:eyN9UWVX+CeeCQZPudCUAPc84xQYTjEu9MWNa2HuJrs=
 github.com/mkideal/pkg v0.0.0-20170503154153-3e188c9e7ecc/go.mod h1:DECgB56amjU/mmmsKuooNPQ1856HASOMC3D4ntSVU70=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

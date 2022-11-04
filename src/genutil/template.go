@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/mkideal/log"
+	"github.com/gopherd/log"
 	"github.com/mkideal/pkg/errors"
 )
 
@@ -30,7 +30,6 @@ type Template struct {
 
 // NewTemplate creates a Template by template.Template
 func NewTemplate(temp *template.Template) *Template {
-	log.Debug("NewTemplate: %s", temp.Name())
 	t := &Template{temp}
 	return t
 }
@@ -115,7 +114,6 @@ func ParseTemplateFile(filename string) (*TemplateMeta, *Template, error) {
 			}
 			kv[0] = strings.TrimSpace(kv[0])
 			meta.nativeValues[kv[0]] = kv[1]
-			log.Debug("%s:%d: key value pair: <%s:%s>", filename, line, kv[0], kv[1])
 		}
 		if !ended {
 			err = fmt.Errorf("%s: unexpected meta header end", filename)
@@ -142,17 +140,17 @@ func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName stri
 		temp = temp.Funcs(funcs)
 		temp, err := temp.Parse(v)
 		if err != nil {
-			log.Error("ApplyMeta: %v", err)
+			log.Error().Printf("apply meta error: %v", err)
 			return nil, err
 		}
 		var buf bytes.Buffer
 		if err = temp.Execute(&buf, data); err != nil {
-			log.Error("ApplyMeta: %v", err)
+			log.Error().Printf("apply meta error: %v", err)
 			return nil, err
 		}
 		v = strings.TrimSpace(buf.String())
 		values[k] = v
-		log.Debug("meta key value pair: <%s,%s>", k, v)
+		log.Debug().Printf("meta key value pair: <%s,%s>", k, v)
 	}
 	meta.Values = values
 
@@ -174,7 +172,7 @@ func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName stri
 		dir, _ := filepath.Split(meta.File)
 		if dir != "" && dir != "." {
 			if err := os.MkdirAll(dir, 0755); err != nil {
-				log.Error("mkdir %s error: %v", dir, err)
+				log.Error().Printf("mkdir %s error: %v", dir, err)
 				return nil, err
 			}
 		}
@@ -186,7 +184,7 @@ func ApplyMeta(outdir string, meta *TemplateMeta, data interface{}, dftName stri
 		}
 		file, err := os.OpenFile(meta.File, flags, 0666)
 		if err != nil {
-			log.Error("open file %s error: %v", meta.File, err)
+			log.Error().Printf("open file %s error: %v", meta.File, err)
 			return nil, err
 		}
 		return file, err
@@ -204,6 +202,7 @@ func (w discardWriter) Close() error                { return nil }
 // ParseTemplateFilename parses template filename: <kind>[.suffix[.flags]].temp
 // `kind` maybe `package`,`file`,`const` and other bean kinds like `struct`,`protocol`,`service` etc.
 // Examples:
+//
 //	struct.go.temp    -> (struct, go)
 //	struct.h.temp     -> (struct, h)
 //	struct.cpp.temp   -> (struct, cpp)
