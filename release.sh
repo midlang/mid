@@ -3,22 +3,19 @@
 set -e
 
 CMD_GO=go
-released_dir=targets
-languages=`cat languages.txt`
-
-version_file=VERSION
-version=`cat $version_file`
+RELEASE_DIR=targets
+LANGUAGES=`cat languages.txt`
+VERSION=`cat VERSION`
 
 cd ./hack
-source ./genmeta.sh $version
+source ./genmeta.sh $VERSION
 cd ..
 
-function mid_release_for() {
-	local _version=$1
-	local _os=$2
-	local _arch=$3
+function release_mid_for() {
+	local _os=$1
+	local _arch=$2
 
-	local _target_dir=mid$_version.$_os-$_arch
+	local _target_dir=mid$VERSION.$_os-$_arch
 	local _target_midroot=$_target_dir/mid
 	mkdir -p $_target_dir/bin
 	mkdir -p $_target_midroot
@@ -33,7 +30,7 @@ function mid_release_for() {
 
 	# Building generators
 	local _lang
-	for _lang in $languages
+	for _lang in $LANGUAGES
 	do
 		local _bin=mid-gen-$_lang
 		echo "GOOS=$_os GOARCH=$_arch $CMD_GO build -o $_target_dir/bin/$_bin$_suffix ./src/cmd/$_bin"
@@ -42,7 +39,7 @@ function mid_release_for() {
 
 	# Coping files
 	cp ./midconfig $_target_dir/
-	cp $version_file $_target_dir/
+	cp VERSION $_target_dir/
 	cp ./README.md $_target_dir/
 	cp -r ./templates $_target_midroot/
 	cp -r ./extensions $_target_midroot/
@@ -50,28 +47,28 @@ function mid_release_for() {
 	cp ./install.sh $_target_dir/install.sh
 	chmod +x $_target_dir/install.sh
 
-	# Targz or zip( for windows )
+	# Targz or zip (for windows)
 	if [[ "$_os" == "windows" ]]; then
 		zip -q $_target_dir.zip -r $_target_dir
-		mv $_target_dir.zip $released_dir/$_version/
+		mv $_target_dir.zip $RELEASE_DIR/$VERSION/
 	else
 		tar zcf $_target_dir.tar.gz $_target_dir
-		mv $_target_dir.tar.gz $released_dir/$_version/
+		mv $_target_dir.tar.gz $RELEASE_DIR/$VERSION/
 	fi
 	rm -rf $_target_dir 2> /dev/null
 }
 
-if [[ -d "$released_dir/$_version" ]]; then
-	rm -r $released_dir/$_version
+if [[ -d "$RELEASE_DIR/$VERSION" ]]; then
+	rm -r $RELEASE_DIR/$VERSION
 fi
-mkdir -p $released_dir/$version
+mkdir -p $RELEASED_DIR/$VERSION
 
-mid_release_for $version windows 386
-mid_release_for $version windows amd64
-mid_release_for $version windows arm64
-mid_release_for $version linux 386
-mid_release_for $version linux amd64
-mid_release_for $version linux arm64
-mid_release_for $version darwin amd64
-mid_release_for $version darwin arm64
-
+release_mid_for windows 386
+release_mid_for windows amd64
+release_mid_for windows arm64
+release_mid_for linux 386
+release_mid_for linux amd64
+release_mid_for linux arm64
+release_mid_for darwin 386
+release_mid_for darwin amd64
+release_mid_for darwin arm64
