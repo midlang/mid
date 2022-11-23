@@ -167,7 +167,7 @@ func (tag Tag) format(pairs []tagpair) string {
 
 func (tag Tag) skipLeadingSpace() Tag {
 	i := 0
-	for i < len(tag) && tag[i] == ' ' {
+	for i < len(tag) && (tag[i] == ' ' || tag[i] == '\t') {
 		i++
 	}
 	return tag[i:]
@@ -190,7 +190,7 @@ func (tag Tag) parse(key string) (pairs []tagpair, value string, index int) {
 			break
 		}
 		name := string(tag[:i])
-		tag = tag.skipLeadingSpace()
+		tag = (tag[i:]).skipLeadingSpace()
 		if tag[0] != ':' {
 			break
 		}
