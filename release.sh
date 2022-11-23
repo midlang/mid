@@ -61,7 +61,7 @@ function release_mid_for() {
 if [[ -d "$RELEASE_DIR/$VERSION" ]]; then
 	rm -r $RELEASE_DIR/$VERSION
 fi
-mkdir -p $RELEASED_DIR/$VERSION
+mkdir -p $RELEASE_DIR/$VERSION
 
 release_mid_for windows 386
 release_mid_for windows amd64
@@ -69,6 +69,5 @@ release_mid_for windows arm64
 release_mid_for linux 386
 release_mid_for linux amd64
 release_mid_for linux arm64
-release_mid_for darwin 386
 release_mid_for darwin amd64
 release_mid_for darwin arm64

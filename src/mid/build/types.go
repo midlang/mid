@@ -165,29 +165,39 @@ func (tag Tag) format(pairs []tagpair) string {
 	return buf.String()
 }
 
+func (tag Tag) skipLeadingSpace() Tag {
+	i := 0
+	for i < len(tag) && tag[i] == ' ' {
+		i++
+	}
+	return tag[i:]
+}
+
 func (tag Tag) parse(key string) (pairs []tagpair, value string, index int) {
 	pairs = make([]tagpair, 0)
 	index = -1
 	count := 0
 	for tag != "" {
-		// Skip leading space.
-		i := 0
-		for i < len(tag) && tag[i] == ' ' {
-			i++
-		}
-		tag = tag[i:]
+		tag = tag.skipLeadingSpace()
 		if tag == "" {
 			break
 		}
-		i = 0
+		i := 0
 		for i < len(tag) && tag[i] > ' ' && tag[i] != ':' && tag[i] != '"' && tag[i] != 0x7f {
 			i++
 		}
-		if i == 0 || i+1 >= len(tag) || tag[i] != ':' || tag[i+1] != '"' {
+		if i == 0 || i+1 >= len(tag) {
 			break
 		}
 		name := string(tag[:i])
-		tag = tag[i+1:]
+		tag = tag.skipLeadingSpace()
+		if tag[0] != ':' {
+			break
+		}
+		tag = (tag[1:]).skipLeadingSpace()
+		if tag[0] != '"' {
+			break
+		}
 
 		// Scan quoted string to find value.
 		i = 1

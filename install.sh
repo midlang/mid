@@ -21,7 +21,7 @@ done
 echo "Coping config file"
 cp ./midconfig $HOME/.midconfig
 
-echo "Coping templates and extensions"
+echo "Copying templates and extensions"
 midroot=$HOME/.mid
 if [[ -d "$midroot" ]]; then
 	rm -r $midroot
