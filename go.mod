@@ -3,7 +3,7 @@ module github.com/midlang/mid
 go 1.19
 
 require (
-	github.com/gopherd/log v0.1.12
+	github.com/gopherd/log v0.1.13
 	github.com/mkideal/cli v0.0.5
 	github.com/mkideal/pkg v0.0.0-20170503154153-3e188c9e7ecc
 	github.com/stretchr/testify v1.5.1

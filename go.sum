@@ -4,6 +4,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gopherd/log v0.1.12 h1:kkLRDH9MhEXtLiWc77jwisNhCQkNZWrgbtAzUIHopDc=
 github.com/gopherd/log v0.1.12/go.mod h1:gmYpBUEA6VpJUvyariz0aU4gT3Oqvu94nk45vx8W6uQ=
+github.com/gopherd/log v0.1.13 h1:R5HPt4lx9bToHl780BNaW60S2zgZZGTFGatdT/5pLHo=
+github.com/gopherd/log v0.1.13/go.mod h1:gmYpBUEA6VpJUvyariz0aU4gT3Oqvu94nk45vx8W6uQ=
 github.com/labstack/gommon v0.3.0 h1:JEeO0bvc78PKdyHxloTKiF8BD5iGrH8T6MSeGvSgob0=
 github.com/labstack/gommon v0.3.0/go.mod h1:MULnywXg0yavhxWKc+lOruYdAhDwPK9wf0OL7NoOu+k=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=

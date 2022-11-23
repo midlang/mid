@@ -1,5 +1,6 @@
 go
 cpp
 js
+ts
 protobuf
 csharp
