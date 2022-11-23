@@ -11,8 +11,7 @@ import (
 )
 
 func main() {
-	log.Start(log.WithLevel(log.LevelWarn))
-	defer log.Shutdown()
+	log.Start(log.WithSync(true), log.WithLevel(log.LevelWarn))
 
 	plugin, config, builder, err := build.ParseFlags()
 	log.If(err != nil).Fatal().

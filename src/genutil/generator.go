@@ -44,6 +44,22 @@ func nthOf(sep, s string, n int) string {
 	return values[(n%l+l)%l]
 }
 
+func includeTemplate(filename string, data interface{}) (string, error) {
+	if !filepath.IsAbs(filename) {
+		filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
+	}
+	_, temp, err := ParseTemplateFile(filename)
+	if err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	pwd := context.Pwd
+	context.Pwd, _ = filepath.Split(filename)
+	err = temp.Execute(&buf, data)
+	context.Pwd = pwd
+	return buf.String(), err
+}
+
 // Init initializes generator
 // NOTE: You MUST initialize generator before using generator
 //
@@ -71,21 +87,8 @@ func Init(
 		},
 		// include_template includes a template file with `data`
 		// NOTE: includeTemplate ignores meta header
-		"includeTemplate": func(filename string, data interface{}) (string, error) {
-			if !filepath.IsAbs(filename) {
-				filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
-			}
-			_, temp, err := ParseTemplateFile(filename)
-			if err != nil {
-				return "", err
-			}
-			var buf bytes.Buffer
-			pwd := context.Pwd
-			context.Pwd, _ = filepath.Split(filename)
-			err = temp.Execute(&buf, data)
-			context.Pwd = pwd
-			return buf.String(), err
-		},
+		"includeTemplate":  includeTemplate,
+		"include_template": includeTemplate,
 		// include includes a file
 		"include": func(filename string) (string, error) {
 			if !filepath.IsAbs(filename) {

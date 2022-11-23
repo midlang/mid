@@ -320,8 +320,6 @@ var root = &cli.Command{
 }
 
 func main() {
-	log.Start()
-	defer log.Shutdown()
 	err := root.Run(os.Args[1:])
 	log.If(err != nil).Error().
 		Error("error", err).
