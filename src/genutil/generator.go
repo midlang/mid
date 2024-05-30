@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -44,6 +46,94 @@ func nthOf(sep, s string, n int) string {
 	return values[(n%l+l)%l]
 }
 
+func parseInt(s string) (int64, error) {
+	return strconv.ParseInt(s, 0, 64)
+}
+
+func parseFloat(s string) (float64, error) {
+	return strconv.ParseFloat(s, 64)
+}
+
+func parseBool(s string) (bool, error) {
+	return strconv.ParseBool(s)
+}
+
+func toNumber(x any) float64 {
+	switch v := x.(type) {
+	case int:
+		return float64(v)
+	case int8:
+		return float64(v)
+	case int16:
+		return float64(v)
+	case int32:
+		return float64(v)
+	case int64:
+		return float64(v)
+	case uint:
+		return float64(v)
+	case uint8:
+		return float64(v)
+	case uint16:
+		return float64(v)
+	case uint32:
+		return float64(v)
+	case uint64:
+		return float64(v)
+	case float32:
+		return float64(v)
+	case float64:
+		return v
+	case bool:
+		if v {
+			return 1
+		}
+		return 0
+	case uintptr:
+		return float64(v)
+	default:
+		return math.NaN()
+	}
+}
+
+func toInt(x any) int64 {
+	switch v := x.(type) {
+	case int:
+		return int64(v)
+	case int8:
+		return int64(v)
+	case int16:
+		return int64(v)
+	case int32:
+		return int64(v)
+	case int64:
+		return v
+	case uint:
+		return int64(v)
+	case uint8:
+		return int64(v)
+	case uint16:
+		return int64(v)
+	case uint32:
+		return int64(v)
+	case uint64:
+		return int64(v)
+	case float32:
+		return int64(v)
+	case float64:
+		return int64(v)
+	case bool:
+		if v {
+			return 1
+		}
+		return 0
+	case uintptr:
+		return int64(v)
+	default:
+		return 0
+	}
+}
+
 func includeTemplate(filename string, data interface{}) (string, error) {
 	if !filepath.IsAbs(filename) {
 		filename = filepath.Join(context.Plugin.TemplatesDir, IncludesDir, filename)
@@ -79,6 +169,18 @@ func Init(
 
 		// context returns context
 		"context": func() *Context { return context },
+		"debug": func(format string, args ...interface{}) error {
+			log.Debug().Printf(format, args...)
+			return nil
+		},
+		"info": func(format string, args ...interface{}) error {
+			log.Info().Printf(format, args...)
+			return nil
+		},
+		"warn": func(format string, args ...interface{}) error {
+			log.Warn().Printf(format, args...)
+			return nil
+		},
 		// error print error log and returns an error
 		"error": func(format string, args ...interface{}) error {
 			err := fmt.Errorf(format, args...)
@@ -154,6 +256,23 @@ func Init(
 			}
 			return false
 		},
+		"toNumber":   toNumber,
+		"toInt":      toInt,
+		"parseInt":   parseInt,
+		"parseFloat": parseFloat,
+		"parseBool":  parseBool,
+		"lt": func(x, y any) bool {
+			return toNumber(x) < toNumber(y)
+		},
+		"le": func(x, y any) bool {
+			return toNumber(x) <= toNumber(y)
+		},
+		"gt": func(x, y any) bool {
+			return toNumber(x) > toNumber(y)
+		},
+		"ge": func(x, y any) bool {
+			return toNumber(x) >= toNumber(y)
+		},
 		"repeat":   func(count int, s string) string { return strings.Repeat(s, count) },
 		"replace":  func(old, new string, n int, s string) string { return strings.Replace(s, old, new, n) },
 		"splitN":   func(sep string, n int, s string) []string { return strings.SplitN(s, sep, n) },
@@ -187,6 +306,13 @@ func Init(
 		"trimSuffix": func(suffix string, s string) string { return strings.TrimSuffix(s, suffix) },
 		"underScore": func(s string) string { return namemapper.UnderScore(s) },
 		"upperCamel": func(s string) string { return namemapper.UpperCamel(s) },
+		"enumerate": func(begin, end int) []int {
+			var slice = make([]int, end-begin)
+			for i := 0; i < len(slice); i++ {
+				slice[i] = begin + i
+			}
+			return slice
+		},
 
 		// Logical functions
 
